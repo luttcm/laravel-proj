@@ -15,6 +15,7 @@ class AuthController extends Controller
 
     /**
      * Регистрация нового пользователя
+     * @param Request $request
      */
     public function register(Request $request)
     {
@@ -22,13 +23,15 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'nullable|string|in:user,admin',
+            'role' => 'nullable|string|in:user,admin,finance,redactor,manager',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
+            'created_at' => now(),
+            'updated_at' => now(),
             'role' => $validated['role'] ?? 'user',
         ]);
 
