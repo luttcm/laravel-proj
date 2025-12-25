@@ -18,7 +18,7 @@
         </div>
         
         <div class="login-container">
-            <h1 class="login-title">🚀</h1>
+            <img src="{{ asset('img/logo.png') }}" alt="Logo" class="me-2" style="height:55px; width: 55px;">
             <h1 class="login-title">Вход в систему</h1>
             
             @if ($errors->any())

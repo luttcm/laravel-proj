@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NewsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
@@ -12,10 +13,13 @@ Route::post('/auth', [AuthController::class, 'webLogin'])->name('auth.post');
 
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
-        return view('home');
+        return redirect()->route('news.index');
     })->name('home');
 
     Route::post('/logout', [AuthController::class, 'webLogout'])->name('logout');
+
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show');
 
     Route::middleware('role:admin,manager')->group(function () {
         Route::post('/users/delete', [UserController::class, 'delete'])->name('users.delete');
@@ -27,9 +31,21 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
     Route::post('/profile/avatar', [UserController::class, 'updateAvatar'])->name('profile.avatar');
-
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show');
-
     Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
+
+    Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+    Route::get('/news/{id}', [NewsController::class, 'show'])->name('news.show')->whereNumber('id');
+
+    Route::post('/news/{id}/like', [NewsController::class, 'toggleLike'])->name('news.like')->whereNumber('id');
+
+    Route::middleware('role:admin,redactor')->group(function () {
+        Route::get('/news/create', [NewsController::class, 'create'])->name('news.create');
+        Route::post('/news', [NewsController::class, 'store'])->name('news.store');
+    });
+
+    Route::middleware('role:admin,manager')->group(function () {
+        Route::get('/news/{id}/edit', [NewsController::class, 'edit'])->name('news.edit')->whereNumber('id');
+        Route::put('/news/{id}', [NewsController::class, 'update'])->name('news.update')->whereNumber('id');
+        Route::delete('/news/{id}', [NewsController::class, 'destroy'])->name('news.destroy')->whereNumber('id');
+    });
 });
