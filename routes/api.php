@@ -17,7 +17,7 @@ use App\Http\Controllers\AuthController;
 
 // Публичные маршруты (без аутентификации)
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/auth', [AuthController::class, 'auth']);
 
 // Защищённые маршруты (требуют JWT токен)
 Route::middleware('auth:api')->group(function () {

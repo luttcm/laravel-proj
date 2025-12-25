@@ -10,7 +10,7 @@ class AuthController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['auth', 'register', 'webLogin', 'webLogout', 'loginView']]);
     }
 
     /**
@@ -101,7 +101,7 @@ class AuthController extends Controller
      */
     public function loginView()
     {
-        return view('auth.login');
+        return view('auth.auth');
     }
 
     /**
@@ -114,13 +114,30 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (Auth::attempt($credentials)) {
+        $remember = $request->has('remember');
+        $rememberMinutes = (int) env('REMEMBER_ME_MINUTES', 43200); // 30 дней по умолчанию
+
+        if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
-            return redirect()->intended('/');
+            if ($remember) {
+                $user = Auth::user();
+                $token = $user->getRememberToken();
+                if (!$token) {
+                    $user->setRememberToken(Str::random(60));
+                    $user->save();
+                    $token = $user->getRememberToken();
+                }
+                cookie()->queue(cookie(
+                    Auth::getRecallerName(),
+                    $user->getAuthIdentifier().'|'.$token.'|'.$user->password,
+                    $rememberMinutes
+                ));
+            }
+            return redirect('/users');
         }
 
         return back()->withErrors([
-            'email' => 'Предоставленные учетные данные не соответствуют нашим записям.',
+            'email' => 'Неправильные введенные логин или пароль.',
         ])->onlyInput('email');
     }
 
@@ -132,6 +149,6 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        return redirect('/auth');
     }
 }

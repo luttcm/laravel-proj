@@ -65,5 +65,31 @@ class User extends Authenticatable implements JWTSubject
             'role' => $this->role,
         ];
     }
+
+    /**
+     * Связь с таблицей картинок (одна картинка на пользователя)
+     */
+    public function picture()
+    {
+        return $this->hasOne(\App\Models\Picture::class, 'entity_id')
+                    ->where('entity_type', 'user');
+    }
+
+    /**
+     * Получить путь к аватару пользователя, возвращает дефолт если нет
+     * Пути хранятся без ведущего слэша: 'avatars/classicAvatar.png' или 'storage/avatars/...'
+     */
+    public function getAvatarAttribute()
+    {
+        $pic = $this->picture()->first();
+        if ($pic && $pic->path) {
+            if (strpos($pic->path, 'storage/') === 0) {
+                return '/' . $pic->path;
+            }
+            return '/storage/' . $pic->path;
+        }
+
+        return '/storage/avatars/classicAvatar.png';
+    }
 }
 
