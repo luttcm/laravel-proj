@@ -29,7 +29,6 @@ class NewsController extends Controller
         $pictures = Picture::where('entity_type', 'news')->where('entity_id', $id)->get();
         $newsItem->load('author');
 
-        // Если AJAX запрос, вернуть JSON
         if (request()->wantsJson() || request()->expectsJson() || request()->ajax()) {
             $user = auth()->user();
             $canEdit = $user && in_array($user->role, ['admin', 'manager']);
