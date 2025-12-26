@@ -28,6 +28,27 @@ class NewsController extends Controller
         $newsItem = News::findOrFail($id);
         $pictures = Picture::where('entity_type', 'news')->where('entity_id', $id)->get();
         $newsItem->load('author');
+
+        if (request()->wantsJson() || request()->expectsJson() || request()->ajax()) {
+            $user = auth()->user();
+            $canEdit = $user && in_array($user->role, ['admin', 'manager']);
+            $canDelete = $user && in_array($user->role, ['admin', 'redactor', 'manager']);
+
+            return response()->json([
+                'id' => $newsItem->id,
+                'title' => $newsItem->title,
+                'content' => $newsItem->content,
+                'author' => $newsItem->author ? [
+                    'name' => $newsItem->author->name,
+                    'role' => $newsItem->author->role,
+                ] : null,
+                'created_at' => $newsItem->created_at,
+                'pictures' => $pictures->map(fn($p) => ['path' => asset($p->path)])->all(),
+                'canEdit' => $canEdit,
+                'canDelete' => $canDelete,
+            ]);
+        }
+
         return view('pages.news-detail', compact('newsItem', 'pictures'));
     }
 
@@ -104,6 +125,11 @@ class NewsController extends Controller
         $news = News::findOrFail($id);
         Picture::where('entity_type', 'news')->where('entity_id', $id)->delete();
         $news->delete();
+
+        if (request()->wantsJson() || request()->expectsJson() || request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Новость удалена']);
+        }
+
         return redirect()->route('news.index')->with('success', 'Новость удалена');
     }
 
