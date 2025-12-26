@@ -46,7 +46,7 @@
                         Читать дальше
                     </a>
 
-                    @if(auth()->user() && in_array(auth()->user()->role, ['admin','manager']))
+                    @if(auth()->user() && in_array(auth()->user()->role, ['admin','redactor']))
                         <a href="{{ route('news.edit', ['id' => $item->id]) }}" class="btn" style="padding: 6px 4px;">
                             Редактировать
                         </a>
