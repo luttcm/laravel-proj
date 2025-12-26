@@ -19,7 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'webLogout'])->name('logout');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show');
+    Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show')->whereNumber('id');
 
     Route::middleware('role:admin,manager')->group(function () {
         Route::post('/users/delete', [UserController::class, 'delete'])->name('users.delete');
