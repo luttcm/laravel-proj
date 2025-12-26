@@ -89,7 +89,7 @@ class NewsController extends Controller
             foreach ($request->file('images') as $file) {
                 $path = $file->store('news', 'public');
                 Picture::create([
-                    'path' => 'storage/' . $path,
+                    'path' => 'app/public/storage/' . $path,
                     'entity_type' => 'news',
                     'entity_id' => $news->id,
                 ]);

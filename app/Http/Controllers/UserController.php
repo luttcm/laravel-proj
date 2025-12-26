@@ -91,7 +91,7 @@ class UserController extends Controller
             ->delete();
 
         Picture::create([
-            'path' => 'storage/' . $path,
+            'path' => 'app/public/storage/' . $path,
             'entity_type' => 'user',
             'entity_id' => $user->id,
         ]);

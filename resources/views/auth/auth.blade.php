@@ -134,7 +134,7 @@ body {
         </div>
         
         <div class="login-container">
-            <img src="{{ asset('img/logo.png') }}" alt="Logo" class="me-2" style="height:55px; width: 55px;">
+            <img src="{{ asset('app/public/img/logo.png') }}" alt="Logo" class="me-2" style="height:55px; width: 55px;">
             <h1 class="login-title">Вход в систему</h1>
             
             @if ($errors->any())

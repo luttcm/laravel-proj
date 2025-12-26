@@ -25,7 +25,7 @@
                     <label class="form-label">Существующие картинки</label>
                     <div class="d-flex gap-2 flex-wrap">
                         @foreach($pictures as $p)
-                            <img src="http://localhost/{{ $p->path }}" style="width:120px;height:120px;object-fit:cover;border-radius:6px;">
+                            <img src="{{ asset($p->path) }}" style="width:120px;height:120px;object-fit:cover;border-radius:6px;">
                         @endforeach
 +                    </div>
                 </div>
