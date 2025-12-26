@@ -6,7 +6,7 @@
     <title>Вход в систему</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
-
+    <link rel="icon" href="{{ asset('/img/logo.png') }}" type="image/x-icon">
 </head>
 <body>
     <div class="login-wrapper">
@@ -16,7 +16,7 @@
         </div>
         
         <div class="login-container">
-            <img src="{{ asset('img/logo.png') }}" alt="Logo" class="me-2" style="height:55px; width: 55px;">
+            <img src="{{ asset('img/logo.png') }}" alt="Logo" class="login-logo">
             <h1 class="login-title">Вход в систему</h1>
             
             @if ($errors->any())

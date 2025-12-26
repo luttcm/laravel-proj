@@ -43,6 +43,15 @@
         box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
     }
 
+    .login-logo {
+        height: 70px;
+        width: 70px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 16px;
+    }
+
     .login-title {
         font-size: 18px;
         font-weight: 600;

@@ -27,7 +27,7 @@
                         @foreach($pictures as $p)
                             <img src="{{ asset($p->path) }}" style="width:120px;height:120px;object-fit:cover;border-radius:6px;">
                         @endforeach
-+                    </div>
+                    </div>
                 </div>
                 <button class="btn btn-primary">Сохранить</button>
             </form>
