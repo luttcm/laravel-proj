@@ -126,7 +126,7 @@ body {
 
                 <div class="news-card-footer news-actions">
                     <button class="btn js-like-button" data-url="{{ route('news.like', ['id' => $item->id]) }}" data-id="{{ $item->id }}" style="flex:1;">
-                        <img src="{{ asset('img/like.png') }}" alt="Logo" style="height:15px; width: 15px;">
+                        <img src="{{ asset('app/public/img/like.png') }}" alt="Logo" style="height:15px; width: 15px;">
                         <span class="js-like-count">{{ $item->reactions }}</span>
                     </button>
 

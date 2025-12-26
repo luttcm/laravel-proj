@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Calculator')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" href="{{ asset('img/logo.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ asset('app/public/img/logo.png') }}" type="image/x-icon">
     <style>
 body {
     padding-top: 70px;
@@ -204,7 +204,7 @@ ul.dropdown-menu.dropdown-menu-end.show {
         <div class="container">
             
             <a class="navbar-brand" href="{{ route('home') }}">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="me-2" style="height:55px; width: 55px;">
+                <img src="{{ asset('app/public/img/logo.png') }}" alt="Logo" class="me-2" style="height:55px; width: 55px;">
                 <b>PROTON</b>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
