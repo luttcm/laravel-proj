@@ -27,7 +27,7 @@
                     </li>
                     @if (auth()->user()->role === 'admin')
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Страница финансового директора</a>
+                        <a class="nav-link" href="{{ route('findirector') }}">Страница финансового директора</a>
                     </li>
                     @endif
                     <li class="nav-item">
