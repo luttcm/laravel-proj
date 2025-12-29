@@ -60,4 +60,7 @@ Route::middleware('auth', 'check.access')->group(function () {
     });
 
     // Страница менеджеров
+    Route::get('/managers', function () {
+        return view('pages.managers');
+    })->name('managers');
 });

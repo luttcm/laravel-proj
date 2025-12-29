@@ -23,7 +23,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Страница менеджеров</a>
+                        <a class="nav-link" href="{{ route('managers') }}">Страница менеджеров</a>
                     </li>
                     @if (auth()->user()->role === 'admin')
                     <li class="nav-item">
