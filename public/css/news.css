@@ -87,3 +87,8 @@ body {
 .news-add-btn:hover {
     background-color: #006ae6;
 }
+
+.continue-reading {
+    color: #4876aa;
+    cursor: pointer;
+}

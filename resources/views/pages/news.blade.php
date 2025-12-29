@@ -32,7 +32,7 @@
 
                 <div class="news-card-text">
                     <p class="news-text">
-                        {{ Illuminate\Support\Str::limit(strip_tags($item->content), 250) }}
+                        {{ Illuminate\Support\Str::limit(strip_tags($item->content), 235) }} <br> <b class="continue-reading">Читать далее...</b>
                     </p>
                 </div>
 
@@ -231,7 +231,7 @@
 
                     <div class="mt-4 pt-3 border-top">
                         <div class="d-flex gap-2 mb-3">
-                            <button class="btn btn-sm btn-outline-secondary js-modal-like" data-news-id="${newsId}">
+                            <button class="btn btn-sm js-modal-like" data-news-id="${newsId}">
                                 <img src="{{ asset('img/like.png') }}" alt="Like" style="height:15px; width:15px;">
                                 <span class="js-modal-like-count">${data.reactions || 0}</span>
                             </button>
@@ -272,7 +272,6 @@
                 modalFooter.innerHTML = '';
                 newsModal.show();
 
-                // Обработчик лайка в попапе
                 const modalLikeBtn = document.querySelector('.js-modal-like');
                 if (modalLikeBtn) {
                     modalLikeBtn.addEventListener('click', function(e) {
@@ -307,7 +306,6 @@
                     });
                 }
 
-                // Обработчик удаления комментариев
                 document.querySelectorAll('.js-delete-comment').forEach(btn => {
                     btn.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -334,7 +332,6 @@
                     });
                 });
 
-                // Обработчик формы комментариев
                 const commentForm = document.getElementById('commentForm');
                 const commentInput = document.getElementById('commentInput');
                 const commentStatus = document.getElementById('commentStatus');
@@ -389,10 +386,9 @@
                         }
 
                         commentInput.value = '';
-                        commentStatus.textContent = '✓ Комментарий добавлен';
+                        commentStatus.textContent = 'Комментарий добавлен';
                         setTimeout(() => { commentStatus.textContent = ''; }, 2000);
 
-                        // Переприсвоить обработчик удаления для нового комментария
                         const newDeleteBtn = commentsList.querySelector(`[data-comment-id="${comment.id}"] .js-delete-comment`);
                         if (newDeleteBtn) {
                             newDeleteBtn.addEventListener('click', function(e) {
@@ -422,7 +418,7 @@
                     })
                     .catch(err => {
                         console.error(err);
-                        commentStatus.textContent = '✗ Ошибка: ' + err.message;
+                        commentStatus.textContent = 'Ошибка: ' + err.message;
                         setTimeout(() => { commentStatus.textContent = ''; }, 3000);
                     })
                     .finally(() => {
