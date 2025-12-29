@@ -121,8 +121,29 @@
         let currentPictures = [];
 
         document.addEventListener('click', function (e) {
+            // Сначала проверяем картинки, чтобы не открывать новость при клике на картинку
+            const pictureWrapper = e.target.closest('.js-picture-open');
+            if (pictureWrapper) {
+                e.stopPropagation();
+                e.preventDefault();
+
+                currentPictures = Array.from(document.querySelectorAll('.js-picture-open'))
+                    .map(pic => pic.dataset.image);
+                
+                const clickedSrc = pictureWrapper.dataset.image;
+                currentPictureIndex = currentPictures.indexOf(clickedSrc);
+                
+                document.getElementById('pictureModalImage').src = clickedSrc;
+                document.getElementById('pictureCounter').textContent = currentPictureIndex + 1;
+                document.getElementById('pictureTotal').textContent = currentPictures.length;
+                
+                updatePictureNavButtons();
+                pictureModal.show();
+                return;
+            }
+
             const newsCard = e.target.closest('.js-news-card');
-            if (newsCard && !e.target.closest('button, a')) {
+            if (newsCard && !e.target.closest('button, a, .js-picture-open')) {
                 const newsId = newsCard.dataset.id;
                 loadNewsDetail(newsId, csrf, newsModal);
                 return;
@@ -219,28 +240,6 @@
                     console.error(err);
                     alert('Ошибка удаления: ' + err.message);
                 });
-                return;
-            }
-
-            const pictureWrapper = e.target.closest('.js-picture-open');
-            if (pictureWrapper) {
-                e.stopPropagation();
-                e.preventDefault();
-
-                currentPictures = Array.from(document.querySelectorAll('.js-picture-open'))
-                    .map(pic => pic.dataset.image);
-                
-                const clickedSrc = pictureWrapper.dataset.image;
-                currentPictureIndex = currentPictures.indexOf(clickedSrc);
-                
-                document.getElementById('pictureModalImage').src = clickedSrc;
-                
-                document.getElementById('pictureCounter').textContent = currentPictureIndex + 1;
-                document.getElementById('pictureTotal').textContent = currentPictures.length;
-                
-                updatePictureNavButtons();
-                
-                pictureModal.show();
                 return;
             }
         });
@@ -539,6 +538,7 @@
             }
         });
     });
+    </script>
 
     <style>
         .news-picture-wrapper {
