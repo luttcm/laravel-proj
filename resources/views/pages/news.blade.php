@@ -32,7 +32,12 @@
 
                 <div class="news-card-text">
                     <p class="news-text">
-                        {{ Illuminate\Support\Str::limit(strip_tags($item->content), 235) }} <br> <b class="continue-reading">Читать далее...</b>
+                        @if(strlen(strip_tags($item->content)) > 235)
+                            {{ Illuminate\Support\Str::limit(strip_tags($item->content), 235, '') }}
+                            <br> <b class="continue-reading">Читать далее...</b>
+                        @else
+                            {{ strip_tags($item->content) }}
+                        @endif
                     </p>
                 </div>
 
