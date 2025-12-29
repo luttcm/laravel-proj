@@ -32,6 +32,8 @@ class NewsController extends Controller
         $newsItem->load('author');
         $comments = Comment::where('news_id', $id)->with('user')->latest()->get();
 
+        $reactions = (int)($newsItem->reactions ?? 0);
+
         if (request()->wantsJson() || request()->expectsJson() || request()->ajax()) {
             $user = auth()->user();
             $canEdit = $user && in_array($user->role, ['admin', 'manager']);
@@ -41,6 +43,7 @@ class NewsController extends Controller
                 'id' => $newsItem->id,
                 'title' => $newsItem->title,
                 'content' => $newsItem->content,
+                'reactions' => $reactions,
                 'author' => $newsItem->author ? [
                     'name' => $newsItem->author->name,
                     'role' => $newsItem->author->role,
