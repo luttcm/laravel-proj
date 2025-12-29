@@ -9,7 +9,7 @@
             <h2>Пользователи</h2>
         </div>
         <div class="col-md-4 text-end">
-            @if(auth()->user()->role === 'admin')
+            @if(in_array(auth()->user()->role, ['admin', 'manager']))
                 <a href="{{ route('user.add') }}" class="btn btn-primary">+ Добавить пользователя</a>
             @endif
         </div>
@@ -43,7 +43,7 @@
                             @php
                                 $roleNames = [
                                     'admin' => 'Администратор',
-                                    'manager' => 'Менеджер',
+                                    'manager' => 'Модератор',
                                     'redactor' => 'Редактор',
                                     'finance' => 'Финансовый директор',
                                     'user' => 'Пользователь',

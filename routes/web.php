@@ -58,4 +58,9 @@ Route::middleware('auth', 'check.access')->group(function () {
         Route::put('/news/{id}', [NewsController::class, 'update'])->name('news.update')->whereNumber('id');
         Route::delete('/news/{id}', [NewsController::class, 'destroy'])->name('news.destroy')->whereNumber('id');
     });
+
+    // Страница менеджеров
+    Route::get('/managers', function () {
+        return view('pages.managers');
+    })->name('managers');
 });
