@@ -63,4 +63,9 @@ Route::middleware('auth', 'check.access')->group(function () {
     Route::get('/managers', function () {
         return view('pages.managers');
     })->name('managers');
+
+    // Страница финансового директора
+    Route::get('/findirector', function () {
+        return view('pages.findirector');
+    })->name('findirector');
 });
