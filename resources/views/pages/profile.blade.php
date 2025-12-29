@@ -3,6 +3,16 @@
 @section('title', auth()->user()->name)
 
 @section('content')
+@php
+$roleNames = [
+    'admin' => 'Администратор',
+    'manager' => 'Модератор',
+    'redactor' => 'Редактор',
+    'finance' => 'Финансовый директор',
+    'user' => 'Пользователь',
+];
+$displayName = $roleNames[$user->role] ?? ucfirst($user->role);
+@endphp
 <div class="container" style="max-width: 600px;">
     <div style="padding: 12px 0;">
         @if(session('success'))
@@ -35,7 +45,8 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label" style="font-weight: 500;">Роль</label>
-                    <input type="text" class="form-control" value="{{ $user->role ?? 'user' }}" readonly disabled style="background-color: #f9f9f9;">
+                    <input type="text" class="form-control" value="{{ $displayName }}" readonly disabled style="background-color: #f9f9f9;">
+                    <input type="hidden" value="{{ $user->role }}">
                 </div>
                 <button type="submit" class="btn btn-primary w-100" style="border-radius: 6px;">Сохранить изменения</button>
             </form>
