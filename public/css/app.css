@@ -49,6 +49,15 @@ ul.dropdown-menu.dropdown-menu-end.show {
     border-radius: 4px;
     transition: background-color 0.2s ease;
 }
+li.nav-item.dropdown {
+    text-align: center;
+    min-width: 170px;
+}
+
+ul.dropdown-menu.dropdown-menu-end.show {
+    min-width: 170px;
+    width: 100%;
+}
 
 .profile-card {
     background-color: #fff;
