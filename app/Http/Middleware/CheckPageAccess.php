@@ -42,6 +42,12 @@ class CheckPageAccess
             }
         }
 
+                if (strpos($path, 'variables') === 0) {
+            if (!in_array($userRole, ['admin', 'manager'])) {
+                return redirect()->route('news.index')->with('error', 'У вас нет прав доступа к этой странице');
+            }
+        }
+
         return $next($request);
     }
 }
