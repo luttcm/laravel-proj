@@ -31,7 +31,17 @@
                             <label class="form-label">Роль</label>
                             <select name="role" class="form-select">
                                 @foreach($roles as $r)
-                                    <option value="{{ $r }}" @if(old('role', $user->role) == $r) selected @endif>{{ $r }}</option>
+                                    @php
+                                        $roleNames = [
+                                            'admin' => 'Администратор',
+                                            'manager' => 'Менеджер',
+                                            'redactor' => 'Редактор',
+                                            'finance' => 'Финансовый директор',
+                                            'user' => 'Пользователь',
+                                        ];
+                                        $displayName = $roleNames[$r] ?? ucfirst($r);
+                                    @endphp
+                                    <option value="{{ $r }}" @if(old('role', $user->role) == $r) selected @endif>{{ $displayName }}</option>
                                 @endforeach
                             </select>
                         </div>

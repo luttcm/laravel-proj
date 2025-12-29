@@ -23,8 +23,18 @@
                 </div>
                 <div class="col-md-6">
                     <p>
+                        @php
+                                $roleNames = [
+                                    'admin' => 'Администратор',
+                                    'manager' => 'Менеджер',
+                                    'redactor' => 'Редактор',
+                                    'finance' => 'Финансовый директор',
+                                    'user' => 'Пользователь',
+                                ];
+                                $displayName = $roleNames[$user->role] ?? ucfirst($user->role);
+                            @endphp
                         <strong>Роль:</strong><br>
-                        <span class="badge bg-info">{{ $user->role ?? 'user' }}</span>
+                        <span class="badge bg-info">{{ $displayName ?? 'user' }}</span>
                     </p>
                 </div>
             </div>
