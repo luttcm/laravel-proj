@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\VariableController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
@@ -18,6 +19,7 @@ Route::middleware('auth', 'check.access')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'webLogout'])->name('logout');
 
+    //Пользователи
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show')->whereNumber('id');
 
@@ -27,17 +29,25 @@ Route::middleware('auth', 'check.access')->group(function () {
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
+
+        //Переменные
+        Route::get('/variables', [VariableController::class, 'index'])->name('variables.index');
+        Route::get('/variables/add', [VariableController::class, 'add'])->name('variable.add');
+        Route::post('/variables', [VariableController::class, 'store'])->name('variables.store');
+        Route::get('/variables/{id}/edit', [VariableController::class, 'edit'])->name('variable.edit')->whereNumber('id');
+        Route::put('/variables/{id}', [VariableController::class, 'update'])->name('variable.update')->whereNumber('id');
+        Route::post('/variables/{id}/delete', [VariableController::class, 'delete'])->name('variable.delete')->whereNumber('id');
     });
 
+    // Профиль
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
     Route::post('/profile/avatar', [UserController::class, 'updateAvatar'])->name('profile.avatar');
     Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
 
+    // Новости
     Route::get('/news', [NewsController::class, 'index'])->name('news.index');
     Route::get('/news/{id}', [NewsController::class, 'show'])->name('news.show')->whereNumber('id');
-
     Route::post('/news/{id}/like', [NewsController::class, 'toggleLike'])->name('news.like')->whereNumber('id');
-
     Route::post('/news/{newsId}/comments', [NewsController::class, 'storeComment'])->name('news.comments.store')->whereNumber('newsId');
     Route::delete('/news/{newsId}/comments/{commentId}', [NewsController::class, 'deleteComment'])->name('news.comments.delete')->whereNumber('newsId')->whereNumber('commentId');
 

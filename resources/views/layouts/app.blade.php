@@ -48,6 +48,10 @@
                                     <li>
                                         <a class="dropdown-item" href="{{ route('users.index') }}">Пользователи</a>
                                     </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('variables.index') }}">Переменные</a>         
+                                    </li>
                                 @endif
 
                                 @if(auth()->user() && in_array(auth()->user()->role, ['admin','redactor']))

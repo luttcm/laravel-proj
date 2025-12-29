@@ -40,7 +40,17 @@
                         <td>{{ $user->name }}</td>
                         <td>{{ $user->email }}</td>
                         <td>
-                            <span class="badge bg-info">{{ ucfirst($user->role) }}</span>
+                            @php
+                                $roleNames = [
+                                    'admin' => 'Администратор',
+                                    'manager' => 'Менеджер',
+                                    'redactor' => 'Редактор',
+                                    'finance' => 'Финансовый директор',
+                                    'user' => 'Пользователь',
+                                ];
+                                $displayName = $roleNames[$user->role] ?? ucfirst($user->role);
+                            @endphp
+                            <span class="badge bg-info">{{ $displayName }}</span>
                         </td>
                         <td>
                             <a href="{{ route('users.show', $user->id) }}" class="btn btn-sm btn-outline-primary">

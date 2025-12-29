@@ -48,8 +48,18 @@
                                     id="role" name="role" required>
                                 <option value="">Выберите роль</option>
                                 @foreach($roles as $role)
+                                    @php
+                                        $roleNames = [
+                                            'admin' => 'Администратор',
+                                            'manager' => 'Менеджер',
+                                            'redactor' => 'Редактор',
+                                            'finance' => 'Финансовый директор',
+                                            'user' => 'Пользователь',
+                                        ];
+                                        $displayName = $roleNames[$role] ?? ucfirst($role);
+                                    @endphp
                                     <option value="{{ $role }}" {{ old('role') === $role ? 'selected' : '' }}>
-                                        {{ ucfirst($role) }}
+                                        {{ $displayName }}
                                     </option>
                                 @endforeach
                             </select>
