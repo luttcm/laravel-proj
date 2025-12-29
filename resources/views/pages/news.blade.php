@@ -22,7 +22,7 @@
                 
                 @if($item->firstPicture)
                     <div class="news-image-container">
-                        <img src="{{ asset($item->firstPicture->path) }}" class="news-image">
+                        <img src="{{ asset($item->firstPicture->path) }}" class="news-image js-picture-open" data-image="{{ asset($item->firstPicture->path) }}">
                     </div>
                 @endif
 
@@ -89,10 +89,36 @@
     </div>
 </div>
 
+<div class="modal fade" id="pictureModal" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content" style="background-color: rgba(0,0,0,0.9);">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
+                <div style="color: #fff; font-size: 0.9rem;"><span id="pictureCounter">1</span> / <span id="pictureTotal">1</span></div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body d-flex align-items-center justify-content-center" style="min-height: 90vh; position: relative;">
+                <button id="prevPictureBtn" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; align-items: center; justify-content: center; transition: all 0.3s ease;" class="d-flex" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                    ‹
+                </button>
+
+                <img id="pictureModalImage" src="" alt="" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+
+                <button id="nextPictureBtn" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; align-items: center; justify-content: center; transition: all 0.3s ease;" class="d-flex" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                    ›
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const newsModal = new bootstrap.Modal(document.getElementById('newsModal'));
+        const pictureModal = new bootstrap.Modal(document.getElementById('pictureModal'));
+        
+        let currentPictureIndex = 0;
+        let currentPictures = [];
 
         document.addEventListener('click', function (e) {
             const newsCard = e.target.closest('.js-news-card');
@@ -195,6 +221,28 @@
                 });
                 return;
             }
+
+            const pictureWrapper = e.target.closest('.js-picture-open');
+            if (pictureWrapper) {
+                e.stopPropagation();
+                e.preventDefault();
+
+                currentPictures = Array.from(document.querySelectorAll('.js-picture-open'))
+                    .map(pic => pic.dataset.image);
+                
+                const clickedSrc = pictureWrapper.dataset.image;
+                currentPictureIndex = currentPictures.indexOf(clickedSrc);
+                
+                document.getElementById('pictureModalImage').src = clickedSrc;
+                
+                document.getElementById('pictureCounter').textContent = currentPictureIndex + 1;
+                document.getElementById('pictureTotal').textContent = currentPictures.length;
+                
+                updatePictureNavButtons();
+                
+                pictureModal.show();
+                return;
+            }
         });
 
         function loadNewsDetail(newsId, csrf, newsModal) {
@@ -223,10 +271,12 @@
                     </p>
                     ${data.pictures && data.pictures.length ? `
                         <div class="mb-3">
-                            <div class="row g-2">
+                            <div class="row g-3">
                                 ${data.pictures.map(pic => `
                                     <div class="col-md-4">
-                                        <img src="${pic.path}" class="img-fluid rounded" style="height:150px; object-fit:cover;" alt="">
+                                        <div style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.08); transition: all 0.2s; cursor: pointer;" class="news-picture-wrapper js-picture-open" data-image="${pic.path}">
+                                            <img src="${pic.path}" class="img-fluid" style="height:150px; width:100%; object-fit:cover; display:block;" alt="">
+                                        </div>
                                     </div>
                                 `).join('')}
                             </div>
@@ -437,7 +487,76 @@
                 newsModal.show();
             });
         }
+
+        function updatePictureNavButtons() {
+            const prevBtn = document.getElementById('prevPictureBtn');
+            const nextBtn = document.getElementById('nextPictureBtn');
+
+            prevBtn.style.opacity = currentPictureIndex === 0 ? '0.3' : '0.7';
+            prevBtn.style.pointerEvents = currentPictureIndex === 0 ? 'none' : 'auto';
+            
+            nextBtn.style.opacity = currentPictureIndex === currentPictures.length - 1 ? '0.3' : '0.7';
+            nextBtn.style.pointerEvents = currentPictureIndex === currentPictures.length - 1 ? 'none' : 'auto';
+        }
+
+        function showPictureByIndex(index) {
+            if (index >= 0 && index < currentPictures.length) {
+                currentPictureIndex = index;
+                document.getElementById('pictureModalImage').src = currentPictures[index];
+                document.getElementById('pictureCounter').textContent = currentPictureIndex + 1;
+                updatePictureNavButtons();
+            }
+        }
+
+        document.getElementById('prevPictureBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (currentPictureIndex > 0) {
+                showPictureByIndex(currentPictureIndex - 1);
+            }
+        });
+
+        document.getElementById('nextPictureBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (currentPictureIndex < currentPictures.length - 1) {
+                showPictureByIndex(currentPictureIndex + 1);
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            const modal = document.getElementById('pictureModal');
+            if (modal && modal.classList.contains('show')) {
+                if (e.key === 'ArrowLeft') {
+                    if (currentPictureIndex > 0) {
+                        showPictureByIndex(currentPictureIndex - 1);
+                    }
+                } else if (e.key === 'ArrowRight') {
+                    if (currentPictureIndex < currentPictures.length - 1) {
+                        showPictureByIndex(currentPictureIndex + 1);
+                    }
+                }
+            }
+        });
     });
-    </script>
+
+    <style>
+        .news-picture-wrapper {
+            cursor: pointer;
+        }
+
+        .news-picture-wrapper:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .news-picture-wrapper img {
+            transition: transform 0.2s;
+        }
+
+        .news-picture-wrapper:hover img {
+            transform: scale(1.02);
+        }
+    </style>
 
     @endsection
