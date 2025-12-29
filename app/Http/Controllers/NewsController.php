@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\News;
 use App\Models\Picture;
+use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -12,12 +13,13 @@ class NewsController extends Controller
 {
     public function index()
     {
-        $news = News::orderBy('created_at', 'desc')->get();
+        $news = News::with('comments')->orderBy('created_at', 'desc')->get();
 
         foreach ($news as $n) {
             $n->firstPicture = Picture::where('entity_type', 'news')
                 ->where('entity_id', $n->id)
                 ->first();
+            $n->comments_count = $n->comments->count();
         }
 
         return view('pages.news', compact('news'));
@@ -28,6 +30,7 @@ class NewsController extends Controller
         $newsItem = News::findOrFail($id);
         $pictures = Picture::where('entity_type', 'news')->where('entity_id', $id)->get();
         $newsItem->load('author');
+        $comments = Comment::where('news_id', $id)->with('user')->latest()->get();
 
         if (request()->wantsJson() || request()->expectsJson() || request()->ajax()) {
             $user = auth()->user();
@@ -44,6 +47,16 @@ class NewsController extends Controller
                 ] : null,
                 'created_at' => $newsItem->created_at,
                 'pictures' => $pictures->map(fn($p) => ['path' => asset($p->path)])->all(),
+                'comments' => $comments->map(fn($c) => [
+                    'id' => $c->id,
+                    'content' => $c->content,
+                    'user' => [
+                        'id' => $c->user->id,
+                        'name' => $c->user->name,
+                    ],
+                    'created_at' => $c->created_at->format('Y-m-d H:i'),
+                    'canDelete' => $user && ($user->id === $c->user_id || in_array($user->role, ['admin', 'redactor'])),
+                ])->all(),
                 'canEdit' => $canEdit,
                 'canDelete' => $canDelete,
             ]);
@@ -158,6 +171,64 @@ class NewsController extends Controller
                 'reactions' => $news->reactions,
                 'liked' => $isLiked,
             ]);
+        }
+
+        return redirect()->back();
+    }
+
+    public function storeComment(Request $request, $newsId)
+    {
+        $news = News::findOrFail($newsId);
+        
+        try {
+            $validated = $request->validate([
+                'content' => 'required|string|max:500',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['errors' => $e->errors()], 422);
+            }
+            throw $e;
+        }
+
+        $comment = Comment::create([
+            'news_id' => $newsId,
+            'user_id' => auth()->id(),
+            'content' => $validated['content'],
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'id' => $comment->id,
+                'content' => $comment->content,
+                'user' => [
+                    'id' => $comment->user->id,
+                    'name' => $comment->user->name,
+                ],
+                'created_at' => $comment->created_at->format('Y-m-d H:i'),
+                'canDelete' => true,
+            ]);
+        }
+
+        return redirect()->back();
+    }
+
+    public function deleteComment($newsId, $commentId)
+    {
+        $comment = Comment::findOrFail($commentId);
+
+        if ($comment->news_id != $newsId) {
+            abort(404);
+        }
+        $user = auth()->user();
+        if ($user->id !== $comment->user_id && !in_array($user->role, ['admin', 'redactor'])) {
+            abort(403);
+        }
+
+        $comment->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
         }
 
         return redirect()->back();

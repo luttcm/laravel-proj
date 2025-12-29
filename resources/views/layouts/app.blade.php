@@ -43,15 +43,15 @@
                                 <a class="dropdown-item" href="{{ route('profile') }}">Профиль</a>
                             </li>
                             @if(auth()->user() && in_array(auth()->user()->role, ['admin','redactor', 'manager']))
-                                <li><hr class="dropdown-divider"></li>
                                 @if(auth()->user() && in_array(auth()->user()->role, ['admin','manager']))
+                                    <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <a class="dropdown-item" href="{{ route('users.index') }}">Пользователи</a>
                                     </li>
-                                    <li><hr class="dropdown-divider"></li>
                                 @endif
 
                                 @if(auth()->user() && in_array(auth()->user()->role, ['admin','redactor']))
+                                    <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <a class="dropdown-item" href="{{ route('news.create') }}">Добавить новость</a>
                                     </li>
