@@ -111,14 +111,12 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body d-flex align-items-center justify-content-center" style="min-height: 90vh; position: relative;">
-                <button id="prevPictureBtn" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; align-items: center; justify-content: center; transition: all 0.3s ease;" class="d-flex" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                    ‹
+                <button id="prevPictureBtn" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.0); border: none; color: white; width: 37.9%; height:100%; border-radius: 0%; font-size: 24px; cursor: pointer; align-items: center; justify-content: center; transition: all 0.3s ease;" class="d-flex" onmouseover="this.style.background='rgba(255,255,255,0.0)'" onmouseout="this.style.background='rgba(255,255,255,0.0)'">
                 </button>
 
                 <img id="pictureModalImage" src="" alt="" style="max-width: 100%; max-height: 100%; object-fit: contain;">
 
-                <button id="nextPictureBtn" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; align-items: center; justify-content: center; transition: all 0.3s ease;" class="d-flex" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                    ›
+                <button id="nextPictureBtn" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.0); border: none; color: white; width:60%; height:100%; border-radius: 0%; font-size: 24px; cursor: pointer; align-items: center; justify-content: center; transition: all 0.3s ease;" class="d-flex" onmouseover="this.style.background='rgba(255,255,255,0.0)'" onmouseout="this.style.background='rgba(255,255,255,0.0)'">
                 </button>
             </div>
         </div>

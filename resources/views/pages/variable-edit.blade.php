@@ -48,6 +48,15 @@
                             </select>
                         </div>
 
+
+                        <div class="mb-3">
+                            <label class="form-label">Тип таблицы</label>
+                            <select name="table_type" class="form-select">
+                                <option value="company" @if(old('table_type', $variable->table_type) == 'company') selected @endif>Переменные компании</option>
+                                <option value="fnc" @if(old('table_type', $variable->table_type) == 'fnc') selected @endif>Переменные для ФНС</option>
+                            </select>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">Значение</label>
                             <input type="text" name="value" class="form-control" value="{{ old('value', $variable->value) }}" required>
