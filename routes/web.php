@@ -12,7 +12,7 @@ Route::get('/auth', function () {
 
 Route::post('/auth', [AuthController::class, 'webLogin'])->name('auth.post');
 
-Route::middleware('auth', 'check.access')->group(function () {
+Route::middleware(['auth', 'check.access'])->group(function () {
     Route::get('/', function () {
         return redirect()->route('news.index');
     })->name('home');
