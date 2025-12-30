@@ -55,6 +55,18 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
+                        <div class="mb-3">
+                            <label for="table_type" class="form-label">Тип таблицы</label>
+                            <select class="form-control @error('table_type') is-invalid @enderror" 
+                                   id="table_type" name="table_type" required>
+                                    <option value="company" {{ old('table_type') === 'company' ? 'selected' : '' }}>Переменные компании</option>
+                                    <option value="fnc" {{ old('table_type') === 'fnc' ? 'selected' : '' }}>Переменные для ФНС</option>
+                            </select>
+                            @error('table_type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                         
                         <div class="mb-3">
                             <label for="value" class="form-label">Значение</label>

@@ -13,5 +13,6 @@ class Variable extends Model
         "name",
         "type",
         "value",
+        "table_type",
     ];
 }

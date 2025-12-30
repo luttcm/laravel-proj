@@ -16,9 +16,13 @@ class NewsController extends Controller
         $news = News::with('comments')->orderBy('created_at', 'desc')->get();
 
         foreach ($news as $n) {
-            $n->firstPicture = Picture::where('entity_type', 'news')
+            $n->pictures = Picture::where('entity_type', 'news')
                 ->where('entity_id', $n->id)
-                ->first();
+                ->limit(9)
+                ->get()
+                ->map(fn($p) => asset($p->path));
+            
+            $n->firstPicture = $n->pictures->first();
             $n->comments_count = $n->comments->count();
         }
 
@@ -28,7 +32,10 @@ class NewsController extends Controller
     public function show($id)
     {
         $newsItem = News::findOrFail($id);
-        $pictures = Picture::where('entity_type', 'news')->where('entity_id', $id)->get();
+        $pictures = Picture::where('entity_type', 'news')
+            ->where('entity_id', $id)
+            ->limit(9)
+            ->get();
         $newsItem->load('author');
         $comments = Comment::where('news_id', $id)->with('user')->latest()->get();
 
@@ -78,7 +85,10 @@ class NewsController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
+            'images' => 'nullable|array|max:9',
             'images.*' => 'nullable|image|max:4096',
+        ], [
+            'images.max' => 'Максимум 9 картинок в новости',
         ]);
 
         $news = News::create([
@@ -88,18 +98,29 @@ class NewsController extends Controller
             'reactions' => 0,
         ]);
 
+        $message = 'Новость добавлена';
         if ($request->hasFile('images')) {
+            $imageCount = 0;
+            $skipped = 0;
             foreach ($request->file('images') as $file) {
+                if ($imageCount >= 9) {
+                    $skipped++;
+                    continue;
+                }
                 $path = $file->store('news', 'public');
                 Picture::create([
                     'path' => 'storage/' . $path,
                     'entity_type' => 'news',
                     'entity_id' => $news->id,
                 ]);
+                $imageCount++;
+            }
+            if ($skipped > 0) {
+                $message .= " ({$skipped} картинок пропущено - максимум 9)";
             }
         }
 
-        return redirect()->route('news.index')->with('success', 'Новость добавлена');
+        return redirect()->route('news.index')->with('success', $message);
     }
 
     public function edit($id)
@@ -114,7 +135,10 @@ class NewsController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
+            'images' => 'nullable|array|max:9',
             'images.*' => 'nullable|image|max:4096',
+        ], [
+            'images.max' => 'Максимум 9 картинок в новости',
         ]);
 
         $news = News::findOrFail($id);
@@ -123,13 +147,19 @@ class NewsController extends Controller
         $news->save();
 
         if ($request->hasFile('images')) {
+            $existingCount = Picture::where('entity_type', 'news')->where('entity_id', $news->id)->count();
+            $canAdd = 9 - $existingCount;
+
+            $imageCount = 0;
             foreach ($request->file('images') as $file) {
+                if ($imageCount >= $canAdd) break;
                 $path = $file->store('news', 'public');
                 Picture::create([
                     'path' => 'storage/' . $path,
                     'entity_type' => 'news',
                     'entity_id' => $news->id,
                 ]);
+                $imageCount++;
             }
         }
 
@@ -214,6 +244,34 @@ class NewsController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    public function deletePicture($pictureId)
+    {
+        $picture = Picture::findOrFail($pictureId);
+        
+        if ($picture->entity_type !== 'news') {
+            abort(403);
+        }
+
+        $user = auth()->user();
+        $news = News::findOrFail($picture->entity_id);
+        
+        if ($user->id !== $news->author_id && !in_array($user->role, ['admin', 'redactor'])) {
+            abort(403);
+        }
+
+        if (Storage::disk('public')->exists(str_replace('storage/', '', $picture->path))) {
+            Storage::disk('public')->delete(str_replace('storage/', '', $picture->path));
+        }
+
+        $picture->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->back()->with('success', 'Картинка удалена');
     }
 
     public function deleteComment($newsId, $commentId)
