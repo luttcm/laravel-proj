@@ -28,7 +28,7 @@
                             elseif ($picCount === 2) $colClass = 'col-6';
                             else $colClass = 'col-4';
                         @endphp
-                        <div class="row g-2" style="aspect-ratio: auto;">
+                        <div class="row g-2">
                             @foreach($item->pictures as $pic)
                                 <div class="{{ $colClass }}">
                                     <div style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.08); transition: all 0.2s; cursor: pointer; aspect-ratio: 1;" class="news-picture-wrapper js-picture-open" data-image="{{ $pic }}">
@@ -303,7 +303,7 @@
                     </p>
                     ${data.pictures && data.pictures.length ? `
                         <div class="mb-3">
-                            <div class="row g-2" style="aspect-ratio: auto;">
+                            <div class="row g-2">
                                 ${data.pictures.map(pic => `
                                     <div class="${colClass}">
                                         <div style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.08); transition: all 0.2s; cursor: pointer; aspect-ratio: 1;" class="news-picture-wrapper js-picture-open" data-image="${pic.path}">
