@@ -250,7 +250,6 @@ class NewsController extends Controller
     {
         $picture = Picture::findOrFail($pictureId);
         
-        // Проверяем что это картинка новости
         if ($picture->entity_type !== 'news') {
             abort(403);
         }
@@ -258,12 +257,10 @@ class NewsController extends Controller
         $user = auth()->user();
         $news = News::findOrFail($picture->entity_id);
         
-        // Только автор, админ или редактор могут удалять картинки
         if ($user->id !== $news->author_id && !in_array($user->role, ['admin', 'redactor'])) {
             abort(403);
         }
 
-        // Удаляем файл если нужно
         if (Storage::disk('public')->exists(str_replace('storage/', '', $picture->path))) {
             Storage::disk('public')->delete(str_replace('storage/', '', $picture->path));
         }
