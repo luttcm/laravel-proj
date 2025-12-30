@@ -26,4 +26,20 @@
         </div>
     </div>
 </div>
+<script>
+const imageInput = document.querySelector('input[name="images[]"]');
+    if (imageInput) {
+        imageInput.addEventListener('change', function() {
+            const fileCount = this.files.length;
+            const total = fileCount;
+            
+            
+            if (total > 9) {
+                alert(`Максимум 9 картинок!`);
+                this.value = '';
+                return;
+            }
+        });
+    }
+</script>
 @endsection

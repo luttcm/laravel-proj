@@ -57,6 +57,7 @@ Route::middleware('auth', 'check.access')->group(function () {
         Route::get('/news/{id}/edit', [NewsController::class, 'edit'])->name('news.edit')->whereNumber('id');
         Route::put('/news/{id}', [NewsController::class, 'update'])->name('news.update')->whereNumber('id');
         Route::delete('/news/{id}', [NewsController::class, 'destroy'])->name('news.destroy')->whereNumber('id');
+        Route::delete('/pictures/{pictureId}', [NewsController::class, 'deletePicture'])->name('pictures.delete')->whereNumber('pictureId');
     });
 
     // Страница менеджеров

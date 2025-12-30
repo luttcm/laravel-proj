@@ -20,9 +20,23 @@
         @forelse($news as $item)
             <div class="news-card js-news-card" data-id="{{ $item->id }}" style="cursor: pointer;">
                 
-                @if($item->firstPicture)
-                    <div class="news-image-container">
-                        <img src="{{ asset($item->firstPicture->path) }}" class="news-image js-picture-open" data-image="{{ asset($item->firstPicture->path) }}">
+                @if($item->pictures && $item->pictures->count())
+                    <div class="news-image-container mb-3">
+                        @php
+                            $picCount = $item->pictures->count();
+                            if ($picCount === 1) $colClass = 'col-12';
+                            elseif ($picCount === 2) $colClass = 'col-6';
+                            else $colClass = 'col-4';
+                        @endphp
+                        <div class="row g-2" style="aspect-ratio: auto;">
+                            @foreach($item->pictures as $pic)
+                                <div class="{{ $colClass }}">
+                                    <div style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.08); transition: all 0.2s; cursor: pointer; aspect-ratio: 1;" class="news-picture-wrapper js-picture-open" data-image="{{ $pic }}">
+                                        <img src="{{ $pic }}" class="img-fluid" style="width:100%; height:100%; object-fit:cover; display:block;" alt="">
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
 
@@ -121,24 +135,26 @@
         let currentPictures = [];
 
         document.addEventListener('click', function (e) {
-            // Сначала проверяем картинки, чтобы не открывать новость при клике на картинку
             const pictureWrapper = e.target.closest('.js-picture-open');
             if (pictureWrapper) {
                 e.stopPropagation();
                 e.preventDefault();
 
-                currentPictures = Array.from(document.querySelectorAll('.js-picture-open'))
-                    .map(pic => pic.dataset.image);
-                
-                const clickedSrc = pictureWrapper.dataset.image;
-                currentPictureIndex = currentPictures.indexOf(clickedSrc);
-                
-                document.getElementById('pictureModalImage').src = clickedSrc;
-                document.getElementById('pictureCounter').textContent = currentPictureIndex + 1;
-                document.getElementById('pictureTotal').textContent = currentPictures.length;
-                
-                updatePictureNavButtons();
-                pictureModal.show();
+                const newsCard = pictureWrapper.closest('.news-card');
+                if (newsCard) {
+                    currentPictures = Array.from(newsCard.querySelectorAll('.js-picture-open'))
+                        .map(pic => pic.dataset.image);
+                    
+                    const clickedSrc = pictureWrapper.dataset.image;
+                    currentPictureIndex = currentPictures.indexOf(clickedSrc);
+                    
+                    document.getElementById('pictureModalImage').src = clickedSrc;
+                    document.getElementById('pictureCounter').textContent = currentPictureIndex + 1;
+                    document.getElementById('pictureTotal').textContent = currentPictures.length;
+                    
+                    updatePictureNavButtons();
+                    pictureModal.show();
+                }
                 return;
             }
 
@@ -242,6 +258,14 @@
                 });
                 return;
             }
+
+            const commentItem = e.target.closest('.comment-item');
+            if (commentItem) {
+                const modal = e.target.closest('#newsModal');
+                if (modal) {
+                    return;
+                }
+            }
         });
 
         function loadNewsDetail(newsId, csrf, newsModal) {
@@ -263,6 +287,17 @@
             .then(data => {
                 modalTitle.textContent = data.title;
                 
+                let colClass = 'col-md-12';
+                if (data.pictures && data.pictures.length) {
+                    const picCount = data.pictures.length;
+                    if (picCount === 1) colClass = 'col-12';
+                    else if (picCount === 2) colClass = 'col-6';
+                    else if (picCount === 3) colClass = 'col-4';
+                    else if (picCount === 4) colClass = 'col-6';
+                    else if (picCount === 5 || picCount === 6) colClass = 'col-4';
+                    else colClass = 'col-4';
+                }
+                
                 let bodyHtml = `
                     <p class="text-muted small">
                         Автор: ${data.author ? data.author.name + ' (' + data.author.role + ')' : '—'}
@@ -270,11 +305,11 @@
                     </p>
                     ${data.pictures && data.pictures.length ? `
                         <div class="mb-3">
-                            <div class="row g-3">
+                            <div class="row g-2" style="aspect-ratio: auto;">
                                 ${data.pictures.map(pic => `
-                                    <div class="col-md-4">
-                                        <div style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.08); transition: all 0.2s; cursor: pointer;" class="news-picture-wrapper js-picture-open" data-image="${pic.path}">
-                                            <img src="${pic.path}" class="img-fluid" style="height:150px; width:100%; object-fit:cover; display:block;" alt="">
+                                    <div class="${colClass}">
+                                        <div style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.08); transition: all 0.2s; cursor: pointer; aspect-ratio: 1;" class="news-picture-wrapper js-picture-open" data-image="${pic.path}">
+                                            <img src="${pic.path}" class="img-fluid" style="width:100%; height:100%; object-fit:cover; display:block;" alt="">
                                         </div>
                                     </div>
                                 `).join('')}
@@ -325,6 +360,26 @@
                 modalBody.innerHTML = bodyHtml;
                 modalFooter.innerHTML = '';
                 newsModal.show();
+
+                const modalPictureWrappers = modalBody.querySelectorAll('.js-picture-open');
+                modalPictureWrappers.forEach((picWrapper, index) => {
+                    picWrapper.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+
+                        currentPictures = Array.from(modalBody.querySelectorAll('.js-picture-open'))
+                            .map(pic => pic.dataset.image);
+                        
+                        currentPictureIndex = index;
+                        
+                        document.getElementById('pictureModalImage').src = currentPictures[index];
+                        document.getElementById('pictureCounter').textContent = currentPictureIndex + 1;
+                        document.getElementById('pictureTotal').textContent = currentPictures.length;
+                        
+                        updatePictureNavButtons();
+                        pictureModal.show();
+                    });
+                });
 
                 const modalLikeBtn = document.querySelector('.js-modal-like');
                 if (modalLikeBtn) {
@@ -543,6 +598,8 @@
     <style>
         .news-picture-wrapper {
             cursor: pointer;
+            display: block;
+            aspect-ratio: 1;
         }
 
         .news-picture-wrapper:hover {
