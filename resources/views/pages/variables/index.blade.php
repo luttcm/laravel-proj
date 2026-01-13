@@ -28,6 +28,7 @@
                     <th>ID</th>
                     <th>Название</th>
                     <th>Тип</th>
+                    <th>Контрагент</th>
                     <th>Значение</th>
                     <th style="width: 150px;">Действия</th>
                 </tr>
@@ -38,6 +39,7 @@
                         <td>{{ $variable->id }}</td>
                         <td>{{ $variable->name }}</td>
                         <td>{{ $variable->type ==  "float" ? "Дробное" : "Целое"}}</td>
+                        <td>{{ $variable->counteragent_type == "inn" ? "ИП" : "ООО" }}</td>
                         <td>{{ $variable->value }}</td>
                         <td style="width: 150px;">
                             <div class="d-flex gap-2">
@@ -51,7 +53,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
+                        <td colspan="6" class="text-center text-muted py-4">
                             Нет переменных
                         </td>
                     </tr>
@@ -74,6 +76,7 @@
                     <th>ID</th>
                     <th>Название</th>
                     <th>Тип</th>
+                    <th>Контрагент</th>
                     <th>Значение</th>
                     <th style="width: 150px;">Действия</th>
                 </tr>
@@ -84,6 +87,7 @@
                         <td>{{ $variable->id }}</td>
                         <td style="max-width: 400px;">{{ $variable->name }}</td>
                         <td>{{ $variable->type ==  "float" ? "Дробное" : "Целое"}}</td>
+                        <td>{{ $variable->counteragent_type == "inn" ? "ИП" : "ООО" }}</td>
                         <td>{{ $variable->value }}</td>
                         <td style="width: 150px;">
                             <div class="d-flex gap-2">
@@ -97,7 +101,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
+                        <td colspan="6" class="text-center text-muted py-4">
                             Нет переменных
                         </td>
                     </tr>

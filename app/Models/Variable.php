@@ -14,5 +14,6 @@ class Variable extends Model
         "type",
         "value",
         "table_type",
+        "counteragent_type",
     ];
 }

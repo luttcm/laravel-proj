@@ -26,7 +26,7 @@ class NewsController extends Controller
             $n->comments_count = $n->comments->count();
         }
 
-        return view('pages.news', compact('news'));
+        return view('pages.news.index', compact('news'));
     }
 
     public function show($id)
@@ -72,12 +72,12 @@ class NewsController extends Controller
             ]);
         }
 
-        return view('pages.news-detail', compact('newsItem', 'pictures'));
+        return view('pages.news.detail', compact('newsItem', 'pictures'));
     }
 
     public function create()
     {
-        return view('pages.news-create');
+        return view('pages.news.create');
     }
 
     public function store(Request $request)
@@ -127,7 +127,7 @@ class NewsController extends Controller
     {
         $news = News::findOrFail($id);
         $pictures = Picture::where('entity_type', 'news')->where('entity_id', $id)->get();
-        return view('pages.news-edit', compact('news', 'pictures'));
+        return view('pages.news.edit', compact('news', 'pictures'));
     }
 
     public function update(Request $request, $id)

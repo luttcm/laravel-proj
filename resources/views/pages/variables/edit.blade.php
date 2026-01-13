@@ -58,6 +58,14 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Тип контрагента</label>
+                            <select name="counteragent_type" class="form-select">
+                                <option value="inn" @if(old('counteragent_type', $variable->counteragent_type) == 'inn') selected @endif>ИП (ИНН)</option>
+                                <option value="ooo" @if(old('counteragent_type', $variable->counteragent_type) == 'ooo') selected @endif>ООО (УСН)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Значение</label>
                             <input type="text" name="value" class="form-control" value="{{ old('value', $variable->value) }}" required>
                         </div>

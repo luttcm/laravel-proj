@@ -67,6 +67,18 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
+                        <div class="mb-3">
+                            <label for="counteragent_type" class="form-label">Тип контрагента</label>
+                            <select class="form-control @error('counteragent_type') is-invalid @enderror" 
+                                   id="counteragent_type" name="counteragent_type" required>
+                                    <option value="inn" {{ old('counteragent_type') === 'inn' ? 'selected' : '' }}>ИП (ИНН)</option>
+                                    <option value="ooo" {{ old('counteragent_type') === 'ooo' ? 'selected' : '' }}>ООО (УСН)</option>
+                            </select>
+                            @error('counteragent_type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                         
                         <div class="mb-3">
                             <label for="value" class="form-label">Значение</label>

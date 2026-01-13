@@ -65,6 +65,7 @@ Route::middleware(['auth', 'check.access'])->group(function () {
     Route::get('/managers', [ManagersController::class, 'calculation'])->name('managers.calculation');
     Route::get('/managers/reports', [ManagersController::class, 'reports'])->name('managers.reports');
     Route::get('/managers/history', [ManagersController::class, 'history'])->name('managers.history');
+    Route::get('/managers/variables', [ManagersController::class, 'getVariables'])->name('managers.get-variables');
     Route::post('/managers/store-drafts-report', [ManagersController::class, 'storeDraftsReport'])->name('managers.store-drafts-report');
     Route::post('/managers/store-report', [ManagersController::class, 'storeReport'])->name('managers.store-report');
 

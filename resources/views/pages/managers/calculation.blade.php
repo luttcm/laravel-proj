@@ -32,7 +32,11 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Продаю</label>
-                            <input type="text" class="form-control" name="selling_name" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="Название товара">
+                            <select class="form-control" id="selling_type" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                                <option value="">-- Выберите тип --</option>
+                                <option value="inn">ИП (ИНН)</option>
+                                <option value="ooo">ООО (УСН)</option>
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">СПК</label>
@@ -43,11 +47,11 @@
                     <div class="row mb-4">
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Цена покупки, р.</label>
-                            <input type="number" class="form-control" name="purchase_price" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0.00" step="0.01">
+                            <input type="number" class="form-control" name="purchase_price" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0.00" step="0.01" value="0">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Кол-во изделий, шт.</label>
-                            <input type="number" class="form-control" name="quantity" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0" step="1">
+                            <input type="number" class="form-control" name="quantity" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0" step="1" value="">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Сумма покупки, руб.</label>
@@ -58,7 +62,7 @@
                     <div class="row mb-4">
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Наценка, %</label>
-                            <input type="number" class="form-control" name="markup_percent" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0.00" step="0.01">
+                            <input type="number" class="form-control" name="markup_percent" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0.00" step="0.1">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Цена продажи, руб.</label>
@@ -73,7 +77,7 @@
                     <div class="row mb-6">
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">PRF, %</label>
-                            <input type="number" class="form-control" name="prf_percent" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0.00" step="0.01">
+                            <input type="number" class="form-control" name="prf_percent" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;" placeholder="0.00" readonly>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Выплата по сделке, руб.</label>
@@ -127,6 +131,48 @@
 </style>
 
 <script>
+    function recalculate() {
+        const purchasePrice = parseFloat(document.getElementsByName('purchase_price')[0].value) || 0;
+        const quantity = parseInt(document.getElementsByName('quantity')[0].value) || 0;
+        const markupPercent = parseFloat(document.getElementsByName('markup_percent')[0].value) || 0;
+
+        const purchaseSum = purchasePrice * quantity;
+        document.getElementsByName('purchase_sum')[0].value = purchaseSum.toFixed(2);
+
+        const sellingPrice = purchasePrice * (1 + markupPercent / 100);
+        document.getElementsByName('selling_price')[0].value = sellingPrice.toFixed(2);
+
+        const sellingSum = sellingPrice * quantity;
+        document.getElementsByName('selling_sum')[0].value = sellingSum.toFixed(2);
+
+        /*if (purchasePrice > 0) {
+            const prfPercent = ((sellingPrice - purchasePrice) / purchasePrice) * 100;
+            document.getElementsByName('prf_percent')[0].value = prfPercent.toFixed(2);
+        }*/
+    }
+
+    document.getElementsByName('purchase_price')[0].addEventListener('input', recalculate);
+    document.getElementsByName('quantity')[0].addEventListener('input', recalculate);
+    document.getElementsByName('markup_percent')[0].addEventListener('input', recalculate);
+
+    document.getElementById('selling_type').addEventListener('change', function(e) {
+        const counteragentType = e.target.value;
+        
+        if (!counteragentType) {
+            console.log('Тип контрагента не выбран');
+            return;
+        }
+
+        fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Загруженные переменные:', data);
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке переменных:', error);
+            });
+    });
+
     document.getElementById('saveReportBtn').addEventListener('click', function(e) {
         e.preventDefault();
 

@@ -6,12 +6,35 @@ use Illuminate\Http\Request;
 use App\Models\DraftsReports;
 use App\Models\Reports;
 use App\Models\Calculation;
+use App\Models\Variable;
 
 class ManagersController extends Controller
 {
     public function calculation()
     {
         return view('pages.managers.calculation');
+    }
+
+    public function getVariables(Request $request)
+    {
+        $counteragentType = $request->query('counteragent_type');
+        
+        if (!in_array($counteragentType, ['inn', 'ooo'])) {
+            return response()->json(['error' => 'Invalid counteragent type'], 400);
+        }
+
+        $variables = Variable::where('counteragent_type', $counteragentType)
+            ->where('table_type', 'company')
+            ->get()
+            ->map(function ($var) {
+                return [
+                    'id' => $var->id,
+                    'name' => $var->name,
+                    'value' => $var->value,
+                ];
+            });
+
+        return response()->json($variables);
     }
 
     public function reports()
