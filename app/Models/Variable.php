@@ -11,6 +11,7 @@ class Variable extends Model
 
     protected $fillable = [
         "name",
+        "title",
         "type",
         "value",
         "table_type",

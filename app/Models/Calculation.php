@@ -21,6 +21,8 @@ class Calculation extends Model
         'prf_percent',
         'deal_payment',
         'per_unit_payment',
+        'manager_payment',
+        'manager_salary_brutto',
     ];
 
     protected $casts = [

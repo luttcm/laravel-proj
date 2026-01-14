@@ -68,6 +68,7 @@ Route::middleware(['auth', 'check.access'])->group(function () {
     Route::get('/managers/variables', [ManagersController::class, 'getVariables'])->name('managers.get-variables');
     Route::post('/managers/store-drafts-report', [ManagersController::class, 'storeDraftsReport'])->name('managers.store-drafts-report');
     Route::post('/managers/store-report', [ManagersController::class, 'storeReport'])->name('managers.store-report');
+    Route::post('/managers/calculate', [ManagersController::class, 'calculate'])->name('managers.calculate');
 
     // Страница финансового директора
     Route::get('/findirector', function () {

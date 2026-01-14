@@ -35,15 +35,20 @@
                         @method('PUT')
 
                         <div class="mb-3">
-                            <label class="form-label">Название</label>
+                            <label class="form-label">Кодовое имя</label>
                             <input type="text" name="name" class="form-control" value="{{ old('name', $variable->name) }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Название</label>
+                            <input type="text" name="title" class="form-control" value="{{ old('title', $variable->title) }}" required>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Тип</label>
                             <select name="type" class="form-select">
                                 @foreach($types as $type)
-                                    <option value="{{ $type }}" @if(old('type', $variable->type) == $type) selected @endif>{{ $type == "float" ? "Дробное" : "Целое"}}</option>
+                                    <option value="{{ $type }}" @if(old('type', $variable->type) == $type) selected @endif>{{ $type == "float" ? "Проценты" : "Целое"}}</option>
                                 @endforeach
                             </select>
                         </div>

@@ -25,6 +25,7 @@
             <div style="background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 32px;">
                 <form id="calculationForm">
                     @csrf
+                    <input type="hidden" name="selling_name" id="selling_name_hidden">
                     <div class="row mb-4">
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Покупаю</label>
@@ -33,14 +34,16 @@
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Продаю</label>
                             <select class="form-control" id="selling_type" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
-                                <option value="">-- Выберите тип --</option>
                                 <option value="inn">ИП (ИНН)</option>
                                 <option value="ooo">ООО (УСН)</option>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">СПК</label>
-                            <input type="text" class="form-control" name="spk" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="СПК">
+                            <select class="form-control" name="spk" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                                <option value="N">НЕТ</option>
+                                <option value="Y">ДА</option>
+                            </select>
                         </div>
                     </div>
 
@@ -131,6 +134,30 @@
 </style>
 
 <script>
+    function initializeForm() {
+        const sellingTypeSelect = document.getElementById('selling_type');
+        const counteragentType = sellingTypeSelect.value;
+        
+        const sellingNames = {
+            'inn': 'ИП (ИНН)',
+            'ooo': 'ООО (УСН)'
+        };
+        document.getElementById('selling_name_hidden').value = sellingNames[counteragentType] || '';
+
+        fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Загруженные переменные:', data);
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке переменных:', error);
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeForm();
+    });
+
     function recalculate() {
         const purchasePrice = parseFloat(document.getElementsByName('purchase_price')[0].value) || 0;
         const quantity = parseInt(document.getElementsByName('quantity')[0].value) || 0;
@@ -144,11 +171,6 @@
 
         const sellingSum = sellingPrice * quantity;
         document.getElementsByName('selling_sum')[0].value = sellingSum.toFixed(2);
-
-        /*if (purchasePrice > 0) {
-            const prfPercent = ((sellingPrice - purchasePrice) / purchasePrice) * 100;
-            document.getElementsByName('prf_percent')[0].value = prfPercent.toFixed(2);
-        }*/
     }
 
     document.getElementsByName('purchase_price')[0].addEventListener('input', recalculate);
@@ -160,8 +182,15 @@
         
         if (!counteragentType) {
             console.log('Тип контрагента не выбран');
+            document.getElementById('selling_name_hidden').value = '';
             return;
         }
+
+        const sellingNames = {
+            'inn': 'ИП (ИНН)',
+            'ooo': 'ООО (УСН)'
+        };
+        document.getElementById('selling_name_hidden').value = sellingNames[counteragentType] || '';
 
         fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
             .then(response => response.json())
@@ -171,6 +200,34 @@
             .catch(error => {
                 console.error('Ошибка при загрузке переменных:', error);
             });
+    });
+
+    document.getElementById('calculateBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(document.getElementById('calculationForm'));
+        
+        fetch("{{ route('managers.calculate') }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Response data:', data);
+                document.getElementsByName('per_unit_payment')[0].value = data.calculations.perUnitPayment;
+                document.getElementsByName('deal_payment')[0].value = data.calculations.managerPayment;
+            } else {
+                alert('Ошибка при сохранении');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при отправке данных');
+        });
     });
 
     document.getElementById('saveReportBtn').addEventListener('click', function(e) {
@@ -188,6 +245,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                console.log('Response data:', data);
                 alert(data.message);
             } else {
                 alert('Ошибка при сохранении');

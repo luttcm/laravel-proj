@@ -23,6 +23,7 @@ class VariableController extends Controller
     public function store(Request $request) {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'type' => 'required|string|in:float,integer',
             'table_type' => 'required|string|in:company,fnc',
             'value' => 'required|string|min:1',
@@ -63,6 +64,7 @@ class VariableController extends Controller
 
         $user = Variable::create([
             'name' => $validated['name'],
+            'title' => $validated['title'],
             'value' => (string)$value,
             'type' => $type,
             'table_type' => $validated['table_type'],
@@ -83,6 +85,7 @@ class VariableController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
+            'title' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:float,integer',
             'table_type' => 'required|string|in:company,fnc',
@@ -123,6 +126,7 @@ class VariableController extends Controller
         }
 
         $variable = Variable::findOrFail($id);
+        $variable->title = $validated['title'];
         $variable->name = $validated['name'];
         $variable->type = $type;
         $variable->table_type = $validated['table_type'];
