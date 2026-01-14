@@ -32,10 +32,19 @@
                         @csrf
 
                         <div class="mb-3">
-                            <label for="name" class="form-label">Название</label>
+                            <label for="name" class="form-label">Кодовое имя</label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" 
-                                   id="name" name="name" value="{{ old('name') }}" required>
+                                   id="name" name="name" value="{{ old('name') }}" placeholder="Например: RiskReserveRate или rate_ins" required>
                             @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Название</label>
+                            <input type="text" class="form-control @error('title') is-invalid @enderror" 
+                                   id="title" name="title" value="{{ old('title') }}" placeholder="Для ясности введения переменной" required>
+                            @error('title')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -45,7 +54,7 @@
                             <select type="text" class="form-control @error('type') is-invalid @enderror" 
                                    id="type" name="type" required>
                                    @foreach($types as $type)
-                                   {{ $typeName = $type == "float" ? "Дробное" : "Целое" }}
+                                   {{ $typeName = $type == "float" ? "Проценты" : "Целое" }}
                                     <option value="{{ $type }}" {{ old('type') === $type ? 'selected' : '' }}>
                                         {{ ucfirst($typeName) }}
                                     </option>
@@ -64,6 +73,18 @@
                                     <option value="fnc" {{ old('table_type') === 'fnc' ? 'selected' : '' }}>Переменные для ФНС</option>
                             </select>
                             @error('table_type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="counteragent_type" class="form-label">Тип контрагента</label>
+                            <select class="form-control @error('counteragent_type') is-invalid @enderror" 
+                                   id="counteragent_type" name="counteragent_type" required>
+                                    <option value="inn" {{ old('counteragent_type') === 'inn' ? 'selected' : '' }}>ИП (ИНН)</option>
+                                    <option value="ooo" {{ old('counteragent_type') === 'ooo' ? 'selected' : '' }}>ООО (УСН)</option>
+                            </select>
+                            @error('counteragent_type')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

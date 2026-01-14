@@ -11,21 +11,23 @@ class VariableController extends Controller
     {
         $companyVariables = Variable::where('table_type', 'company')->paginate(10, ['*'], 'company_page');
         $fncVariables = Variable::where('table_type', 'fnc')->paginate(10, ['*'], 'fnc_page');
-        return view("pages.variables", compact("companyVariables", "fncVariables"));
+        return view("pages.variables.index", compact("companyVariables", "fncVariables"));
     }
 
     public function add()
     {
         $types = ["float", "integer"];
-        return view("pages.variable-add", compact("types"));
+        return view("pages.variables.add", compact("types"));
     }
 
     public function store(Request $request) {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'type' => 'required|string|in:float,integer',
             'table_type' => 'required|string|in:company,fnc',
             'value' => 'required|string|min:1',
+            'counteragent_type' => 'required|string|in:inn,ooo',
         ]);
 
         $value = trim($validated['value']);
@@ -62,9 +64,11 @@ class VariableController extends Controller
 
         $user = Variable::create([
             'name' => $validated['name'],
+            'title' => $validated['title'],
             'value' => (string)$value,
             'type' => $type,
             'table_type' => $validated['table_type'],
+            'counteragent_type' => $validated['counteragent_type'],
         ]);
 
         return redirect()->route('variables.index')
@@ -75,16 +79,18 @@ class VariableController extends Controller
     {
         $variable = Variable::findOrFail($id);
         $types = ["float", "integer"];
-        return view('pages.variable-edit', compact('variable', 'types'));
+        return view('pages.variables.edit', compact('variable', 'types'));
     }
 
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
+            'title' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:float,integer',
             'table_type' => 'required|string|in:company,fnc',
             'value' => 'required|string|min:1',
+            'counteragent_type' => 'required|string|in:inn,ooo',
         ]);
 
         $value = trim($validated['value']);
@@ -120,10 +126,12 @@ class VariableController extends Controller
         }
 
         $variable = Variable::findOrFail($id);
+        $variable->title = $validated['title'];
         $variable->name = $validated['name'];
         $variable->type = $type;
         $variable->table_type = $validated['table_type'];
         $variable->value = (string)$value;
+        $variable->counteragent_type = $validated['counteragent_type'];
         $variable->save();
 
         return redirect()->route('variables.index')->with('success', 'Переменная обновлена');

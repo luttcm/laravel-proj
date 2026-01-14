@@ -5,16 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Variable extends Model
+class DraftsReports extends Model
 {
     use HasFactory;
 
+    protected $table = 'drafts_reports';
+
     protected $fillable = [
-        "name",
-        "title",
-        "type",
-        "value",
-        "table_type",
-        "counteragent_type",
+        'name',
+        'amount',
+        'manager_id',
+        'date',
+        'calculate_id',
     ];
 }

@@ -26,8 +26,10 @@
             <thead class="table-light">
                 <tr>
                     <th>ID</th>
+                    <th>Кодовое имя</th>
                     <th>Название</th>
                     <th>Тип</th>
+                    <th>Контрагент</th>
                     <th>Значение</th>
                     <th style="width: 150px;">Действия</th>
                 </tr>
@@ -36,8 +38,10 @@
                 @forelse($companyVariables as $variable)
                     <tr>
                         <td>{{ $variable->id }}</td>
-                        <td>{{ $variable->name }}</td>
-                        <td>{{ $variable->type ==  "float" ? "Дробное" : "Целое"}}</td>
+                        <td><code>{{ $variable->name }}</code></td>
+                        <td>{{ $variable->title }}</td>
+                        <td>{{ $variable->type ==  "float" ? "Проценты" : "Целое"}}</td>
+                        <td>{{ $variable->counteragent_type == "inn" ? "ИП" : "ООО" }}</td>
                         <td>{{ $variable->value }}</td>
                         <td style="width: 150px;">
                             <div class="d-flex gap-2">
@@ -51,7 +55,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
+                        <td colspan="7" class="text-center text-muted py-4">
                             Нет переменных
                         </td>
                     </tr>
@@ -61,9 +65,9 @@
     </div>
 
     @if($companyVariables->hasPages())
-        <div class="d-flex justify-content-center mb-5">
+        <nav class="d-flex justify-content-center mb-5">
             {{ $companyVariables->links() }}
-        </div>
+        </nav>
     @endif
 
     <h4 class="mt-5">Переменные для ФНС</h4>
@@ -72,8 +76,10 @@
             <thead class="table-light">
                 <tr>
                     <th>ID</th>
+                    <th>Кодовое имя</th>
                     <th>Название</th>
                     <th>Тип</th>
+                    <th>Контрагент</th>
                     <th>Значение</th>
                     <th style="width: 150px;">Действия</th>
                 </tr>
@@ -82,8 +88,10 @@
                 @forelse($fncVariables as $variable)
                     <tr>
                         <td>{{ $variable->id }}</td>
-                        <td style="max-width: 400px;">{{ $variable->name }}</td>
-                        <td>{{ $variable->type ==  "float" ? "Дробное" : "Целое"}}</td>
+                        <td><code>{{ $variable->name }}</code></td>
+                        <td>{{ $variable->title }}</td>
+                        <td>{{ $variable->type ==  "float" ? "Проценты" : "Целое"}}</td>
+                        <td>{{ $variable->counteragent_type == "inn" ? "ИП" : "ООО" }}</td>
                         <td>{{ $variable->value }}</td>
                         <td style="width: 150px;">
                             <div class="d-flex gap-2">
@@ -97,7 +105,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
+                        <td colspan="7" class="text-center text-muted py-4">
                             Нет переменных
                         </td>
                     </tr>
@@ -107,7 +115,7 @@
     </div>
 
     @if($fncVariables->hasPages())
-        <div class="d-flex justify-content-center">
+        <div>
             {{ $fncVariables->links() }}
         </div>
     @endif

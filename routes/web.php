@@ -5,6 +5,7 @@ use App\Http\Controllers\VariableController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ManagersController;
 
 Route::get('/auth', function () {
     return view('auth.auth');
@@ -61,9 +62,13 @@ Route::middleware(['auth', 'check.access'])->group(function () {
     });
 
     // Страница менеджеров
-    Route::get('/managers', function () {
-        return view('pages.managers');
-    })->name('managers');
+    Route::get('/managers', [ManagersController::class, 'calculation'])->name('managers.calculation');
+    Route::get('/managers/reports', [ManagersController::class, 'reports'])->name('managers.reports');
+    Route::get('/managers/history', [ManagersController::class, 'history'])->name('managers.history');
+    Route::get('/managers/variables', [ManagersController::class, 'getVariables'])->name('managers.get-variables');
+    Route::post('/managers/store-drafts-report', [ManagersController::class, 'storeDraftsReport'])->name('managers.store-drafts-report');
+    Route::post('/managers/store-report', [ManagersController::class, 'storeReport'])->name('managers.store-report');
+    Route::post('/managers/calculate', [ManagersController::class, 'calculate'])->name('managers.calculate');
 
     // Страница финансового директора
     Route::get('/findirector', function () {

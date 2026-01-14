@@ -14,19 +14,19 @@ class UserController extends Controller
     public function index()
     {
         $users = User::all();
-        return view('pages.users', compact('users'));
+        return view('pages.users.index', compact('users'));
     }
 
     public function show($id)
     {
         $user = User::findOrFail($id);
-        return view('pages.user-detail', compact('user'));
+        return view('pages.users.detail', compact('user'));
     }
 
     public function add()
     {
         $roles = ['admin', 'user', 'finance', 'redactor', 'manager'];
-        return view('pages.user-add', compact('roles'));
+        return view('pages.users.add', compact('roles'));
     }
 
     public function store(Request $request)
@@ -116,7 +116,7 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $roles = ['admin', 'user', 'finance', 'redactor', 'manager'];
-        return view('pages.user-edit', compact('user', 'roles'));
+        return view('pages.users.edit', compact('user', 'roles'));
     }
 
     public function update(Request $request, $id)
