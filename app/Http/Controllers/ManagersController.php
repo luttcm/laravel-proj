@@ -56,8 +56,9 @@ class ManagersController extends Controller
     }
     private function calcultating(Request $request)
     {
-        $sellingType = $request->input('selling_name'); // 'ИП (ИНН)' или 'ООО (УСН)'
+        $sellingType = $request->input('selling_name');
         $spk = $request->input('spk');
+        $inTheHand = $request->input('in_the_hand');
 
         $counteragentType = strpos($sellingType, 'ИП') !== false ? 'inn' : 'ooo';
         $variables = Variable::where('counteragent_type', $counteragentType)
@@ -70,10 +71,16 @@ class ManagersController extends Controller
         $k_fin = (float)($variables['k_fin']->value ?? 0.015);
         $k_fbr = (float)($variables['k_fbr']->value ?? 0.002);
         $k_ps_total = (float)($variables['k_ps_total']->value ?? ($k_log + $k_fin + $k_fbr));
-        $k_mgr = (float)($variables['k_mgr']->value ?? 0.245);
+        
+        if ($counteragentType === 'inn') {
+            $k_mgr = (float)($variables['k_mgr']->value ?? 0.245);
+            $rate_ins = (float)($variables['rate_ins']->value ?? 0.01);
+        } else {
+            $k_mgr = (float)($variables['k_mgr']->value ?? 0.20);
+            $rate_ins = (float)($variables['rate_ins']->value ?? 0.30);
+        }
+        
         $rate_ndfl = (float)($variables['rate_ndfl']->value ?? 0.13);
-        $rate_ausn = (float)($variables['rate_ausn']->value ?? 0.08);
-        $rate_ins = (float)($variables['rate_ins']->value ?? 0.01);
         $k_bonus = (float)($variables['k_bonus']->value ?? 0.20);
         $k_spk = (float)($variables['k_spk']->value ?? 0.20);
 
@@ -81,12 +88,28 @@ class ManagersController extends Controller
         $purchaseSum = (float)$request->purchase_sum;
         $quantity = (int)$request->quantity ?: 1;
 
+        if ($counteragentType === 'inn') {
+            return $this->calculateInn($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand, 
+                                       $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total, 
+                                       $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables);
+        } else {
+            return $this->calculateOoo($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand, 
+                                       $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total, 
+                                       $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables);
+        }
+    }
+
+    private function calculateInn($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand,
+                                   $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total,
+                                   $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables)
+    {
+        $rate_ausn = (float)($variables['rate_ausn']->value ?? 0.08);
+
         $nacenka = $sellingSum - $purchaseSum;
         $ausn = $sellingSum * $rate_ausn;
         $P1 = $nacenka - $ausn;
         
         $riskReserve = max(0, $P1 * $riskReserveRate);
-        
         $premBase = max(0, $P1 - $riskReserve);
 
         $logisticsBonus = $premBase * $k_log;
@@ -112,8 +135,9 @@ class ManagersController extends Controller
         }
 
         $totalTaxes = $ausn + $managerNdfl + $socialFunds;
-
         $companyProfit = $P1 - $riskReserve - $premiyaTotal - $totalManagerCost;
+        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
+        $prfPercent = $sellingSum > 0 ? ($companyProfit / $sellingSum) * 100 : 0;
 
         return [
             'nacenka' => $nacenka,
@@ -135,7 +159,91 @@ class ManagersController extends Controller
             'perUnitPayment' => $perUnitPayment,
             'totalTaxes' => $totalTaxes,
             'companyProfit' => $companyProfit,
+            'prfPercent' => $prfPercent,
             'spk' => $spk,
+            'inTheDeal' => $inTheDeal,
+        ];
+    }
+
+    private function calculateOoo($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand,
+                                   $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total,
+                                   $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables)
+    {
+        $rate_cit = (float)($variables['rate_cit']->value ?? 0.25);
+
+        $ndsOutgoing = $sellingSum / 122 * 22;
+        $ndsIncoming = $purchaseSum / 122 * 22;
+        $ndsPaid = $ndsOutgoing - $ndsIncoming;
+
+        $nacenka = $sellingSum - $purchaseSum;
+        
+        $P1 = $nacenka - $ndsPaid;
+        
+        $riskReserve = max(0, $P1 * $riskReserveRate);
+        $premBase = max(0, $P1 - $riskReserve);
+        
+        $riskReserve = max(0, $P1 * $riskReserveRate);
+        $premBase = max(0, $P1 - $riskReserve);
+
+        $logisticsBonus = $premBase * $k_log;
+        $finAdminBonus = $premBase * $k_fin;
+        $fbrBonus = $premBase * $k_fbr;
+        $premiyaTotal = $premBase * $k_ps_total;
+
+        $managerBase = max(0, $premBase - $premiyaTotal);
+        $managerSalaryBrutto = $managerBase * $k_mgr;
+        $managerNdfl = $managerSalaryBrutto * $rate_ndfl;
+
+        $socialFunds = $managerSalaryBrutto * $rate_ins;
+        
+        $managerPayment = $managerSalaryBrutto - $managerNdfl;       
+        $totalManagerCost = $managerSalaryBrutto + $socialFunds;
+        $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;
+
+        $spkPayment = 0;
+        if ($spk == 'Y') {
+            $spkPayment = $managerPayment * $k_spk;
+            $managerPayment -= $spkPayment;
+            $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;
+        }
+
+        $citBase = max(0, $P1 - $riskReserve - $premiyaTotal - $totalManagerCost);
+        $citTax = $citBase * $rate_cit;
+
+        $totalTaxes = $ndsPaid + $managerNdfl + $socialFunds + $citTax;
+        $companyProfit = $citBase - $citTax;
+        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
+        
+        $sellingWithoutNds = $sellingSum / 122 * 100;
+        $prfPercent = $sellingWithoutNds > 0 ? ($companyProfit / $sellingWithoutNds) * 100 : 0;
+
+        return [
+            'nacenka' => $nacenka,
+            'ndsOutgoing' => $ndsOutgoing,
+            'ndsIncoming' => $ndsIncoming,
+            'ndsPaid' => $ndsPaid,
+            'P1' => $P1,
+            'riskReserve' => $riskReserve,
+            'premBase' => $premBase,
+            'logisticsBonus' => $logisticsBonus,
+            'finAdminBonus' => $finAdminBonus,
+            'fbrBonus' => $fbrBonus,
+            'premiyaTotal' => $premiyaTotal,
+            'managerBase' => $managerBase,
+            'managerSalaryBrutto' => $managerSalaryBrutto,
+            'managerNdfl' => $managerNdfl,
+            'socialFunds' => $socialFunds,
+            'totalManagerCost' => $totalManagerCost,
+            'managerPayment' => $managerPayment,
+            'spkPayment' => $spkPayment,
+            'perUnitPayment' => $perUnitPayment,
+            'citBase' => $citBase,
+            'citTax' => $citTax,
+            'totalTaxes' => $totalTaxes,
+            'companyProfit' => $companyProfit,
+            'prfPercent' => $prfPercent,
+            'spk' => $spk,
+            'inTheDeal' => $inTheDeal,
         ];
     }
 
@@ -143,43 +251,80 @@ class ManagersController extends Controller
     {
         $result = $this->calcultating($request);
 
+        $sellingType = $request->input('selling_name');
+        $counteragentType = strpos($sellingType, 'ИП') !== false ? 'inn' : 'ooo';
+
+        $calculations = [
+            'nacenka' => round($result['nacenka'], 2),
+            'P1' => round($result['P1'], 2),
+            'riskReserve' => round($result['riskReserve'], 2),
+            'premBase' => round($result['premBase'], 2),
+            'logisticsBonus' => round($result['logisticsBonus'], 2),
+            'finAdminBonus' => round($result['finAdminBonus'], 2),
+            'fbrBonus' => round($result['fbrBonus'], 2),
+            'premiyaTotal' => round($result['premiyaTotal'], 2),
+            'managerBase' => round($result['managerBase'], 2),
+            'managerSalaryBrutto' => round($result['managerSalaryBrutto'], 2),
+            'managerNdfl' => round($result['managerNdfl'], 2),
+            'socialFunds' => round($result['socialFunds'], 2),
+            'totalManagerCost' => round($result['totalManagerCost'], 2),
+            'managerPayment' => round($result['managerPayment'], 2),
+            'spkPayment' => round($result['spkPayment'], 2),
+            'perUnitPayment' => round($result['perUnitPayment'], 2),
+            'totalTaxes' => round($result['totalTaxes'], 2),
+            'companyProfit' => round($result['companyProfit'], 2),
+            'prfPercent' => round($result['prfPercent'], 2),
+            'spk' => $result['spk'],
+            'inTheDeal' => round($result['inTheDeal'], 2),
+        ];
+
+        if ($counteragentType === 'inn') {
+            $calculations['ausn'] = round($result['ausn'], 2);
+        }
+
+        if ($counteragentType === 'ooo') {
+            $calculations['ndsOutgoing'] = round($result['ndsOutgoing'], 2);
+            $calculations['ndsIncoming'] = round($result['ndsIncoming'], 2);
+            $calculations['ndsPaid'] = round($result['ndsPaid'], 2);
+            $calculations['citBase'] = round($result['citBase'], 2);
+            $calculations['citTax'] = round($result['citTax'], 2);
+        }
+
         return response()->json([
             'success' => true,
-            'calculations' => [
-                'nacenka' => round($result['nacenka'], 2),
-                'ausn' => round($result['ausn'], 2),
-                'P1' => round($result['P1'], 2),
-                'riskReserve' => round($result['riskReserve'], 2),
-                'premBase' => round($result['premBase'], 2),
-                'logisticsBonus' => round($result['logisticsBonus'], 2),
-                'finAdminBonus' => round($result['finAdminBonus'], 2),
-                'fbrBonus' => round($result['fbrBonus'], 2),
-                'premiyaTotal' => round($result['premiyaTotal'], 2),
-                'managerBase' => round($result['managerBase'], 2),
-                'managerSalaryBrutto' => round($result['managerSalaryBrutto'], 2),
-                'managerNdfl' => round($result['managerNdfl'], 2),
-                'socialFunds' => round($result['socialFunds'], 2),
-                'totalManagerCost' => round($result['totalManagerCost'], 2),
-                'managerPayment' => round($result['managerPayment'], 2),
-                'spkPayment' => round($result['spkPayment'], 2),
-                'perUnitPayment' => round($result['perUnitPayment'], 2),
-                'totalTaxes' => round($result['totalTaxes'], 2),
-                'companyProfit' => round($result['companyProfit'], 2),
-                'spk' => $result['spk']
-            ]
+            'calculations' => $calculations
         ], 201);
     }
 
     /**
-     * Summary of storeReport
+     * Сохранить в отчеты
      * @param Request $request
      */
     public function storeDraftsReport(Request $request)
     {
+        return $this->saveReport($request, DraftsReports::class, 'Сохранено в отчёты', true);
+    }
+
+    /**
+     * Сохранить в историю
+     * @param Request $request
+     */
+    public function storeReport(Request $request)
+    {
+        return $this->saveReport($request, Reports::class, 'Сохранено в историю', false);
+    }
+
+    /**
+     * Сохранение результатов расчёта
+     * @param Request $request
+     * @param string $reportModel
+     * @param string $message
+     * @param bool $includeCalculations
+     */
+    private function saveReport(Request $request, string $reportModel, string $message, bool $includeCalculations = false)
+    {
         $calculationId = $this->saveCalculation($request);
-
         $result = $this->calcultating($request);
-
         $userName = auth()->user()->name ?? 'Без имени';
 
         $calculation = Calculation::findOrFail($calculationId);
@@ -187,9 +332,10 @@ class ManagersController extends Controller
             'manager_payment' => $result['managerPayment'],
             'manager_salary_brutto' => $result['managerSalaryBrutto'],
             'per_unit_payment' => $result['perUnitPayment'],
+            'in_the_deal' => $result['inTheDeal'],
         ]);
 
-        DraftsReports::create([
+        $reportModel::create([
             'manager_id' => auth()->id(),
             'date' => now()->toDateString(),
             'name' => $userName,
@@ -197,10 +343,13 @@ class ManagersController extends Controller
             'calculate_id' => $calculationId,
         ]);
 
-        return response()->json([
+        $response = [
             'success' => true,
-            'message' => 'Сохранено в отчёты',
-            'calculations' => [
+            'message' => $message,
+        ];
+
+        if ($includeCalculations) {
+            $response['calculations'] = [
                 'nacenka' => round($result['nacenka'], 2),
                 'ausn' => round($result['ausn'], 2),
                 'P1' => round($result['P1'], 2),
@@ -220,41 +369,11 @@ class ManagersController extends Controller
                 'perUnitPayment' => round($result['perUnitPayment'], 2),
                 'totalTaxes' => round($result['totalTaxes'], 2),
                 'companyProfit' => round($result['companyProfit'], 2),
-            ]
-        ], 201);
-    }
+                'prfPercent' => round($result['prfPercent'], 2),
+            ];
+        }
 
-    /**
-     * Summary of storeReport
-     * @param Request $request
-     */
-    public function storeReport(Request $request)
-    {
-        $calculationId = $this->saveCalculation($request);
-
-        $result = $this->calcultating($request);
-
-        $userName = auth()->user()->name ?? 'Без имени';
-
-        $calculation = Calculation::findOrFail($calculationId);
-        $calculation->update([
-            'manager_payment' => $result['managerPayment'],
-            'manager_salary_brutto' => $result['managerSalaryBrutto'],
-            'per_unit_payment' => $result['perUnitPayment'],
-        ]);
-
-        Reports::create([
-            'manager_id' => auth()->id(),
-            'date' => now()->toDateString(),
-            'name' => $userName,
-            'amount' => $result['managerPayment'],
-            'calculate_id' => $calculationId,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Сохранено в историю',
-        ], 201);
+        return response()->json($response, 201);
     }
 
     /**
@@ -279,6 +398,7 @@ class ManagersController extends Controller
             'prf_percent' => 'nullable|numeric',
             'deal_payment' => 'nullable|numeric',
             'per_unit_payment' => 'nullable|numeric',
+            'in_the_hand' => 'nullable|numeric',
         ]);
 
         $calculation = Calculation::create([
