@@ -214,8 +214,7 @@ class ManagersController extends Controller
         $companyProfit = $citBase - $citTax;
         $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
         
-        $sellingWithoutNds = $sellingSum / 122 * 100;
-        $prfPercent = $sellingWithoutNds > 0 ? ($companyProfit / $sellingWithoutNds) * 100 : 0;
+        $prfPercent = $sellingSum > 0 ? ($companyProfit / $sellingSum) * 100 : 0;
 
         return [
             'nacenka' => $nacenka,
