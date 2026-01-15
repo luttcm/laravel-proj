@@ -77,7 +77,7 @@
                         </div>
                     </div>
 
-                    <div class="row mb-6">
+                    <div class="row mb-4">
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">PRF, %</label>
                             <input type="number" class="form-control" name="prf_percent" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;" placeholder="0.00" readonly>
@@ -89,6 +89,17 @@
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Выплата с 1 шт., руб.</label>
                             <input type="number" class="form-control" name="per_unit_payment" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;" placeholder="0.00" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mb-6" style="border-top: 2px solid #e0e0e0; padding-top: 16px;">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Сумма в руки, руб</label>
+                            <input type="number" class="form-control" name="in_the_hand" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0.00" step="0.1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Сумма в счет, руб.</label>
+                            <input type="number" class="form-control" name="in_the_deal" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;" placeholder="0.00" readonly>
                         </div>
                     </div>
 
@@ -220,6 +231,8 @@
                 console.log('Response data:', data);
                 document.getElementsByName('per_unit_payment')[0].value = data.calculations.perUnitPayment;
                 document.getElementsByName('deal_payment')[0].value = data.calculations.managerPayment;
+                document.getElementsByName('in_the_deal')[0].value = data.calculations.inTheDeal;
+                document.getElementsByName('prf_percent')[0].value = data.calculations.prfPercent;
             } else {
                 alert('Ошибка при сохранении');
             }

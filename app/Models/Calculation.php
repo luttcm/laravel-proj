@@ -23,6 +23,8 @@ class Calculation extends Model
         'per_unit_payment',
         'manager_payment',
         'manager_salary_brutto',
+        'in_the_hand',
+        'in_the_deal',
     ];
 
     protected $casts = [
@@ -34,6 +36,10 @@ class Calculation extends Model
         'prf_percent' => 'decimal:2',
         'deal_payment' => 'decimal:2',
         'per_unit_payment' => 'decimal:2',
+        'manager_payment' => 'decimal:2',
+        'manager_salary_brutto' => 'decimal:2',
+        'in_the_hand' => 'decimal:2',
+        'in_the_deal' => 'decimal:2',
     ];
 
     /**

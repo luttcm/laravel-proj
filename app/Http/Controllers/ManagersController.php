@@ -58,6 +58,7 @@ class ManagersController extends Controller
     {
         $sellingType = $request->input('selling_name'); // 'ИП (ИНН)' или 'ООО (УСН)'
         $spk = $request->input('spk');
+        $inTheHand = $request->input('in_the_hand');
 
         $counteragentType = strpos($sellingType, 'ИП') !== false ? 'inn' : 'ooo';
         $variables = Variable::where('counteragent_type', $counteragentType)
@@ -115,6 +116,10 @@ class ManagersController extends Controller
 
         $companyProfit = $P1 - $riskReserve - $premiyaTotal - $totalManagerCost;
 
+        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
+
+        $prfPercent = $sellingSum > 0 ? ($companyProfit / $sellingSum) * 100 : 0;
+
         return [
             'nacenka' => $nacenka,
             'ausn' => $ausn,
@@ -135,7 +140,9 @@ class ManagersController extends Controller
             'perUnitPayment' => $perUnitPayment,
             'totalTaxes' => $totalTaxes,
             'companyProfit' => $companyProfit,
+            'prfPercent' => $prfPercent,
             'spk' => $spk,
+            'inTheDeal' => $inTheDeal,
         ];
     }
 
@@ -165,7 +172,9 @@ class ManagersController extends Controller
                 'perUnitPayment' => round($result['perUnitPayment'], 2),
                 'totalTaxes' => round($result['totalTaxes'], 2),
                 'companyProfit' => round($result['companyProfit'], 2),
-                'spk' => $result['spk']
+                'prfPercent' => round($result['prfPercent'], 2),
+                'spk' => $result['spk'],
+                'inTheDeal' => round($result['inTheDeal'], 2),
             ]
         ], 201);
     }
@@ -187,6 +196,7 @@ class ManagersController extends Controller
             'manager_payment' => $result['managerPayment'],
             'manager_salary_brutto' => $result['managerSalaryBrutto'],
             'per_unit_payment' => $result['perUnitPayment'],
+            'in_the_deal' => $result['inTheDeal'],
         ]);
 
         DraftsReports::create([
@@ -220,6 +230,7 @@ class ManagersController extends Controller
                 'perUnitPayment' => round($result['perUnitPayment'], 2),
                 'totalTaxes' => round($result['totalTaxes'], 2),
                 'companyProfit' => round($result['companyProfit'], 2),
+                'prfPercent' => round($result['prfPercent'], 2),
             ]
         ], 201);
     }
@@ -241,6 +252,7 @@ class ManagersController extends Controller
             'manager_payment' => $result['managerPayment'],
             'manager_salary_brutto' => $result['managerSalaryBrutto'],
             'per_unit_payment' => $result['perUnitPayment'],
+            'in_the_deal' => $result['inTheDeal'],
         ]);
 
         Reports::create([
@@ -279,6 +291,7 @@ class ManagersController extends Controller
             'prf_percent' => 'nullable|numeric',
             'deal_payment' => 'nullable|numeric',
             'per_unit_payment' => 'nullable|numeric',
+            'in_the_hand' => 'nullable|numeric',
         ]);
 
         $calculation = Calculation::create([
