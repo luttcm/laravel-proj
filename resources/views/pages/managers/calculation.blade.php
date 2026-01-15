@@ -123,6 +123,8 @@
     </div>
 </div>
 
+<div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
 <style>
     .btn:hover {
         opacity: 0.85;
@@ -142,9 +144,95 @@
     a:hover {
         opacity: 0.9;
     }
+
+    .notification {
+        padding: 14px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin-bottom: 12px;
+        min-width: 300px;
+        animation: slideIn 0.3s ease-out;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+    }
+
+    .notification.success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .notification.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .notification.info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    .notification-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+
+    .notification.hide {
+        animation: slideOut 0.3s ease-out forwards;
+    }
 </style>
 
 <script>
+    function showNotification(message, type = 'success') {
+        const container = document.getElementById('notificationContainer');
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+
+        const icons = {
+            success: '✓',
+            error: '✕',
+            info: 'ℹ'
+        };
+
+        notification.innerHTML = `
+            <span class="notification-icon">${icons[type]}</span>
+            <span>${message}</span>
+        `;
+
+        container.appendChild(notification);
+
+        setTimeout(() => {
+            notification.classList.add('hide');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
     function initializeForm() {
         const sellingTypeSelect = document.getElementById('selling_type');
         const counteragentType = sellingTypeSelect.value;
@@ -158,7 +246,7 @@
         fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
             .then(response => response.json())
             .then(data => {
-                console.log('Загруженные переменные:', data);
+                console.log('ok');
             })
             .catch(error => {
                 console.error('Ошибка при загрузке переменных:', error);
@@ -206,7 +294,7 @@
         fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
             .then(response => response.json())
             .then(data => {
-                console.log('Загруженные переменные:', data);
+                console.log('ok');
             })
             .catch(error => {
                 console.error('Ошибка при загрузке переменных:', error);
@@ -233,13 +321,14 @@
                 document.getElementsByName('deal_payment')[0].value = data.calculations.managerPayment;
                 document.getElementsByName('in_the_deal')[0].value = data.calculations.inTheDeal;
                 document.getElementsByName('prf_percent')[0].value = data.calculations.prfPercent;
+                showNotification('Расчёт выполнен успешно', 'success');
             } else {
-                alert('Ошибка при сохранении');
+                showNotification('Ошибка при расчёте', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Ошибка при отправке данных');
+            showNotification('Ошибка при отправке данных', 'error');
         });
     });
 
@@ -258,15 +347,14 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                console.log('Response data:', data);
-                alert(data.message);
+                showNotification(data.message, 'success');
             } else {
-                alert('Ошибка при сохранении');
+                showNotification('Ошибка при сохранении', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Ошибка при отправке данных');
+            showNotification('Ошибка при отправке данных', 'error');
         });
     });
 
@@ -285,14 +373,14 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
+                showNotification(data.message, 'success');
             } else {
-                alert('Ошибка при сохранении');
+                showNotification('Ошибка при сохранении', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Ошибка при отправке данных');
+            showNotification('Ошибка при отправке данных', 'error');
         });
     });
 
