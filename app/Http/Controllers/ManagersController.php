@@ -348,9 +348,11 @@ class ManagersController extends Controller
         ];
 
         if ($includeCalculations) {
+            $sellingType = $request->input('selling_name');
+            $counteragentType = strpos($sellingType, 'ИП') !== false ? 'inn' : 'ooo';
+
             $response['calculations'] = [
                 'nacenka' => round($result['nacenka'], 2),
-                'ausn' => round($result['ausn'], 2),
                 'P1' => round($result['P1'], 2),
                 'riskReserve' => round($result['riskReserve'], 2),
                 'premBase' => round($result['premBase'], 2),
@@ -370,6 +372,16 @@ class ManagersController extends Controller
                 'companyProfit' => round($result['companyProfit'], 2),
                 'prfPercent' => round($result['prfPercent'], 2),
             ];
+
+            if ($counteragentType === 'inn') {
+                $response['calculations']['ausn'] = round($result['ausn'], 2);
+            } else {
+                $response['calculations']['ndsOutgoing'] = round($result['ndsOutgoing'], 2);
+                $response['calculations']['ndsIncoming'] = round($result['ndsIncoming'], 2);
+                $response['calculations']['ndsPaid'] = round($result['ndsPaid'], 2);
+                $response['calculations']['citBase'] = round($result['citBase'], 2);
+                $response['calculations']['citTax'] = round($result['citTax'], 2);
+            }
         }
 
         return response()->json($response, 201);
