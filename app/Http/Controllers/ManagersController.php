@@ -109,15 +109,15 @@ class ManagersController extends Controller
         $ausn = $sellingSum * $rate_ausn;
         $P1 = $nacenka - $ausn;
         
-        $riskReserve = max(2, $P1 * $riskReserveRate);
-        $premBase = max(2, $P1 - $riskReserve);
+        $riskReserve = max(0, $P1 * $riskReserveRate);
+        $premBase = max(0, $P1 - $riskReserve);
 
         $logisticsBonus = $premBase * $k_log;
         $finAdminBonus = $premBase * $k_fin;
         $fbrBonus = $premBase * $k_fbr;
         $premiyaTotal = $premBase * $k_ps_total;
 
-        $managerBase = max(2, $premBase - $premiyaTotal);
+        $managerBase = max(0, $premBase - $premiyaTotal);
         $managerSalaryBrutto = $managerBase * $k_mgr;
         $managerNdfl = $managerSalaryBrutto * $rate_ndfl;
 
@@ -179,18 +179,18 @@ class ManagersController extends Controller
         
         $P1 = $nacenka - $ndsPaid;
         
-        $riskReserve = max(2, $P1 * $riskReserveRate);
-        $premBase = max(2, $P1 - $riskReserve);
+        $riskReserve = max(0, $P1 * $riskReserveRate);
+        $premBase = max(0, $P1 - $riskReserve);
         
-        $riskReserve = max(2, $P1 * $riskReserveRate);
-        $premBase = max(2, $P1 - $riskReserve);
+        $riskReserve = max(0, $P1 * $riskReserveRate);
+        $premBase = max(0, $P1 - $riskReserve);
 
         $logisticsBonus = $premBase * $k_log;
         $finAdminBonus = $premBase * $k_fin;
         $fbrBonus = $premBase * $k_fbr;
         $premiyaTotal = $premBase * $k_ps_total;
 
-        $managerBase = max(2, $premBase - $premiyaTotal);
+        $managerBase = max(0, $premBase - $premiyaTotal);
         $managerSalaryBrutto = $managerBase * $k_mgr;
         $managerNdfl = $managerSalaryBrutto * $rate_ndfl;
 
@@ -207,7 +207,7 @@ class ManagersController extends Controller
             $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;
         }
 
-        $citBase = max(2, $P1 - $riskReserve - $premiyaTotal - $totalManagerCost);
+        $citBase = max(0, $P1 - $riskReserve - $premiyaTotal - $totalManagerCost);
         $citTax = $citBase * $rate_cit;
 
         $totalTaxes = $ndsPaid + $managerNdfl + $socialFunds + $citTax;
