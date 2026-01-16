@@ -424,6 +424,7 @@ class ManagersController extends Controller
                 'in_the_hand' => 'nullable|numeric',
             ]);
         }
+        
         $data = $request->all();
 
         $numericFields = [
