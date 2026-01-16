@@ -263,13 +263,13 @@
         const markupPercent = parseFloat(document.getElementsByName('markup_percent')[0].value) || 0;
 
         const purchaseSum = purchasePrice * quantity;
-        document.getElementsByName('purchase_sum')[0].value = purchaseSum.toFixed(2);
+        document.getElementsByName('purchase_sum')[0].value = purchaseSum.toFixed(0);
 
         const sellingPrice = purchasePrice * (1 + markupPercent / 100);
-        document.getElementsByName('selling_price')[0].value = sellingPrice.toFixed(2);
+        document.getElementsByName('selling_price')[0].value = sellingPrice.toFixed(0);
 
         const sellingSum = sellingPrice * quantity;
-        document.getElementsByName('selling_sum')[0].value = sellingSum.toFixed(2);
+        document.getElementsByName('selling_sum')[0].value = sellingSum.toFixed(0);
     }
 
     document.getElementsByName('purchase_price')[0].addEventListener('input', recalculate);

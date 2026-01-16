@@ -254,39 +254,39 @@ class ManagersController extends Controller
         $counteragentType = strpos($sellingType, 'ИП') !== false ? 'inn' : 'ooo';
 
         $calculations = [
-            'nacenka' => round($result['nacenka'], 2),
-            'P1' => round($result['P1'], 2),
-            'riskReserve' => round($result['riskReserve'], 2),
-            'premBase' => round($result['premBase'], 2),
-            'logisticsBonus' => round($result['logisticsBonus'], 2),
-            'finAdminBonus' => round($result['finAdminBonus'], 2),
-            'fbrBonus' => round($result['fbrBonus'], 2),
-            'premiyaTotal' => round($result['premiyaTotal'], 2),
-            'managerBase' => round($result['managerBase'], 2),
-            'managerSalaryBrutto' => round($result['managerSalaryBrutto'], 2),
-            'managerNdfl' => round($result['managerNdfl'], 2),
-            'socialFunds' => round($result['socialFunds'], 2),
-            'totalManagerCost' => round($result['totalManagerCost'], 2),
-            'managerPayment' => round($result['managerPayment'], 2),
-            'spkPayment' => round($result['spkPayment'], 2),
-            'perUnitPayment' => round($result['perUnitPayment'], 2),
-            'totalTaxes' => round($result['totalTaxes'], 2),
-            'companyProfit' => round($result['companyProfit'], 2),
-            'prfPercent' => round($result['prfPercent'], 2),
+            'nacenka' => round($result['nacenka'], 0, PHP_ROUND_HALF_UP),
+            'P1' => round($result['P1'], 0, PHP_ROUND_HALF_UP),
+            'riskReserve' => round($result['riskReserve'], 0, PHP_ROUND_HALF_UP),
+            'premBase' => round($result['premBase'], 0, PHP_ROUND_HALF_UP),
+            'logisticsBonus' => round($result['logisticsBonus'], 0, PHP_ROUND_HALF_UP),
+            'finAdminBonus' => round($result['finAdminBonus'], 0, PHP_ROUND_HALF_UP),
+            'fbrBonus' => round($result['fbrBonus'], 0, PHP_ROUND_HALF_UP),
+            'premiyaTotal' => round($result['premiyaTotal'], 0, PHP_ROUND_HALF_UP),
+            'managerBase' => round($result['managerBase'], 0, PHP_ROUND_HALF_UP),
+            'managerSalaryBrutto' => round($result['managerSalaryBrutto'], 0, PHP_ROUND_HALF_UP),
+            'managerNdfl' => round($result['managerNdfl'], 0, PHP_ROUND_HALF_UP),
+            'socialFunds' => round($result['socialFunds'], 0, PHP_ROUND_HALF_UP),
+            'totalManagerCost' => round($result['totalManagerCost'], 0, PHP_ROUND_HALF_UP),
+            'managerPayment' => round($result['managerPayment'], 0, PHP_ROUND_HALF_UP),
+            'spkPayment' => round($result['spkPayment'], 0, PHP_ROUND_HALF_UP),
+            'perUnitPayment' => round($result['perUnitPayment'], 0, PHP_ROUND_HALF_UP),
+            'totalTaxes' => round($result['totalTaxes'], 0, PHP_ROUND_HALF_UP),
+            'companyProfit' => round($result['companyProfit'], 0, PHP_ROUND_HALF_UP),
+            'prfPercent' => round($result['prfPercent'], 2, PHP_ROUND_HALF_UP),
             'spk' => $result['spk'],
-            'inTheDeal' => round($result['inTheDeal'], 2),
+            'inTheDeal' => round($result['inTheDeal'], 0, PHP_ROUND_HALF_UP),
         ];
 
         if ($counteragentType === 'inn') {
-            $calculations['ausn'] = round($result['ausn'], 2);
+            $calculations['ausn'] = round($result['ausn'], 0, PHP_ROUND_HALF_UP);
         }
 
         if ($counteragentType === 'ooo') {
-            $calculations['ndsOutgoing'] = round($result['ndsOutgoing'], 2);
-            $calculations['ndsIncoming'] = round($result['ndsIncoming'], 2);
-            $calculations['ndsPaid'] = round($result['ndsPaid'], 2);
-            $calculations['citBase'] = round($result['citBase'], 2);
-            $calculations['citTax'] = round($result['citTax'], 2);
+            $calculations['ndsOutgoing'] = round($result['ndsOutgoing'], 0, PHP_ROUND_HALF_UP);
+            $calculations['ndsIncoming'] = round($result['ndsIncoming'], 0, PHP_ROUND_HALF_UP);
+            $calculations['ndsPaid'] = round($result['ndsPaid'], 0, PHP_ROUND_HALF_UP);
+            $calculations['citBase'] = round($result['citBase'], 0, PHP_ROUND_HALF_UP);
+            $calculations['citTax'] = round($result['citTax'], 0, PHP_ROUND_HALF_UP);
         }
 
         return response()->json([
@@ -352,35 +352,35 @@ class ManagersController extends Controller
             $counteragentType = strpos($sellingType, 'ИП') !== false ? 'inn' : 'ooo';
 
             $response['calculations'] = [
-                'nacenka' => round($result['nacenka'], 2),
-                'P1' => round($result['P1'], 2),
-                'riskReserve' => round($result['riskReserve'], 2),
-                'premBase' => round($result['premBase'], 2),
-                'logisticsBonus' => round($result['logisticsBonus'], 2),
-                'finAdminBonus' => round($result['finAdminBonus'], 2),
-                'fbrBonus' => round($result['fbrBonus'], 2),
-                'premiyaTotal' => round($result['premiyaTotal'], 2),
-                'managerBase' => round($result['managerBase'], 2),
-                'managerSalaryBrutto' => round($result['managerSalaryBrutto'], 2),
-                'managerNdfl' => round($result['managerNdfl'], 2),
-                'socialFunds' => round($result['socialFunds'], 2),
-                'totalManagerCost' => round($result['totalManagerCost'], 2),
-                'managerPayment' => round($result['managerPayment'], 2),
-                'spkPayment' => round($result['spkPayment'], 2),
-                'perUnitPayment' => round($result['perUnitPayment'], 2),
-                'totalTaxes' => round($result['totalTaxes'], 2),
-                'companyProfit' => round($result['companyProfit'], 2),
-                'prfPercent' => round($result['prfPercent'], 2),
+                'nacenka' => round($result['nacenka'], 0, PHP_ROUND_HALF_UP),
+                'P1' => round($result['P1'], 0, PHP_ROUND_HALF_UP),
+                'riskReserve' => round($result['riskReserve'], 0, PHP_ROUND_HALF_UP),
+                'premBase' => round($result['premBase'], 0, PHP_ROUND_HALF_UP),
+                'logisticsBonus' => round($result['logisticsBonus'], 0, PHP_ROUND_HALF_UP),
+                'finAdminBonus' => round($result['finAdminBonus'], 0, PHP_ROUND_HALF_UP),
+                'fbrBonus' => round($result['fbrBonus'], 0, PHP_ROUND_HALF_UP),
+                'premiyaTotal' => round($result['premiyaTotal'], 0, PHP_ROUND_HALF_UP),
+                'managerBase' => round($result['managerBase'], 0, PHP_ROUND_HALF_UP),
+                'managerSalaryBrutto' => round($result['managerSalaryBrutto'], 0, PHP_ROUND_HALF_UP),
+                'managerNdfl' => round($result['managerNdfl'], 0, PHP_ROUND_HALF_UP),
+                'socialFunds' => round($result['socialFunds'], 0, PHP_ROUND_HALF_UP),
+                'totalManagerCost' => round($result['totalManagerCost'], 0, PHP_ROUND_HALF_UP),
+                'managerPayment' => round($result['managerPayment'], 0, PHP_ROUND_HALF_UP),
+                'spkPayment' => round($result['spkPayment'], 0, PHP_ROUND_HALF_UP),
+                'perUnitPayment' => round($result['perUnitPayment'], 0, PHP_ROUND_HALF_UP),
+                'totalTaxes' => round($result['totalTaxes'], 0, PHP_ROUND_HALF_UP),
+                'companyProfit' => round($result['companyProfit'], 0, PHP_ROUND_HALF_UP),
+                'prfPercent' => round($result['prfPercent'], 2, PHP_ROUND_HALF_UP),
             ];
 
             if ($counteragentType === 'inn') {
-                $response['calculations']['ausn'] = round($result['ausn'], 2);
+                $response['calculations']['ausn'] = round($result['ausn'], 0);
             } else {
-                $response['calculations']['ndsOutgoing'] = round($result['ndsOutgoing'], 2);
-                $response['calculations']['ndsIncoming'] = round($result['ndsIncoming'], 2);
-                $response['calculations']['ndsPaid'] = round($result['ndsPaid'], 2);
-                $response['calculations']['citBase'] = round($result['citBase'], 2);
-                $response['calculations']['citTax'] = round($result['citTax'], 2);
+                $response['calculations']['ndsOutgoing'] = round($result['ndsOutgoing'], 0);
+                $response['calculations']['ndsIncoming'] = round($result['ndsIncoming'], 0);
+                $response['calculations']['ndsPaid'] = round($result['ndsPaid'], 0);
+                $response['calculations']['citBase'] = round($result['citBase'], 0);
+                $response['calculations']['citTax'] = round($result['citTax'], 0);
             }
         }
 
