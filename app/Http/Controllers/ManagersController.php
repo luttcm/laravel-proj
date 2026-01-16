@@ -115,14 +115,15 @@ class ManagersController extends Controller
         $logisticsBonus = $premBase * $k_log;
         $finAdminBonus = $premBase * $k_fin;
         $fbrBonus = $premBase * $k_fbr;
-        $premiyaTotal = $premBase * $k_ps_total;
+        $premiyaTotal = $logisticsBonus + $finAdminBonus + $fbrBonus;
 
         $managerBase = max(0, $premBase - $premiyaTotal);
         $managerSalaryBrutto = $managerBase * $k_mgr;
         $managerNdfl = $managerSalaryBrutto * $rate_ndfl;
 
         $socialFunds = $managerSalaryBrutto * $rate_ins;
-        
+        $percentSumm = $premiyaTotal * $rate_ins;
+
         $managerPayment = $managerSalaryBrutto - $managerNdfl;       
         $totalManagerCost = $managerSalaryBrutto + $socialFunds;
         $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;
@@ -135,7 +136,7 @@ class ManagersController extends Controller
         }
 
         $totalTaxes = $ausn + $managerNdfl + $socialFunds;
-        $companyProfit = $P1 - $riskReserve - $premiyaTotal - $totalManagerCost;
+        $companyProfit = $P1 - $riskReserve - $premiyaTotal - $managerSalaryBrutto - $socialFunds - $percentSumm;
         $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
         $prfPercent = $sellingSum > 0 ? ($companyProfit / $sellingSum) * 100 : 0;
 
@@ -195,6 +196,7 @@ class ManagersController extends Controller
         $managerNdfl = $managerSalaryBrutto * $rate_ndfl;
 
         $socialFunds = $managerSalaryBrutto * $rate_ins;
+        $percentSumm = $premiyaTotal * $rate_ins;
         
         $managerPayment = $managerSalaryBrutto - $managerNdfl;       
         $totalManagerCost = $managerSalaryBrutto + $socialFunds;
@@ -207,11 +209,11 @@ class ManagersController extends Controller
             $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;
         }
 
-        $citBase = max(0, $P1 - $riskReserve - $premiyaTotal - $totalManagerCost);
+        $citBase = max(0, $P1 - $riskReserve - $premiyaTotal - $totalManagerCost - $percentSumm);
         $citTax = $citBase * $rate_cit;
 
         $totalTaxes = $ndsPaid + $managerNdfl + $socialFunds + $citTax;
-        $companyProfit = $citBase - $citTax;
+        $companyProfit = $P1 - $riskReserve - $premiyaTotal - $managerSalaryBrutto - $socialFunds - $percentSumm - $citTax;
         $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
         
         $prfPercent = $sellingSum > 0 ? ($companyProfit / $sellingSum) * 100 : 0;
