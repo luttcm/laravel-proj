@@ -25,6 +25,13 @@
             <div style="background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 32px;">
                 <form id="calculationForm">
                     @csrf
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Название отчета</label>
+                            <input type="text" class="form-control" name="report_name" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="Название">
+                        </div>
+                    </div>
+
                     <input type="hidden" name="selling_name" id="selling_name_hidden">
                     <div class="row mb-4">
                         <div class="col-md-4">

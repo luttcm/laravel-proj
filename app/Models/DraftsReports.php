@@ -15,6 +15,7 @@ class DraftsReports extends Model
         'name',
         'amount',
         'manager_id',
+        'report_title',
         'date',
         'calculate_id',
     ];
