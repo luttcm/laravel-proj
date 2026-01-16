@@ -33,6 +33,7 @@
                     </div>
 
                     <input type="hidden" name="selling_name" id="selling_name_hidden">
+                    <input type="hidden" name="date" id="date_hidden" value="{{ date('Y-m-d') }}">
                     <div class="row mb-4">
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Покупаю</label>

@@ -407,21 +407,21 @@ class ManagersController extends Controller
             ]);
         } else {
             $validated = $request->validate([
-                'report_name' => 'nullable|string',
-                'buying_name' => 'nullable|string',
-                'date' => 'nullable|string',
-                'selling_name' => 'nullable|string',
-                'spk' => 'nullable|string',
-                'purchase_price' => 'nullable|numeric',
-                'quantity' => 'nullable|integer',
-                'purchase_sum' => 'nullable|numeric',
-                'markup_percent' => 'nullable|numeric',
-                'selling_price' => 'nullable|numeric',
-                'selling_sum' => 'nullable|numeric',
-                'prf_percent' => 'nullable|numeric',
-                'deal_payment' => 'nullable|numeric',
-                'per_unit_payment' => 'nullable|numeric',
-                'in_the_hand' => 'nullable|numeric',
+                'report_name' => 'required|string',
+                'buying_name' => 'required|string',
+                'date' => 'required|string',
+                'selling_name' => 'required|string',
+                'spk' => 'required|string',
+                'purchase_price' => 'required|numeric',
+                'quantity' => 'required|integer',
+                'purchase_sum' => 'required|numeric',
+                'markup_percent' => 'required|numeric',
+                'selling_price' => 'required|numeric',
+                'selling_sum' => 'required|numeric',
+                'prf_percent' => 'required|numeric',
+                'deal_payment' => 'required|numeric',
+                'per_unit_payment' => 'required|numeric',
+                'in_the_hand' => 'required|numeric',
             ]);
         }
         
