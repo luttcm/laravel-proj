@@ -27,7 +27,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Дата</th>
-                            <th>Контрагент</th>
+                            <th>Название отчета</th>
                             <th>Сумма рассчетов</th>
                         </tr>
                     </thead>
@@ -35,7 +35,7 @@
                         @forelse($reports as $report)
                             <tr>
                                 <td>{{ $report->date }}</td>
-                                <td>{{ $report->name }}</td>
+                                <td>{{ $report->report_title }}</td>
                                 <td>{{ $report->amount }}</td>
                             </tr>
                         @empty

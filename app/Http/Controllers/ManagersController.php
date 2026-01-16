@@ -29,7 +29,7 @@ class ManagersController extends Controller
             ->map(function ($var) {
                 return [
                     'id' => $var->id,
-                    'name' => $var->name,
+                    'name' => $var->report_title,
                     'value' => $var->value,
                 ];
             });
@@ -340,6 +340,7 @@ class ManagersController extends Controller
             'manager_id' => auth()->id(),
             'date' => now()->toDateString(),
             'name' => $userName,
+            'report_title' => $request->input('report_name', 'Без названия'),
             'amount' => $result['managerPayment'],
             'calculate_id' => $calculationId,
         ]);
@@ -399,12 +400,14 @@ class ManagersController extends Controller
     {
         if ($isHistory) {
             $validated = $request->validate([
+                'report_name' => 'nullable|string',
                 'date' => 'nullable|string',
                 'selling_name' => 'nullable|string',
                 'spk' => 'nullable|string',
             ]);
         } else {
             $validated = $request->validate([
+                'report_name' => 'nullable|string',
                 'buying_name' => 'nullable|string',
                 'date' => 'nullable|string',
                 'selling_name' => 'nullable|string',
@@ -421,10 +424,23 @@ class ManagersController extends Controller
                 'in_the_hand' => 'nullable|numeric',
             ]);
         }
+        $data = $request->all();
+
+        $numericFields = [
+            'purchase_price', 'purchase_sum', 'markup_percent', 'selling_price', 
+            'selling_sum', 'prf_percent', 'deal_payment', 'per_unit_payment', 
+            'in_the_hand', 'manager_payment', 'manager_salary_brutto', 'in_the_deal'
+        ];
+
+        foreach ($numericFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = round((float)$data[$field], 2);
+            }
+        }
 
         $calculation = Calculation::create([
             'user_id' => auth()->id(),
-            ...$validated,
+            ...$data,
         ]);
 
         if (!$calculation) {
