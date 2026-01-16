@@ -36,7 +36,7 @@
                             <tr>
                                 <td>{{ $report->date }}</td>
                                 <td>{{ $report->report_title }}</td>
-                                <td>{{ $report->amount }}</td>
+                                <td>{{ number_format($report->amount, 0, '.', ' ') }} ₽</td>
                             </tr>
                         @empty
                             <tr>
