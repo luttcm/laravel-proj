@@ -310,7 +310,7 @@ class ManagersController extends Controller
      */
     public function storeReport(Request $request)
     {
-        return $this->saveReport($request, Reports::class, 'Сохранено в историю', false);
+        return $this->saveReport($request, Reports::class, 'Сохранено в историю', false, true);
     }
 
     /**
@@ -320,9 +320,9 @@ class ManagersController extends Controller
      * @param string $message
      * @param bool $includeCalculations
      */
-    private function saveReport(Request $request, string $reportModel, string $message, bool $includeCalculations = false)
+    private function saveReport(Request $request, string $reportModel, string $message, bool $includeCalculations = false, $isHistory = false)
     {
-        $calculationId = $this->saveCalculation($request);
+        $calculationId = $this->saveCalculation($request, $isHistory);
         $result = $this->calcultating($request);
         $userName = auth()->user()->name ?? 'Без имени';
 
@@ -393,24 +393,32 @@ class ManagersController extends Controller
      * @throws \Exception
      * @return int
      */
-    private function saveCalculation(Request $request): int
+    private function saveCalculation(Request $request, bool $isHistory = false): int
     {
-        $validated = $request->validate([
-            'buying_name' => 'nullable|string',
-            'date' => 'nullable|string',
-            'selling_name' => 'nullable|string',
-            'spk' => 'nullable|string',
-            'purchase_price' => 'nullable|numeric',
-            'quantity' => 'nullable|integer',
-            'purchase_sum' => 'nullable|numeric',
-            'markup_percent' => 'nullable|numeric',
-            'selling_price' => 'nullable|numeric',
-            'selling_sum' => 'nullable|numeric',
-            'prf_percent' => 'nullable|numeric',
-            'deal_payment' => 'nullable|numeric',
-            'per_unit_payment' => 'nullable|numeric',
-            'in_the_hand' => 'nullable|numeric',
-        ]);
+        if ($isHistory) {
+            $validated = $request->validate([
+                'date' => 'nullable|string',
+                'selling_name' => 'nullable|string',
+                'spk' => 'nullable|string',
+            ]);
+        } else {
+            $validated = $request->validate([
+                'buying_name' => 'nullable|string',
+                'date' => 'nullable|string',
+                'selling_name' => 'nullable|string',
+                'spk' => 'nullable|string',
+                'purchase_price' => 'nullable|numeric',
+                'quantity' => 'nullable|integer',
+                'purchase_sum' => 'nullable|numeric',
+                'markup_percent' => 'nullable|numeric',
+                'selling_price' => 'nullable|numeric',
+                'selling_sum' => 'nullable|numeric',
+                'prf_percent' => 'nullable|numeric',
+                'deal_payment' => 'nullable|numeric',
+                'per_unit_payment' => 'nullable|numeric',
+                'in_the_hand' => 'nullable|numeric',
+            ]);
+        }
 
         $calculation = Calculation::create([
             'user_id' => auth()->id(),
