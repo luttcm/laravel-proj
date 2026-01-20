@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\NdsController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\VariableController;
+use App\Models\Nds;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
@@ -38,6 +40,13 @@ Route::middleware(['auth', 'check.access'])->group(function () {
         Route::get('/variables/{id}/edit', [VariableController::class, 'edit'])->name('variable.edit')->whereNumber('id');
         Route::put('/variables/{id}', [VariableController::class, 'update'])->name('variable.update')->whereNumber('id');
         Route::post('/variables/{id}/delete', [VariableController::class, 'delete'])->name('variable.delete')->whereNumber('id');
+
+        Route::get('/nds', [NdsController::class, 'index'])->name('nds.index');
+        Route::get('/nds/add', [NdsController::class, 'add'])->name('nds.add');
+        Route::post('/nds', [NdsController::class, 'store'])->name('nds.store');
+        Route::get('/nds/{id}/edit', [NdsController::class, 'edit'])->name('nds.edit')->whereNumber('id');
+        Route::put('/nds/{id}', [NdsController::class, 'update'])->name('nds.update')->whereNumber('id');
+        Route::post('/nds/{id}/delete', [NdsController::class, 'delete'])->name('nds.delete')->whereNumber('id');
     });
 
     // Профиль
