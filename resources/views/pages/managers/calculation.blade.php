@@ -470,6 +470,7 @@
         const calculationId = document.getElementById('calculationForm').dataset.calculationId;
         const reportId = document.getElementById('report_id_hidden').value;
         formData.append('report_id', reportId);
+        formData.append('calculation_id', calculationId);
         
         const url = calculationId 
             ? `{{ route('managers.store-report') }}?calculation_id=${calculationId}`
