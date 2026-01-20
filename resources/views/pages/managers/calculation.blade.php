@@ -251,7 +251,7 @@
         }, 3000);
     }
 
-    function loadNdsForType(counteragentType) {
+    function loadNdsForType(counteragentType, selectedNdsId = null) {
         const ndsContainer = document.getElementById('nds').closest('.col-md-4');
         if (counteragentType === 'inn') {
             ndsContainer.style.display = 'none';
@@ -271,6 +271,13 @@
                         option.dataset.percent = nds.percent;
                         ndsSelect.appendChild(option);
                     });
+                    
+                    if (selectedNdsId) {
+                        ndsSelect.value = selectedNdsId;
+                        const selectedOption = ndsSelect.options[ndsSelect.selectedIndex];
+                        const ndsPercent = selectedOption.dataset.percent || '0';
+                        document.getElementById('nds_percent_hidden').value = ndsPercent;
+                    }
                 })
                 .catch(error => console.error('Ошибка при загрузке НДС:', error));
         }
@@ -327,6 +334,13 @@
             initializeForm();
 
             setTimeout(() => {
+                if (calc.nds_id) {
+                    const counteragentType = calc.selling_name.includes('ИП') ? 'inn' : 'ooo';
+                    if (counteragentType === 'ooo') {
+                        loadNdsForType(counteragentType, calc.nds_id);
+                    }
+                }
+                
                 const event = new Event('input', { bubbles: true });
                 document.getElementsByName('purchase_price')[0].dispatchEvent(event);
             }, 500);

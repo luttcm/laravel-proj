@@ -353,8 +353,8 @@ class ManagersController extends Controller
      */
     private function saveReport(Request $request, string $reportModel, string $message, bool $includeCalculations = false, $isHistory = false, $existingCalculationId = null)
     {
-        if ($existingCalculationId) {
-            $calculationId = $existingCalculationId;
+        if ($existingCalculationId || $request->has('calculation_id')) {
+            $calculationId = $existingCalculationId ?? $request->input('calculation_id');
             $calculation = Calculation::findOrFail($calculationId);
             $calculation->update($request->all());
         } else {
@@ -371,13 +371,14 @@ class ManagersController extends Controller
 
         $calculation = Calculation::findOrFail($calculationId);
         $calculation->update([
+            'nds_id' => $request->input('nds_id'),
             'manager_payment' => $result['managerPayment'],
             'manager_salary_brutto' => $result['managerSalaryBrutto'],
             'per_unit_payment' => $result['perUnitPayment'],
             'in_the_deal' => $result['inTheDeal'],
         ]);
 
-        if ($existingCalculationId) {
+        if ($existingCalculationId && $reportId) {
             if ($reportId) {
                 $reportId->update([
                     'date' => now()->toDateString(),
