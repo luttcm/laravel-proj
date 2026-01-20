@@ -52,8 +52,8 @@
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Продаю</label>
                             <select class="form-control" id="selling_type" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
-                                <option value="inn">ИП (ИНН)</option>
-                                <option value="ooo">ООО (УСН)</option>
+                                <option value="inn">ИП ПВВ</option>
+                                <option value="ooo">СЗН</option>
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -110,7 +110,7 @@
                         </div>
                     </div>
 
-                    <div class="row mb-6" style="border-top: 2px solid #e0e0e0; padding-top: 16px;">
+                    <div class="row mb-4" style="border-top: 2px solid #e0e0e0; padding-top: 16px;">
                         <div class="col-md-6">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Сумма в руки, руб</label>
                             <input type="number" class="form-control" name="in_the_hand" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0.00" step="0.1">
@@ -118,6 +118,17 @@
                         <div class="col-md-6">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Сумма в счет, руб.</label>
                             <input type="number" class="form-control" name="in_the_deal" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;" placeholder="0.00" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mb-6">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Сумма в руки + Цена продажи, руб</label>
+                            <input type="number" class="form-control" name="in_the_hand_sum" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;" placeholder="0.00" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Сумма в счет + Сумма продажи, руб.</label>
+                            <input type="number" class="form-control" name="in_the_deal_sum" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;" placeholder="0.00" readonly>
                         </div>
                     </div>
 
@@ -420,6 +431,8 @@
                 document.getElementsByName('deal_payment')[0].value = data.calculations.managerPayment;
                 document.getElementsByName('in_the_deal')[0].value = data.calculations.inTheDeal;
                 document.getElementsByName('prf_percent')[0].value = data.calculations.prfPercent;
+                document.getElementsByName('in_the_deal_sum')[0].value = data.calculations.sellingSumTotal;
+                document.getElementsByName('in_the_hand_sum')[0].value = data.calculations.sellingSumPerUnit;
                 showNotification('Расчёт выполнен успешно', 'success');
             } else {
                 showNotification('Ошибка при расчёте', 'error');

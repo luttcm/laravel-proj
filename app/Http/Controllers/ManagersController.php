@@ -128,6 +128,9 @@ class ManagersController extends Controller
                                    $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total,
                                    $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables)
     {
+        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
+        $inTheDealPerUnit = $quantity > 0 ? $inTheDeal / $quantity : 0;
+
         $rate_ausn = (float)($variables['rate_ausn']->value ?? 0.08);
 
         $nacenka = $sellingSum - $purchaseSum;
@@ -188,6 +191,8 @@ class ManagersController extends Controller
             'prfPercent' => $prfPercent,
             'spk' => $spk,
             'inTheDeal' => $inTheDeal,
+            'sellingSumPerUnit' => $sellingSum / $quantity + $inTheDealPerUnit,
+            'sellingSumTotal' => $sellingSum + $inTheDealPerUnit * $quantity
         ];
     }
 
@@ -196,6 +201,9 @@ class ManagersController extends Controller
                                    $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables,
                                    $ndsPercentPurchase = 0, $ndsPercentSelling = 18)
     {
+        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
+        $inTheDealPerUnit = $quantity > 0 ? $inTheDeal / $quantity : 0;
+
         $rate_cit = (float)($variables['rate_cit']->value ?? 0.25);
 
         if ($ndsPercentPurchase > 0) {
@@ -242,7 +250,6 @@ class ManagersController extends Controller
 
         $totalTaxes = $ndsPaid + $managerNdfl + $socialFunds + $citTax;
         $companyProfit = $P1 - $riskReserve - $premiyaTotal - $managerSalaryBrutto - $socialFunds - $percentSumm - $citTax;
-        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
         
         $prfPercent = $sellingSum > 0 ? ($companyProfit / $sellingSum) * 100 : 0;
 
@@ -273,6 +280,8 @@ class ManagersController extends Controller
             'prfPercent' => $prfPercent,
             'spk' => $spk,
             'inTheDeal' => $inTheDeal,
+            'sellingSumPerUnit' => $inTheDealPerUnit,
+            'sellingSumTotal' => $inTheDealPerUnit * $quantity
         ];
     }
 
@@ -305,6 +314,8 @@ class ManagersController extends Controller
             'prfPercent' => round($result['prfPercent'], 2, PHP_ROUND_HALF_UP),
             'spk' => $result['spk'],
             'inTheDeal' => round($result['inTheDeal'], 0, PHP_ROUND_HALF_UP),
+            'sellingSumPerUnit' => round($result['sellingSumPerUnit'], 0, PHP_ROUND_HALF_UP),
+            'sellingSumTotal' => round($result['sellingSumTotal'], 0, PHP_ROUND_HALF_UP),
         ];
 
         if ($counteragentType === 'inn') {
@@ -382,7 +393,7 @@ class ManagersController extends Controller
             if ($reportId) {
                 $reportId->update([
                     'date' => now()->toDateString(),
-                    'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
+                    'report_title' => $request->input(key: 'report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
                     'amount' => $result['managerPayment'],
                 ]);
             } else {
