@@ -331,7 +331,8 @@ class ManagersController extends Controller
      */
     public function storeDraftsReport(Request $request)
     {
-        return $this->saveReport($request, DraftsReports::class, 'Сохранено в отчёты', true);
+        $calculationId = $request->query('calculation_id');
+        return $this->saveReport($request, DraftsReports::class, 'Сохранено в отчёты', true, false, $calculationId);
     }
 
     /**
@@ -350,9 +351,21 @@ class ManagersController extends Controller
      * @param string $message
      * @param bool $includeCalculations
      */
-    private function saveReport(Request $request, string $reportModel, string $message, bool $includeCalculations = false, $isHistory = false)
+    private function saveReport(Request $request, string $reportModel, string $message, bool $includeCalculations = false, $isHistory = false, $existingCalculationId = null)
     {
-        $calculationId = $this->saveCalculation($request, $isHistory);
+        if ($existingCalculationId) {
+            $calculationId = $existingCalculationId;
+            $calculation = Calculation::findOrFail($calculationId);
+            $calculation->update($request->all());
+        } else {
+            $calculationId = $this->saveCalculation($request, $isHistory);
+        }
+
+        $reportId = null;
+        if ($request->has('report_id') && !empty($request->input('report_id'))) {
+            $reportId = $reportModel::findOrFail($request->input('report_id'));
+        }
+        
         $result = $this->calcultating($request);
         $userName = auth()->user()->name ?? 'Без имени';
 
@@ -364,14 +377,39 @@ class ManagersController extends Controller
             'in_the_deal' => $result['inTheDeal'],
         ]);
 
-        $reportModel::create([
-            'manager_id' => auth()->id(),
-            'date' => now()->toDateString(),
-            'name' => $userName,
-            'report_title' => $request->input('report_name', 'Без названия'),
-            'amount' => $result['managerPayment'],
-            'calculate_id' => $calculationId,
-        ]);
+        if ($existingCalculationId) {
+            if ($reportId) {
+                $reportId->update([
+                    'date' => now()->toDateString(),
+                    'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
+                    'amount' => $result['managerPayment'],
+                ]);
+            } else {
+                $reportModel::create([
+                    'manager_id' => auth()->id(),
+                    'date' => now()->toDateString(),
+                    'name' => $userName,
+                    'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
+                    'amount' => $result['managerPayment'],
+                    'calculate_id' => $calculationId,
+                ]);
+            }
+        } elseif ($reportId) {
+            $reportId->update([
+                'date' => now()->toDateString(),
+                'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
+                'amount' => $result['managerPayment'],
+            ]);
+        } else {
+            $reportModel::create([
+                'manager_id' => auth()->id(),
+                'date' => now()->toDateString(),
+                'name' => $userName,
+                'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
+                'amount' => $result['managerPayment'],
+                'calculate_id' => $calculationId,
+            ]);
+        }
 
         $response = [
             'success' => true,
@@ -478,4 +516,25 @@ class ManagersController extends Controller
 
         return $calculation->id;
     }
+
+    /**
+     * Получить отчет с данными расчета для загрузки в форму
+     */
+    public function getReport($id)
+    {
+        $report = Reports::findOrFail($id);
+
+        if ($report->manager_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $calculation = Calculation::findOrFail($report->calculate_id);
+
+        return response()->json([
+            'success' => true,
+            'report' => $report,
+            'calculation' => $calculation,
+        ]);
+    }
 }
+

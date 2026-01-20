@@ -14,7 +14,7 @@
                 <a href="{{ route('managers.calculation') }}" style="padding: 8px 16px; background-color: #0084ff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
                     Расчёт прибыли
                 </a>
-                <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
+                <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; display: none; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
                     Отчёты
                 </a>
                 <a href="{{ route('managers.history') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
@@ -40,6 +40,7 @@
                     </div>
 
                     <input type="hidden" name="nds_percent" id="nds_percent_hidden" value="0">
+                    <input type="hidden" name="report_id" id="report_id_hidden" value="">
 
                     <input type="hidden" name="selling_name" id="selling_name_hidden">
                     <input type="hidden" name="date" id="date_hidden" value="{{ date('Y-m-d') }}">
@@ -260,7 +261,6 @@
             fetch(`{{ route('managers.get-nds') }}`)
                 .then(response => response.json())
                 .then(data => {
-                    console.log('НДС загружены:', data);
                     const ndsSelect = document.getElementById('nds');
                     ndsSelect.innerHTML = '<option value="">Без НДС</option>';
                     data.forEach(nds => {
@@ -299,7 +299,40 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        initializeForm();
+        const loadedData = sessionStorage.getItem('loadReportData');
+        if (loadedData) {
+            const data = JSON.parse(loadedData);
+            const calc = data.calculation;
+            const report = data.report;
+
+            console.log('Загруженные данные:', data);
+
+            document.getElementsByName('report_name')[0].value = report.report_title;
+            document.getElementById('report_id_hidden').value = report.id;
+            document.getElementsByName('buying_name')[0].value = calc.buying_name;
+            
+            const sellingType = calc.selling_name.includes('ИП') ? 'inn' : 'ooo';
+            document.getElementById('selling_type').value = sellingType;
+
+            document.getElementsByName('spk')[0].value = calc.spk;
+            document.getElementsByName('purchase_price')[0].value = calc.purchase_price;
+            document.getElementsByName('quantity')[0].value = calc.quantity;
+            document.getElementsByName('markup_percent')[0].value = calc.markup_percent;
+            document.getElementsByName('in_the_hand')[0].value = calc.in_the_hand;
+            
+            document.getElementById('calculationForm').dataset.calculationId = calc.id;
+
+            sessionStorage.removeItem('loadReportData');
+
+            initializeForm();
+
+            setTimeout(() => {
+                const event = new Event('input', { bubbles: true });
+                document.getElementsByName('purchase_price')[0].dispatchEvent(event);
+            }, 500);
+        } else {
+            initializeForm();
+        }
     });
 
     function recalculate() {
@@ -369,7 +402,6 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                console.log('Response data:', data);
                 document.getElementsByName('per_unit_payment')[0].value = data.calculations.perUnitPayment;
                 document.getElementsByName('deal_payment')[0].value = data.calculations.managerPayment;
                 document.getElementsByName('in_the_deal')[0].value = data.calculations.inTheDeal;
@@ -389,8 +421,13 @@
         e.preventDefault();
 
         const formData = new FormData(document.getElementById('calculationForm'));
+        const calculationId = document.getElementById('calculationForm').dataset.calculationId;
         
-        fetch("{{ route('managers.store-drafts-report') }}", {
+        const url = calculationId 
+            ? `{{ route('managers.store-drafts-report') }}?calculation_id=${calculationId}`
+            : "{{ route('managers.store-drafts-report') }}";
+        
+        fetch(url, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
@@ -401,6 +438,7 @@
         .then(data => {
             if (data.success) {
                 showNotification(data.message, 'success');
+                document.getElementById('calculationForm').dataset.calculationId = '';
             } else {
                 showNotification('Ошибка при сохранении', 'error');
             }
@@ -415,8 +453,15 @@
         e.preventDefault();
 
         const formData = new FormData(document.getElementById('calculationForm'));
+        const calculationId = document.getElementById('calculationForm').dataset.calculationId;
+        const reportId = document.getElementById('report_id_hidden').value;
+        formData.append('report_id', reportId);
         
-        fetch("{{ route('managers.store-report') }}", {
+        const url = calculationId 
+            ? `{{ route('managers.store-report') }}?calculation_id=${calculationId}`
+            : "{{ route('managers.store-report') }}";
+        
+        fetch(url, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
@@ -427,6 +472,7 @@
         .then(data => {
             if (data.success) {
                 showNotification(data.message, 'success');
+                document.getElementById('calculationForm').dataset.calculationId = '';
             } else {
                 showNotification('Ошибка при сохранении', 'error');
             }

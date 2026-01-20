@@ -73,6 +73,7 @@ Route::middleware(['auth', 'check.access'])->group(function () {
     // Страница менеджеров
     Route::get('/managers', [ManagersController::class, 'calculation'])->name('managers.calculation');
     Route::get('/managers/reports', [ManagersController::class, 'reports'])->name('managers.reports');
+    Route::get('/managers/reports/{id}', [ManagersController::class, 'getReport'])->name('managers.get-report')->whereNumber('id');
     Route::get('/managers/history', [ManagersController::class, 'history'])->name('managers.history');
     Route::get('/managers/variables', [ManagersController::class, 'getVariables'])->name('managers.get-variables');
     Route::get('/managers/nds', [ManagersController::class, 'getNds'])->name('managers.get-nds');
