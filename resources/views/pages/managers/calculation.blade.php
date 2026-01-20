@@ -30,7 +30,16 @@
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Название отчета</label>
                             <input type="text" class="form-control" name="report_name" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="Название">
                         </div>
+
+                         <div class="col-md-4">
+                           <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">НДС</label>
+                            <select class="form-control" id="nds" name="nds_id" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                                <option value="">Без НДС</option>
+                            </select>
+                        </div>
                     </div>
+
+                    <input type="hidden" name="nds_percent" id="nds_percent_hidden" value="0">
 
                     <input type="hidden" name="selling_name" id="selling_name_hidden">
                     <input type="hidden" name="date" id="date_hidden" value="{{ date('Y-m-d') }}">
@@ -115,7 +124,7 @@
                         <button type="button" id="calculateBtn" class="btn" style="flex: 1; background-color: #e8d5f2; color: #6c3fa0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                             Рассчитать
                         </button>
-                        <button type="button" id="saveReportBtn" class="btn" style="flex: 1; background-color: #d5e8f2; color: #3f6ca0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                        <button type="button" id="saveReportBtn" class="btn" style="flex: 1; display: none; background-color: #d5e8f2; color: #3f6ca0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                             Сохранить в отчёт
                         </button>
                         <button type="button" id="saveHistoryBtn" class="btn" style="flex: 1; background-color: #e8f2d5; color: #6ca03f; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
@@ -241,6 +250,32 @@
         }, 3000);
     }
 
+    function loadNdsForType(counteragentType) {
+        const ndsContainer = document.getElementById('nds').closest('.col-md-4');
+        if (counteragentType === 'inn') {
+            ndsContainer.style.display = 'none';
+            document.getElementById('nds_percent_hidden').value = '0';
+        } else {
+            ndsContainer.style.display = 'block';
+            fetch(`{{ route('managers.get-nds') }}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('НДС загружены:', data);
+                    const ndsSelect = document.getElementById('nds');
+                    ndsSelect.innerHTML = '<option value="">Без НДС</option>';
+                    data.forEach(nds => {
+                        if (nds.code_name == "nds_standart") return;
+                        const option = document.createElement('option');
+                        option.value = nds.id;
+                        option.textContent = `${nds.title}`;
+                        option.dataset.percent = nds.percent;
+                        ndsSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Ошибка при загрузке НДС:', error));
+        }
+    }
+
     function initializeForm() {
         const sellingTypeSelect = document.getElementById('selling_type');
         const counteragentType = sellingTypeSelect.value;
@@ -250,6 +285,8 @@
             'ooo': 'ООО (УСН)'
         };
         document.getElementById('selling_name_hidden').value = sellingNames[counteragentType] || '';
+
+        loadNdsForType(counteragentType);
 
         fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
             .then(response => response.json())
@@ -299,6 +336,8 @@
         };
         document.getElementById('selling_name_hidden').value = sellingNames[counteragentType] || '';
 
+        loadNdsForType(counteragentType);
+
         fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
             .then(response => response.json())
             .then(data => {
@@ -307,6 +346,12 @@
             .catch(error => {
                 console.error('Ошибка при загрузке переменных:', error);
             });
+    });
+
+    document.getElementById('nds').addEventListener('change', function(e) {
+        const selectedOption = e.target.options[e.target.selectedIndex];
+        const ndsPercent = selectedOption.dataset.percent || '0';
+        document.getElementById('nds_percent_hidden').value = ndsPercent;
     });
 
     document.getElementById('calculateBtn').addEventListener('click', function(e) {

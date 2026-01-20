@@ -37,6 +37,20 @@ class ManagersController extends Controller
         return response()->json($variables);
     }
 
+    public function getNds(Request $request)
+    {
+        $ndsList = \App\Models\Nds::all()->map(function ($nds) {
+            return [
+                'id' => $nds->id,
+                'title' => $nds->title,
+                'code_name' => $nds->code_name,
+                'percent' => $nds->percent,
+            ];
+        });
+
+        return response()->json($ndsList);
+    }
+
     public function reports()
     {
         $reports = DraftsReports::all()
@@ -59,8 +73,18 @@ class ManagersController extends Controller
         $sellingType = $request->input('selling_name');
         $spk = $request->input('spk');
         $inTheHand = $request->input('in_the_hand');
+        $ndsPercentPurchase = (float)$request->input('nds_percent', 0);
 
         $counteragentType = strpos($sellingType, 'ИП') !== false ? 'inn' : 'ooo';
+
+        if ($counteragentType === 'inn') {
+            $ndsPercentPurchase = 0;
+            $ndsPercentSelling = 0;
+        } else {
+            $standardNds = \App\Models\Nds::where('code_name', 'nds_standart')->first();
+            $ndsPercentSelling = $standardNds ? (float)$standardNds->percent : 22;
+        }
+
         $variables = Variable::where('counteragent_type', $counteragentType)
             ->where('table_type', 'company')
             ->get()
@@ -95,7 +119,8 @@ class ManagersController extends Controller
         } else {
             return $this->calculateOoo($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand, 
                                        $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total, 
-                                       $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables);
+                                       $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables,
+                                       $ndsPercentPurchase, $ndsPercentSelling);
         }
     }
 
@@ -168,20 +193,23 @@ class ManagersController extends Controller
 
     private function calculateOoo($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand,
                                    $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total,
-                                   $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables)
+                                   $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables,
+                                   $ndsPercentPurchase = 0, $ndsPercentSelling = 18)
     {
         $rate_cit = (float)($variables['rate_cit']->value ?? 0.25);
 
-        $ndsOutgoing = $sellingSum / 122 * 22;
-        $ndsIncoming = $purchaseSum / 122 * 22;
+        if ($ndsPercentPurchase > 0) {
+            $ndsIncoming = $purchaseSum / (100 + $ndsPercentPurchase) * $ndsPercentPurchase;
+        } else {
+            $ndsIncoming = 0;
+        }
+
+        $ndsOutgoing = $sellingSum / (100 + $ndsPercentSelling) * $ndsPercentSelling;
         $ndsPaid = $ndsOutgoing - $ndsIncoming;
 
         $nacenka = $sellingSum - $purchaseSum;
         
         $P1 = $nacenka - $ndsPaid;
-        
-        $riskReserve = max(0, $P1 * $riskReserveRate);
-        $premBase = max(0, $P1 - $riskReserve);
         
         $riskReserve = max(0, $P1 * $riskReserveRate);
         $premBase = max(0, $P1 - $riskReserve);
