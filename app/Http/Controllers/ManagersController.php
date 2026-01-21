@@ -280,8 +280,8 @@ class ManagersController extends Controller
             'prfPercent' => $prfPercent,
             'spk' => $spk,
             'inTheDeal' => $inTheDeal,
-            'sellingSumPerUnit' => $inTheDealPerUnit,
-            'sellingSumTotal' => $inTheDealPerUnit * $quantity
+            'sellingSumPerUnit' => $sellingSum / $quantity + $inTheDealPerUnit,
+            'sellingSumTotal' => $sellingSum + $inTheDealPerUnit * $quantity
         ];
     }
 
