@@ -25,6 +25,9 @@ class Calculation extends Model
         'manager_salary_brutto',
         'in_the_hand',
         'in_the_deal',
+        'in_the_deal_sum',
+        'in_the_hand_sum',
+        'nds_id',
     ];
 
     protected $casts = [
@@ -40,6 +43,9 @@ class Calculation extends Model
         'manager_salary_brutto' => 'decimal:2',
         'in_the_hand' => 'decimal:2',
         'in_the_deal' => 'decimal:2',
+        'in_the_deal_sum' => 'decimal:2',
+        'in_the_hand_sum' => 'decimal:2',
+        'nds_id' => 'integer',
     ];
 
     /**

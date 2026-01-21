@@ -14,7 +14,7 @@
                 <a href="{{ route('managers.calculation') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
                     Расчёт прибыли
                 </a>
-                <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
+                <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; display: none; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
                     Отчёты
                 </a>
                 <a href="{{ route('managers.history') }}" style="padding: 8px 16px; background-color: #0084ff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
@@ -29,6 +29,7 @@
                             <th>Дата</th>
                             <th>Название отчета</th>
                             <th>Сумма рассчетов</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -37,6 +38,9 @@
                                 <td>{{ $report->date }}</td>
                                 <td>{{ $report->report_title }}</td>
                                 <td>{{ number_format($report->amount, 0, '.', ' ') }} ₽</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary load-report" data-report-id="{{ $report->id }}">Редактировать</button>
+                                </td>
                             </tr>
                         @empty
                             <tr>
@@ -57,4 +61,24 @@
         opacity: 0.9;
     }
 </style>
+
+
+
+<script>
+    document.querySelectorAll('.load-report').forEach(button => {
+        button.addEventListener('click', function() {
+            const reportId = this.dataset.reportId;
+            
+            fetch(`{{ route('managers.get-report', '') }}/${reportId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        sessionStorage.setItem('loadReportData', JSON.stringify(data));
+                        window.location.href = '{{ route('managers.calculation') }}';
+                    }
+                })
+                .catch(error => console.error('Ошибка:', error));
+        });
+    });
+</script>
 @endsection

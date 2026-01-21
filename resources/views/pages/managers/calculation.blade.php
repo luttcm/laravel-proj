@@ -14,7 +14,7 @@
                 <a href="{{ route('managers.calculation') }}" style="padding: 8px 16px; background-color: #0084ff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
                     Расчёт прибыли
                 </a>
-                <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
+                <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; display: none; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
                     Отчёты
                 </a>
                 <a href="{{ route('managers.history') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
@@ -30,7 +30,17 @@
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Название отчета</label>
                             <input type="text" class="form-control" name="report_name" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="Название">
                         </div>
+
+                         <div class="col-md-4">
+                           <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">НДС</label>
+                            <select class="form-control" id="nds" name="nds_id" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                                <option value="">Без НДС</option>
+                            </select>
+                        </div>
                     </div>
+
+                    <input type="hidden" name="nds_percent" id="nds_percent_hidden" value="0">
+                    <input type="hidden" name="report_id" id="report_id_hidden" value="">
 
                     <input type="hidden" name="selling_name" id="selling_name_hidden">
                     <input type="hidden" name="date" id="date_hidden" value="{{ date('Y-m-d') }}">
@@ -42,8 +52,8 @@
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Продаю</label>
                             <select class="form-control" id="selling_type" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
-                                <option value="inn">ИП (ИНН)</option>
-                                <option value="ooo">ООО (УСН)</option>
+                                <option value="inn">ИП ПВВ</option>
+                                <option value="ooo">СЗН</option>
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -100,7 +110,7 @@
                         </div>
                     </div>
 
-                    <div class="row mb-6" style="border-top: 2px solid #e0e0e0; padding-top: 16px;">
+                    <div class="row mb-4" style="border-top: 2px solid #e0e0e0; padding-top: 16px;">
                         <div class="col-md-6">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Сумма в руки, руб</label>
                             <input type="number" class="form-control" name="in_the_hand" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0.00" step="0.1">
@@ -111,11 +121,22 @@
                         </div>
                     </div>
 
+                    <div class="row mb-6">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Сумма в руки + Цена продажи, руб</label>
+                            <input type="number" class="form-control" name="in_the_hand_sum" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;" placeholder="0.00" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Сумма в счет + Сумма продажи, руб.</label>
+                            <input type="number" class="form-control" name="in_the_deal_sum" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;" placeholder="0.00" readonly>
+                        </div>
+                    </div>
+
                     <div style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e0e0e0;">
                         <button type="button" id="calculateBtn" class="btn" style="flex: 1; background-color: #e8d5f2; color: #6c3fa0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                             Рассчитать
                         </button>
-                        <button type="button" id="saveReportBtn" class="btn" style="flex: 1; background-color: #d5e8f2; color: #3f6ca0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                        <button type="button" id="saveReportBtn" class="btn" style="flex: 1; display: none; background-color: #d5e8f2; color: #3f6ca0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                             Сохранить в отчёт
                         </button>
                         <button type="button" id="saveHistoryBtn" class="btn" style="flex: 1; background-color: #e8f2d5; color: #6ca03f; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
@@ -241,6 +262,38 @@
         }, 3000);
     }
 
+    function loadNdsForType(counteragentType, selectedNdsId = null) {
+        const ndsContainer = document.getElementById('nds').closest('.col-md-4');
+        if (counteragentType === 'inn') {
+            ndsContainer.style.display = 'none';
+            document.getElementById('nds_percent_hidden').value = '0';
+        } else {
+            ndsContainer.style.display = 'block';
+            fetch(`{{ route('managers.get-nds') }}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ndsSelect = document.getElementById('nds');
+                    ndsSelect.innerHTML = '<option value="">Без НДС</option>';
+                    data.forEach(nds => {
+                        if (nds.code_name == "nds_standart") return;
+                        const option = document.createElement('option');
+                        option.value = nds.id;
+                        option.textContent = `${nds.title}`;
+                        option.dataset.percent = nds.percent;
+                        ndsSelect.appendChild(option);
+                    });
+                    
+                    if (selectedNdsId) {
+                        ndsSelect.value = selectedNdsId;
+                        const selectedOption = ndsSelect.options[ndsSelect.selectedIndex];
+                        const ndsPercent = selectedOption.dataset.percent || '0';
+                        document.getElementById('nds_percent_hidden').value = ndsPercent;
+                    }
+                })
+                .catch(error => console.error('Ошибка при загрузке НДС:', error));
+        }
+    }
+
     function initializeForm() {
         const sellingTypeSelect = document.getElementById('selling_type');
         const counteragentType = sellingTypeSelect.value;
@@ -250,6 +303,8 @@
             'ooo': 'ООО (УСН)'
         };
         document.getElementById('selling_name_hidden').value = sellingNames[counteragentType] || '';
+
+        loadNdsForType(counteragentType);
 
         fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
             .then(response => response.json())
@@ -262,7 +317,47 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        initializeForm();
+        const loadedData = sessionStorage.getItem('loadReportData');
+        if (loadedData) {
+            const data = JSON.parse(loadedData);
+            const calc = data.calculation;
+            const report = data.report;
+
+            console.log('Загруженные данные:', data);
+
+            document.getElementsByName('report_name')[0].value = report.report_title;
+            document.getElementById('report_id_hidden').value = report.id;
+            document.getElementsByName('buying_name')[0].value = calc.buying_name;
+            
+            const sellingType = calc.selling_name.includes('ИП') ? 'inn' : 'ooo';
+            document.getElementById('selling_type').value = sellingType;
+
+            document.getElementsByName('spk')[0].value = calc.spk;
+            document.getElementsByName('purchase_price')[0].value = calc.purchase_price;
+            document.getElementsByName('quantity')[0].value = calc.quantity;
+            document.getElementsByName('markup_percent')[0].value = calc.markup_percent;
+            document.getElementsByName('in_the_hand')[0].value = calc.in_the_hand;
+            
+            document.getElementById('calculationForm').dataset.calculationId = calc.id;
+
+            sessionStorage.removeItem('loadReportData');
+
+            initializeForm();
+
+            setTimeout(() => {
+                if (calc.nds_id) {
+                    const counteragentType = calc.selling_name.includes('ИП') ? 'inn' : 'ooo';
+                    if (counteragentType === 'ooo') {
+                        loadNdsForType(counteragentType, calc.nds_id);
+                    }
+                }
+                
+                const event = new Event('input', { bubbles: true });
+                document.getElementsByName('purchase_price')[0].dispatchEvent(event);
+            }, 500);
+        } else {
+            initializeForm();
+        }
     });
 
     function recalculate() {
@@ -299,6 +394,8 @@
         };
         document.getElementById('selling_name_hidden').value = sellingNames[counteragentType] || '';
 
+        loadNdsForType(counteragentType);
+
         fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
             .then(response => response.json())
             .then(data => {
@@ -307,6 +404,12 @@
             .catch(error => {
                 console.error('Ошибка при загрузке переменных:', error);
             });
+    });
+
+    document.getElementById('nds').addEventListener('change', function(e) {
+        const selectedOption = e.target.options[e.target.selectedIndex];
+        const ndsPercent = selectedOption.dataset.percent || '0';
+        document.getElementById('nds_percent_hidden').value = ndsPercent;
     });
 
     document.getElementById('calculateBtn').addEventListener('click', function(e) {
@@ -324,11 +427,12 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                console.log('Response data:', data);
                 document.getElementsByName('per_unit_payment')[0].value = data.calculations.perUnitPayment;
                 document.getElementsByName('deal_payment')[0].value = data.calculations.managerPayment;
                 document.getElementsByName('in_the_deal')[0].value = data.calculations.inTheDeal;
                 document.getElementsByName('prf_percent')[0].value = data.calculations.prfPercent;
+                document.getElementsByName('in_the_deal_sum')[0].value = data.calculations.sellingSumTotal;
+                document.getElementsByName('in_the_hand_sum')[0].value = data.calculations.sellingSumPerUnit;
                 showNotification('Расчёт выполнен успешно', 'success');
             } else {
                 showNotification('Ошибка при расчёте', 'error');
@@ -344,8 +448,13 @@
         e.preventDefault();
 
         const formData = new FormData(document.getElementById('calculationForm'));
+        const calculationId = document.getElementById('calculationForm').dataset.calculationId;
         
-        fetch("{{ route('managers.store-drafts-report') }}", {
+        const url = calculationId 
+            ? `{{ route('managers.store-drafts-report') }}?calculation_id=${calculationId}`
+            : "{{ route('managers.store-drafts-report') }}";
+        
+        fetch(url, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
@@ -356,6 +465,7 @@
         .then(data => {
             if (data.success) {
                 showNotification(data.message, 'success');
+                document.getElementById('calculationForm').dataset.calculationId = '';
             } else {
                 showNotification('Ошибка при сохранении', 'error');
             }
@@ -370,8 +480,20 @@
         e.preventDefault();
 
         const formData = new FormData(document.getElementById('calculationForm'));
+        const calculationId = document.getElementById('calculationForm').dataset.calculationId;
+        const reportId = document.getElementById('report_id_hidden').value;
         
-        fetch("{{ route('managers.store-report') }}", {
+        if (reportId) {
+            formData.append('report_id', reportId);
+        }
+        
+        if (calculationId) {
+            formData.append('calculation_id', calculationId);
+        }
+        
+        const url = "{{ route('managers.store-report') }}";
+        
+        fetch(url, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
@@ -382,6 +504,7 @@
         .then(data => {
             if (data.success) {
                 showNotification(data.message, 'success');
+                document.getElementById('calculationForm').dataset.calculationId = '';
             } else {
                 showNotification('Ошибка при сохранении', 'error');
             }

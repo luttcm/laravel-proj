@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\NdsController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\VariableController;
+use App\Models\Nds;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
@@ -38,6 +40,13 @@ Route::middleware(['auth', 'check.access'])->group(function () {
         Route::get('/variables/{id}/edit', [VariableController::class, 'edit'])->name('variable.edit')->whereNumber('id');
         Route::put('/variables/{id}', [VariableController::class, 'update'])->name('variable.update')->whereNumber('id');
         Route::post('/variables/{id}/delete', [VariableController::class, 'delete'])->name('variable.delete')->whereNumber('id');
+
+        Route::get('/nds', [NdsController::class, 'index'])->name('nds.index');
+        Route::get('/nds/add', [NdsController::class, 'add'])->name('nds.add');
+        Route::post('/nds', [NdsController::class, 'store'])->name('nds.store');
+        Route::get('/nds/{id}/edit', [NdsController::class, 'edit'])->name('nds.edit')->whereNumber('id');
+        Route::put('/nds/{id}', [NdsController::class, 'update'])->name('nds.update')->whereNumber('id');
+        Route::post('/nds/{id}/delete', [NdsController::class, 'delete'])->name('nds.delete')->whereNumber('id');
     });
 
     // Профиль
@@ -64,8 +73,10 @@ Route::middleware(['auth', 'check.access'])->group(function () {
     // Страница менеджеров
     Route::get('/managers', [ManagersController::class, 'calculation'])->name('managers.calculation');
     Route::get('/managers/reports', [ManagersController::class, 'reports'])->name('managers.reports');
+    Route::get('/managers/reports/{id}', [ManagersController::class, 'getReport'])->name('managers.get-report')->whereNumber('id');
     Route::get('/managers/history', [ManagersController::class, 'history'])->name('managers.history');
     Route::get('/managers/variables', [ManagersController::class, 'getVariables'])->name('managers.get-variables');
+    Route::get('/managers/nds', [ManagersController::class, 'getNds'])->name('managers.get-nds');
     Route::post('/managers/store-drafts-report', [ManagersController::class, 'storeDraftsReport'])->name('managers.store-drafts-report');
     Route::post('/managers/store-report', [ManagersController::class, 'storeReport'])->name('managers.store-report');
     Route::post('/managers/calculate', [ManagersController::class, 'calculate'])->name('managers.calculate');

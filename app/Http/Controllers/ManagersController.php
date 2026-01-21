@@ -37,6 +37,20 @@ class ManagersController extends Controller
         return response()->json($variables);
     }
 
+    public function getNds(Request $request)
+    {
+        $ndsList = \App\Models\Nds::all()->map(function ($nds) {
+            return [
+                'id' => $nds->id,
+                'title' => $nds->title,
+                'code_name' => $nds->code_name,
+                'percent' => $nds->percent,
+            ];
+        });
+
+        return response()->json($ndsList);
+    }
+
     public function reports()
     {
         $reports = DraftsReports::all()
@@ -59,8 +73,18 @@ class ManagersController extends Controller
         $sellingType = $request->input('selling_name');
         $spk = $request->input('spk');
         $inTheHand = $request->input('in_the_hand');
+        $ndsPercentPurchase = (float)$request->input('nds_percent', 0);
 
         $counteragentType = strpos($sellingType, 'ИП') !== false ? 'inn' : 'ooo';
+
+        if ($counteragentType === 'inn') {
+            $ndsPercentPurchase = 0;
+            $ndsPercentSelling = 0;
+        } else {
+            $standardNds = \App\Models\Nds::where('code_name', 'nds_standart')->first();
+            $ndsPercentSelling = $standardNds ? (float)$standardNds->percent : 22;
+        }
+
         $variables = Variable::where('counteragent_type', $counteragentType)
             ->where('table_type', 'company')
             ->get()
@@ -95,7 +119,8 @@ class ManagersController extends Controller
         } else {
             return $this->calculateOoo($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand, 
                                        $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total, 
-                                       $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables);
+                                       $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables,
+                                       $ndsPercentPurchase, $ndsPercentSelling);
         }
     }
 
@@ -103,6 +128,9 @@ class ManagersController extends Controller
                                    $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total,
                                    $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables)
     {
+        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
+        $inTheDealPerUnit = $quantity > 0 ? $inTheDeal / $quantity : 0;
+
         $rate_ausn = (float)($variables['rate_ausn']->value ?? 0.08);
 
         $nacenka = $sellingSum - $purchaseSum;
@@ -163,25 +191,33 @@ class ManagersController extends Controller
             'prfPercent' => $prfPercent,
             'spk' => $spk,
             'inTheDeal' => $inTheDeal,
+            'sellingSumPerUnit' => $sellingSum / $quantity + $inTheDealPerUnit,
+            'sellingSumTotal' => $sellingSum + $inTheDealPerUnit * $quantity
         ];
     }
 
     private function calculateOoo($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand,
                                    $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total,
-                                   $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables)
+                                   $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables,
+                                   $ndsPercentPurchase = 0, $ndsPercentSelling = 18)
     {
+        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
+        $inTheDealPerUnit = $quantity > 0 ? $inTheDeal / $quantity : 0;
+
         $rate_cit = (float)($variables['rate_cit']->value ?? 0.25);
 
-        $ndsOutgoing = $sellingSum / 122 * 22;
-        $ndsIncoming = $purchaseSum / 122 * 22;
+        if ($ndsPercentPurchase > 0) {
+            $ndsIncoming = $purchaseSum / (100 + $ndsPercentPurchase) * $ndsPercentPurchase;
+        } else {
+            $ndsIncoming = 0;
+        }
+
+        $ndsOutgoing = $sellingSum / (100 + $ndsPercentSelling) * $ndsPercentSelling;
         $ndsPaid = $ndsOutgoing - $ndsIncoming;
 
         $nacenka = $sellingSum - $purchaseSum;
         
         $P1 = $nacenka - $ndsPaid;
-        
-        $riskReserve = max(0, $P1 * $riskReserveRate);
-        $premBase = max(0, $P1 - $riskReserve);
         
         $riskReserve = max(0, $P1 * $riskReserveRate);
         $premBase = max(0, $P1 - $riskReserve);
@@ -214,7 +250,6 @@ class ManagersController extends Controller
 
         $totalTaxes = $ndsPaid + $managerNdfl + $socialFunds + $citTax;
         $companyProfit = $P1 - $riskReserve - $premiyaTotal - $managerSalaryBrutto - $socialFunds - $percentSumm - $citTax;
-        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
         
         $prfPercent = $sellingSum > 0 ? ($companyProfit / $sellingSum) * 100 : 0;
 
@@ -245,6 +280,8 @@ class ManagersController extends Controller
             'prfPercent' => $prfPercent,
             'spk' => $spk,
             'inTheDeal' => $inTheDeal,
+            'sellingSumPerUnit' => $inTheDealPerUnit,
+            'sellingSumTotal' => $inTheDealPerUnit * $quantity
         ];
     }
 
@@ -277,6 +314,8 @@ class ManagersController extends Controller
             'prfPercent' => round($result['prfPercent'], 2, PHP_ROUND_HALF_UP),
             'spk' => $result['spk'],
             'inTheDeal' => round($result['inTheDeal'], 0, PHP_ROUND_HALF_UP),
+            'sellingSumPerUnit' => round($result['sellingSumPerUnit'], 0, PHP_ROUND_HALF_UP),
+            'sellingSumTotal' => round($result['sellingSumTotal'], 0, PHP_ROUND_HALF_UP),
         ];
 
         if ($counteragentType === 'inn') {
@@ -303,7 +342,8 @@ class ManagersController extends Controller
      */
     public function storeDraftsReport(Request $request)
     {
-        return $this->saveReport($request, DraftsReports::class, 'Сохранено в отчёты', true);
+        $calculationId = $request->query('calculation_id');
+        return $this->saveReport($request, DraftsReports::class, 'Сохранено в отчёты', true, false, $calculationId);
     }
 
     /**
@@ -322,28 +362,66 @@ class ManagersController extends Controller
      * @param string $message
      * @param bool $includeCalculations
      */
-    private function saveReport(Request $request, string $reportModel, string $message, bool $includeCalculations = false, $isHistory = false)
+    private function saveReport(Request $request, string $reportModel, string $message, bool $includeCalculations = false, $isHistory = false, $existingCalculationId = null)
     {
-        $calculationId = $this->saveCalculation($request, $isHistory);
+        if ($existingCalculationId || ($request->has('calculation_id') && !empty($request->input('calculation_id')))) {
+            $calculationId = $existingCalculationId ?? $request->input('calculation_id');
+            $calculation = Calculation::findOrFail($calculationId);
+            $calculation->update($request->all());
+        } else {
+            $calculationId = $this->saveCalculation($request, $isHistory);
+        }
+
+        $reportId = null;
+        if ($request->has('report_id') && !empty($request->input('report_id'))) {
+            $reportId = $reportModel::findOrFail($request->input('report_id'));
+        }
+        
         $result = $this->calcultating($request);
         $userName = auth()->user()->name ?? 'Без имени';
 
         $calculation = Calculation::findOrFail($calculationId);
         $calculation->update([
+            'nds_id' => $request->input('nds_id'),
             'manager_payment' => $result['managerPayment'],
             'manager_salary_brutto' => $result['managerSalaryBrutto'],
             'per_unit_payment' => $result['perUnitPayment'],
             'in_the_deal' => $result['inTheDeal'],
         ]);
 
-        $reportModel::create([
-            'manager_id' => auth()->id(),
-            'date' => now()->toDateString(),
-            'name' => $userName,
-            'report_title' => $request->input('report_name', 'Без названия'),
-            'amount' => $result['managerPayment'],
-            'calculate_id' => $calculationId,
-        ]);
+        if ($existingCalculationId && $reportId) {
+            if ($reportId) {
+                $reportId->update([
+                    'date' => now()->toDateString(),
+                    'report_title' => $request->input(key: 'report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
+                    'amount' => $result['managerPayment'],
+                ]);
+            } else {
+                $reportModel::create([
+                    'manager_id' => auth()->id(),
+                    'date' => now()->toDateString(),
+                    'name' => $userName,
+                    'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
+                    'amount' => $result['managerPayment'],
+                    'calculate_id' => $calculationId,
+                ]);
+            }
+        } elseif ($reportId) {
+            $reportId->update([
+                'date' => now()->toDateString(),
+                'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
+                'amount' => $result['managerPayment'],
+            ]);
+        } else {
+            $reportModel::create([
+                'manager_id' => auth()->id(),
+                'date' => now()->toDateString(),
+                'name' => $userName,
+                'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
+                'amount' => $result['managerPayment'],
+                'calculate_id' => $calculationId,
+            ]);
+        }
 
         $response = [
             'success' => true,
@@ -450,4 +528,25 @@ class ManagersController extends Controller
 
         return $calculation->id;
     }
+
+    /**
+     * Получить отчет с данными расчета для загрузки в форму
+     */
+    public function getReport($id)
+    {
+        $report = Reports::findOrFail($id);
+
+        if ($report->manager_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $calculation = Calculation::findOrFail($report->calculate_id);
+
+        return response()->json([
+            'success' => true,
+            'report' => $report,
+            'calculation' => $calculation,
+        ]);
+    }
 }
+
