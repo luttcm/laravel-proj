@@ -364,7 +364,7 @@ class ManagersController extends Controller
      */
     private function saveReport(Request $request, string $reportModel, string $message, bool $includeCalculations = false, $isHistory = false, $existingCalculationId = null)
     {
-        if ($existingCalculationId || $request->has('calculation_id')) {
+        if ($existingCalculationId || ($request->has('calculation_id') && !empty($request->input('calculation_id')))) {
             $calculationId = $existingCalculationId ?? $request->input('calculation_id');
             $calculation = Calculation::findOrFail($calculationId);
             $calculation->update($request->all());
