@@ -19,11 +19,14 @@ class ManagersController extends Controller
     {
         $counteragentType = $request->query('counteragent_type');
         
-        if (!in_array($counteragentType, ['inn', 'ooo'])) {
+        if (!in_array($counteragentType, ['inn', 'ooo', 'fvn'])) {
             return response()->json(['error' => 'Invalid counteragent type'], 400);
         }
 
-        $variables = Variable::where('counteragent_type', $counteragentType)
+        // fvn работает как ooo
+        $dbCounteragentType = ($counteragentType === 'fvn') ? 'ooo' : $counteragentType;
+
+        $variables = Variable::where('counteragent_type', $dbCounteragentType)
             ->where('table_type', 'company')
             ->get()
             ->map(function ($var) {
@@ -75,7 +78,10 @@ class ManagersController extends Controller
         $inTheHand = $request->input('in_the_hand');
         $ndsPercentPurchase = (float)$request->input('nds_percent', 0);
 
-        $counteragentType = strpos($sellingType, 'ИП') !== false ? 'inn' : 'ooo';
+        // Определяем тип: 'inn' для ИП ПВВ, 'fvn' для ИП ФВН, 'ooo' для остальных
+        $counteragentType = strpos($sellingType, 'ИП (ИНН)') !== false ? 'inn' : (strpos($sellingType, 'ИП (ФВН)') !== false ? 'fvn' : 'ooo');
+        // fvn работает как ooo для переменных
+        $dbCounteragentType = ($counteragentType === 'fvn') ? 'ooo' : $counteragentType;
 
         if ($counteragentType === 'inn') {
             $ndsPercentPurchase = 0;
@@ -85,7 +91,7 @@ class ManagersController extends Controller
             $ndsPercentSelling = $standardNds ? (float)$standardNds->percent : 22;
         }
 
-        $variables = Variable::where('counteragent_type', $counteragentType)
+        $variables = Variable::where('counteragent_type', $dbCounteragentType)
             ->where('table_type', 'company')
             ->get()
             ->keyBy('name');
@@ -117,6 +123,7 @@ class ManagersController extends Controller
                                        $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total, 
                                        $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables);
         } else {
+            // fvn и ooo используют одну и ту же расчётную логику
             return $this->calculateOoo($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand, 
                                        $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total, 
                                        $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables,

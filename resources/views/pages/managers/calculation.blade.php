@@ -53,6 +53,7 @@
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Продаю</label>
                             <select class="form-control" id="selling_type" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
                                 <option value="inn">ИП ПВВ</option>
+                                <option value="fvn">ИП ФВН</option>
                                 <option value="ooo">СЗН</option>
                             </select>
                         </div>
@@ -268,6 +269,7 @@
             ndsContainer.style.display = 'none';
             document.getElementById('nds_percent_hidden').value = '0';
         } else {
+            // fvn и ooo показывают НДС
             ndsContainer.style.display = 'block';
             fetch(`{{ route('managers.get-nds') }}`)
                 .then(response => response.json())
@@ -300,6 +302,7 @@
         
         const sellingNames = {
             'inn': 'ИП (ИНН)',
+            'fvn': 'ИП (ФВН)',
             'ooo': 'ООО (УСН)'
         };
         document.getElementById('selling_name_hidden').value = sellingNames[counteragentType] || '';
@@ -329,7 +332,7 @@
             document.getElementById('report_id_hidden').value = report.id;
             document.getElementsByName('buying_name')[0].value = calc.buying_name;
             
-            const sellingType = calc.selling_name.includes('ИП') ? 'inn' : 'ooo';
+            const sellingType = calc.selling_name.includes('ИП (ИНН)') ? 'inn' : (calc.selling_name.includes('ИП (ФВН)') ? 'fvn' : 'ooo');
             document.getElementById('selling_type').value = sellingType;
 
             document.getElementsByName('spk')[0].value = calc.spk;
@@ -346,8 +349,8 @@
 
             setTimeout(() => {
                 if (calc.nds_id) {
-                    const counteragentType = calc.selling_name.includes('ИП') ? 'inn' : 'ooo';
-                    if (counteragentType === 'ooo') {
+                    const counteragentType = calc.selling_name.includes('ИП (ИНН)') ? 'inn' : (calc.selling_name.includes('ИП (ФВН)') ? 'fvn' : 'ooo');
+                    if (counteragentType === 'ooo' || counteragentType === 'fvn') {
                         loadNdsForType(counteragentType, calc.nds_id);
                     }
                 }
@@ -390,6 +393,7 @@
 
         const sellingNames = {
             'inn': 'ИП (ИНН)',
+            'fvn': 'ИП (ФВН)',
             'ooo': 'ООО (УСН)'
         };
         document.getElementById('selling_name_hidden').value = sellingNames[counteragentType] || '';
