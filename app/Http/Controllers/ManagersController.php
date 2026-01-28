@@ -297,7 +297,7 @@ class ManagersController extends Controller
         $result = $this->calcultating($request);
 
         $sellingType = $request->input('selling_name');
-        $counteragentType = strpos($sellingType, 'ИП') !== false ? 'inn' : 'ooo';
+        $counteragentType = strpos($sellingType, 'ИП (ИНН)') !== false ? 'inn' : (strpos($sellingType, 'ИП (ФВН)') !== false ? 'fvn' : 'ooo');
 
         $calculations = [
             'nacenka' => round($result['nacenka'], 0, PHP_ROUND_HALF_UP),
