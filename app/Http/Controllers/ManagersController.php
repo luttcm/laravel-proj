@@ -78,9 +78,7 @@ class ManagersController extends Controller
         $inTheHand = $request->input('in_the_hand');
         $ndsPercentPurchase = (float)$request->input('nds_percent', 0);
 
-        // Определяем тип: 'inn' для ИП ПВВ, 'fvn' для ИП ФВН, 'ooo' для остальных
         $counteragentType = strpos($sellingType, 'ИП (ИНН)') !== false ? 'inn' : (strpos($sellingType, 'ИП (ФВН)') !== false ? 'fvn' : 'ooo');
-        // fvn работает как ooo для переменных
         $dbCounteragentType = ($counteragentType === 'fvn') ? 'ooo' : $counteragentType;
 
         if ($counteragentType === 'inn') {
@@ -111,7 +109,6 @@ class ManagersController extends Controller
         }
         
         $rate_ndfl = (float)($variables['rate_ndfl']->value ?? 0.13);
-        $k_bonus = (float)($variables['k_bonus']->value ?? 0.20);
         $k_spk = (float)($variables['k_spk']->value ?? 0.20);
 
         $sellingSum = (float)$request->selling_sum;
@@ -119,11 +116,18 @@ class ManagersController extends Controller
         $quantity = (int)$request->quantity ?: 1;
 
         if ($counteragentType === 'inn') {
+            $k_bonus = (float)($variables['k_bonus_inn']->value ?? 0.20);
+        } else if ($counteragentType === 'ooo') {
+            $k_bonus = (float)($variables['k_bonus_ooo']->value ?? 0.20);
+        } else if ($counteragentType === 'fvn'){
+            $k_bonus = (float)($variables['k_bonus_fvn']->value ?? 0.20);
+        }
+
+        if ($counteragentType === 'inn') {
             return $this->calculateInn($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand, 
                                        $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total, 
                                        $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables);
         } else {
-            // fvn и ooo используют одну и ту же расчётную логику
             return $this->calculateOoo($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand, 
                                        $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total, 
                                        $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables,
