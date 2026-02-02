@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ManagersController;
+use App\Http\Controllers\FinDirectorController;
 
 Route::get('/auth', function () {
     return view('auth.auth');
@@ -26,7 +27,7 @@ Route::middleware(['auth', 'check.access'])->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show')->whereNumber('id');
 
-    Route::middleware('role:admin,manager')->group(function () {
+    Route::middleware('role:admin,manager,finance')->group(function () {
         Route::post('/users/delete', [UserController::class, 'delete'])->name('users.delete');
         Route::get('/users/add', [UserController::class, 'add'])->name('user.add');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
@@ -82,7 +83,25 @@ Route::middleware(['auth', 'check.access'])->group(function () {
     Route::post('/managers/calculate', [ManagersController::class, 'calculate'])->name('managers.calculate');
 
     // Страница финансового директора
-    Route::get('/findirector', function () {
-        return view('pages.findirector');
-    })->name('findirector');
+    Route::middleware('role:admin,finance')->group(function () {
+        Route::get('/findirector', [FinDirectorController::class, 'reports'])->name('findirector');
+        Route::get('/findirector/calculation', [FinDirectorController::class, 'calculation'])->name('findirector.calculation');
+        Route::get('/findirector/reports', [FinDirectorController::class, 'reports'])->name('findirector.reports');
+        Route::get('/findirector/reports/{id}', [FinDirectorController::class, 'getReport'])->name('findirector.get-report')->whereNumber('id');
+        Route::get('/findirector/history', [FinDirectorController::class, 'history'])->name('findirector.history');
+        
+        // Ручные отчеты (как переменные)
+        Route::get('/findirector/fin-reports', [FinDirectorController::class, 'finReportsIndex'])->name('findirector.fin-reports.index');
+        Route::get('/findirector/fin-reports/add', [FinDirectorController::class, 'finReportsAdd'])->name('findirector.fin-reports.add');
+        Route::post('/findirector/fin-reports', [FinDirectorController::class, 'finReportsStore'])->name('findirector.fin-reports.store');
+        Route::get('/findirector/fin-reports/{id}/edit', [FinDirectorController::class, 'finReportsEdit'])->name('findirector.fin-reports.edit')->whereNumber('id');
+        Route::put('/findirector/fin-reports/{id}', [FinDirectorController::class, 'finReportsUpdate'])->name('findirector.fin-reports.update')->whereNumber('id');
+        Route::post('/findirector/fin-reports/{id}/delete', [FinDirectorController::class, 'finReportsDelete'])->name('findirector.fin-reports.delete')->whereNumber('id');
+
+        Route::get('/findirector/variables', [FinDirectorController::class, 'getVariables'])->name('findirector.get-variables');
+        Route::get('/findirector/nds', [FinDirectorController::class, 'getNds'])->name('findirector.get-nds');
+        Route::post('/findirector/store-drafts-report', [FinDirectorController::class, 'storeDraftsReport'])->name('findirector.store-drafts-report');
+        Route::post('/findirector/store-report', [FinDirectorController::class, 'storeReport'])->name('findirector.store-report');
+        Route::post('/findirector/calculate', [FinDirectorController::class, 'calculate'])->name('findirector.calculate');
+    });
 });

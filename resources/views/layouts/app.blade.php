@@ -25,9 +25,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('managers.calculation') }}">Страница менеджеров</a>
                     </li>
-                    @if (auth()->user()->role === 'admin')
+                    @if (in_array(auth()->user()->role, ['admin', 'finance']))
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('findirector') }}">Страница финансового директора</a>
+                        <a class="nav-link" href="{{ route('findirector.fin-reports.index') }}">Страница финансового директора</a>
                     </li>
                     @endif
                     <li class="nav-item">

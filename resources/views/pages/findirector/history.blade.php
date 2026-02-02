@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Менеджеры - История расчётов')
+@section('title', 'Финансовый директор - История расчётов')
 
 @section('content')
 <div class="container my-5">
@@ -11,14 +11,17 @@
             </div>
 
             <div style="display: flex; gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e0e0e0;">
-                <a href="{{ route('managers.calculation') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
+                <a href="{{ route('findirector.calculation') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
                     Расчёт прибыли
                 </a>
-                <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
+                <a href="{{ route('findirector.reports') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
                     Отчёты
                 </a>
-                <a href="{{ route('managers.history') }}" style="padding: 8px 16px; background-color: #0084ff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
+                <a href="{{ route('findirector.history') }}" style="padding: 8px 16px; background-color: #0084ff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
                     История расчётов
+                </a>
+                <a href="{{ route('findirector.fin-reports.index') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
+                    Отчёты (ручной ввод)
                 </a>
             </div>
 
@@ -69,12 +72,12 @@
         button.addEventListener('click', function() {
             const reportId = this.dataset.reportId;
             
-            fetch(`{{ route('managers.get-report', '') }}/${reportId}`)
+            fetch(`{{ route('findirector.get-report', '') }}/${reportId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         sessionStorage.setItem('loadReportData', JSON.stringify(data));
-                        window.location.href = '{{ route('managers.calculation') }}';
+                        window.location.href = '{{ route('findirector.calculation') }}';
                     }
                 })
                 .catch(error => console.error('Ошибка:', error));

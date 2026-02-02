@@ -23,7 +23,6 @@ class ManagersController extends Controller
             return response()->json(['error' => 'Invalid counteragent type'], 400);
         }
 
-        // fvn работает как ooo
         $dbCounteragentType = ($counteragentType === 'fvn') ? 'ooo' : $counteragentType;
 
         $variables = Variable::where('counteragent_type', $dbCounteragentType)
@@ -354,7 +353,7 @@ class ManagersController extends Controller
     public function storeDraftsReport(Request $request)
     {
         $calculationId = $request->query('calculation_id');
-        return $this->saveReport($request, DraftsReports::class, 'Сохранено в отчёты', true, false, $calculationId);
+        return $this->saveReport($request, DraftsReports::class, 'Сохранено в отчёты', true, true, $calculationId);
     }
 
     /**
