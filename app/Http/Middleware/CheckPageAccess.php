@@ -25,7 +25,7 @@ class CheckPageAccess
         $userRole = $user->role;
 
         if (strpos($path, 'users') === 0) {
-            if (!in_array($userRole, ['admin', 'manager'])) {
+            if (!in_array($userRole, ['admin', 'manager', 'finance'])) {
                 return redirect()->route('news.index')->with('error', 'У вас нет прав доступа к этой странице');
             }
         }
@@ -42,8 +42,8 @@ class CheckPageAccess
             }
         }
 
-        if (strpos($path, 'variables') === 0) {
-            if (!in_array($userRole, ['admin', 'manager'])) {
+        if (strpos($path, 'variables') === 0 || strpos($path, 'nds') === 0) {
+            if (!in_array($userRole, ['admin', 'manager', 'finance'])) {
                 return redirect()->route('news.index')->with('error', 'У вас нет прав доступа к этой странице');
             }
         }

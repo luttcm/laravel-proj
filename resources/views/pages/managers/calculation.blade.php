@@ -14,7 +14,7 @@
                 <a href="{{ route('managers.calculation') }}" style="padding: 8px 16px; background-color: #0084ff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
                     Расчёт прибыли
                 </a>
-                <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; display: none; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
+                <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
                     Отчёты
                 </a>
                 <a href="{{ route('managers.history') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
@@ -137,7 +137,7 @@
                         <button type="button" id="calculateBtn" class="btn" style="flex: 1; background-color: #e8d5f2; color: #6c3fa0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                             Рассчитать
                         </button>
-                        <button type="button" id="saveReportBtn" class="btn" style="flex: 1; display: none; background-color: #d5e8f2; color: #3f6ca0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                        <button type="button" id="saveReportBtn" class="btn" style="flex: 1; background-color: #d5e8f2; color: #3f6ca0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                             Сохранить в отчёт
                         </button>
                         <button type="button" id="saveHistoryBtn" class="btn" style="flex: 1; background-color: #e8f2d5; color: #6ca03f; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
