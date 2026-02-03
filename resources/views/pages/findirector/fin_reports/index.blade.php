@@ -6,27 +6,11 @@
 <div class="container my-5">
     <div class="row">
         <div class="col-lg-10 offset-lg-1">
-            <div class="d-flex justify-content-between align-items-center mb-5">
-                <div>
-                    <h1 style="font-size: 2rem; font-weight: 600; margin-bottom: 8px;">Отчёты (ручной ввод)</h1>
-                    <p class="text-muted">Список отчетов, введенных вручную</p>
-                </div>
-            <div style="display: flex; gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e0e0e0;">
-                <a href="{{ route('findirector.calculation') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
-                    Расчёт прибыли
-                </a>
-                <a href="{{ route('findirector.reports') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
-                    Отчёты
-                </a>
-                <a href="{{ route('findirector.history') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
-                    История расчётов
-                </a>
-                <a href="{{ route('findirector.fin-reports.index') }}" style="padding: 8px 16px; background-color: #0084ff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
-                    Отчёты (ручной ввод)
-                </a>
+            <div class="mb-5">
+                <h1 style="font-size: 2rem; font-weight: 600; margin-bottom: 8px;">Отчёты Финансового директора</h1>
             </div>
 
-            <div class="mb-4">
+            <div class="mb-4 d-flex justify-content-end">
                 <a href="{{ route('findirector.fin-reports.add') }}" class="btn btn-primary" style="padding: 10px 20px; border-radius: 6px; font-weight: 500;">
                     Добавить отчет вручную
                 </a>
@@ -78,10 +62,6 @@
                         @endforelse
                     </tbody>
                 </table>
-            </div>
-            
-            <div class="mt-4">
-                 <a href="{{ route('findirector.reports') }}" class="btn btn-outline-primary">Вернуться к калькулятору</a>
             </div>
         </div>
     </div>
