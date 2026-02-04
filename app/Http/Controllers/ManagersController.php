@@ -12,7 +12,12 @@ class ManagersController extends Controller
 {
     public function calculation()
     {
-        return view('pages.managers.calculation');
+        $history = Reports::where('manager_id', auth()->id())
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+            
+        return view('pages.managers.calculation', compact('history'));
     }
 
     public function getVariables(Request $request)
@@ -110,9 +115,13 @@ class ManagersController extends Controller
         $rate_ndfl = (float)($variables['rate_ndfl']->value ?? 0.13);
         $k_spk = (float)($variables['k_spk']->value ?? 0.20);
 
-        $sellingSum = (float)$request->selling_sum;
-        $purchaseSum = (float)$request->purchase_sum;
-        $quantity = (int)$request->quantity ?: 1;
+        $purchasePrice = (float)$request->input('purchase_price', 0);
+        $quantity = (int)$request->input('quantity', 0) ?: 1;
+        $markupPercent = (float)$request->input('markup_percent', 0);
+
+        $purchaseSum = $purchasePrice * $quantity;
+        $sellingPrice = $purchasePrice * (1 + $markupPercent / 100);
+        $sellingSum = $sellingPrice * $quantity;
 
         if ($counteragentType === 'inn') {
             $k_bonus = (float)($variables['k_bonus_inn']->value ?? 0.20);
