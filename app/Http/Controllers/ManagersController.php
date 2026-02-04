@@ -393,7 +393,7 @@ class ManagersController extends Controller
 
         $reportId = null;
         if ($request->has('report_id') && !empty($request->input('report_id'))) {
-            $reportId = $reportModel::findOrFail($request->input('report_id'));
+            $reportId = $reportModel::find($request->input('report_id'));
         }
         
         $result = $this->calcultating($request);
@@ -408,38 +408,23 @@ class ManagersController extends Controller
             'in_the_deal' => $result['inTheDeal'],
         ]);
 
-        if ($existingCalculationId && $reportId) {
-            if ($reportId) {
-                $reportId->update([
-                    'date' => now()->toDateString(),
-                    'report_title' => $request->input(key: 'report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
-                    'amount' => $result['managerPayment'],
-                ]);
-            } else {
-                $reportModel::create([
-                    'manager_id' => auth()->id(),
-                    'date' => now()->toDateString(),
-                    'name' => $userName,
-                    'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
-                    'amount' => $result['managerPayment'],
-                    'calculate_id' => $calculationId,
-                ]);
-            }
-        } elseif ($reportId) {
+        $reportData = [
+            'manager_id' => auth()->id(),
+            'date' => now()->toDateString(),
+            'name' => $userName,
+            'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
+            'amount' => $result['managerPayment'],
+            'calculate_id' => $calculationId,
+        ];
+
+        if ($reportId) {
             $reportId->update([
-                'date' => now()->toDateString(),
-                'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
-                'amount' => $result['managerPayment'],
+                'date' => $reportData['date'],
+                'report_title' => $reportData['report_title'],
+                'amount' => $reportData['amount'],
             ]);
         } else {
-            $reportModel::create([
-                'manager_id' => auth()->id(),
-                'date' => now()->toDateString(),
-                'name' => $userName,
-                'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
-                'amount' => $result['managerPayment'],
-                'calculate_id' => $calculationId,
-            ]);
+            $reportModel::create($reportData);
         }
 
         $response = [
@@ -470,17 +455,17 @@ class ManagersController extends Controller
                 'perUnitPayment' => round($result['perUnitPayment'], 0, PHP_ROUND_HALF_UP),
                 'totalTaxes' => round($result['totalTaxes'], 0, PHP_ROUND_HALF_UP),
                 'companyProfit' => round($result['companyProfit'], 0, PHP_ROUND_HALF_UP),
-                'prfPercent' => round($result['prfPercent'], 0, PHP_ROUND_HALF_UP),
+                'prfPercent' => round($result['prfPercent'], 2, PHP_ROUND_HALF_UP),
             ];
 
             if ($counteragentType === 'inn') {
-                $response['calculations']['ausn'] = round($result['ausn'], 0);
+                $response['calculations']['ausn'] = round($result['ausn'], 0, PHP_ROUND_HALF_UP);
             } else {
-                $response['calculations']['ndsOutgoing'] = round($result['ndsOutgoing'], 0);
-                $response['calculations']['ndsIncoming'] = round($result['ndsIncoming'], 0);
-                $response['calculations']['ndsPaid'] = round($result['ndsPaid'], 0);
-                $response['calculations']['citBase'] = round($result['citBase'], 0);
-                $response['calculations']['citTax'] = round($result['citTax'], 0);
+                $response['calculations']['ndsOutgoing'] = round($result['ndsOutgoing'], 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['ndsIncoming'] = round($result['ndsIncoming'], 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['ndsPaid'] = round($result['ndsPaid'], 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['citBase'] = round($result['citBase'], 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['citTax'] = round($result['citTax'], 0, PHP_ROUND_HALF_UP);
             }
         }
 

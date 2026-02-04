@@ -9,29 +9,6 @@ use App\Models\FinReport;
 
 class FinDirectorController extends ManagersController
 {
-    public function calculation()
-    {
-        return view('pages.findirector.calculation');
-    }
-
-    public function reports()
-    {
-        $reports = DraftsReports::all()
-        ->where('manager_id', auth()->id())
-        ->sortByDesc('created_at');
-
-        return view('pages.findirector.reports', compact('reports'));
-    }
-
-    public function history()
-    {
-        $reports = Reports::all()
-        ->where('manager_id', auth()->id())
-        ->sortByDesc('created_at');
-
-        return view('pages.findirector.history', compact('reports'));
-    }
-    
     public function finReportsIndex()
     {
         $reports = FinReport::where('user_id', auth()->id())
