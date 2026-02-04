@@ -27,6 +27,7 @@
                 <table class="table table-hover" style="min-width: 1000px;">
                     <thead class="table-light">
                         <tr>
+                            <th>ID</th>
                             <th style="white-space: nowrap;">Дата</th>
                             <th>Название</th>
                             <th>Заказчик</th>
@@ -41,6 +42,7 @@
                     <tbody>
                         @forelse($reports as $report)
                             <tr>
+                                <td>{{ $report->id }}</td>
                                 <td style="white-space: nowrap;">{{ \Carbon\Carbon::parse($report->date)->format('d.m.Y') }}</td>
                                 <td>{{ $report->report_title }}</td>
                                 <td>{{ $report->customer }}</td>
@@ -66,7 +68,7 @@
                         @empty
                             <tr>
                                 <td colspan="9" class="text-center text-muted py-5">
-                                    Нет данных. Нажмите "Добавить отчет", чтобы создать первую запись.
+                                    Нет данных. Нажмите "Добавить", чтобы создать первую запись.
                                 </td>
                             </tr>
                         @endforelse
