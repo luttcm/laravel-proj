@@ -4,34 +4,34 @@
 
 @section('content')
 <div class="container my-5">
+    <div class="mb-5">
+        <h1 style="font-size: 2rem; font-weight: 600; margin-bottom: 8px;">Форма расчёта</h1>
+    </div>
+
+    <div style="display: flex; gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e0e0e0;">
+        <a href="{{ route('managers.calculation') }}" style="padding: 8px 16px; background-color: #0084ff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
+            Расчёт прибыли
+        </a>
+        <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
+            Отчёты
+        </a>
+        <a href="{{ route('managers.history') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
+            История расчётов
+        </a>
+    </div>
+
     <div class="row">
-        <div class="col-lg-10 offset-lg-1">
-            <div class="mb-5">
-                <h1 style="font-size: 2rem; font-weight: 600; margin-bottom: 8px;">Форма расчёта</h1>
-            </div>
-
-            <div style="display: flex; gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e0e0e0;">
-                <a href="{{ route('managers.calculation') }}" style="padding: 8px 16px; background-color: #0084ff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
-                    Расчёт прибыли
-                </a>
-                <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
-                    Отчёты
-                </a>
-                <a href="{{ route('managers.history') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
-                    История расчётов
-                </a>
-            </div>
-
+        <div class="col-lg-8">
             <div style="background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 32px;">
                 <form id="calculationForm">
                     @csrf
                     <div class="row mb-4">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Название отчета</label>
                             <input type="text" class="form-control" name="report_name" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="Название">
                         </div>
 
-                         <div class="col-md-4">
+                         <div class="col-md-6">
                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">НДС</label>
                             <select class="form-control" id="nds" name="nds_id" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
                                 <option value="">Без НДС</option>
@@ -133,21 +133,56 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e0e0e0;">
-                        <button type="button" id="calculateBtn" class="btn" style="flex: 1; background-color: #e8d5f2; color: #6c3fa0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e0e0e0;">
+                        <button type="button" id="calculateBtn" class="btn" style="flex: 1; min-width: 140px; background-color: #e8d5f2; color: #6c3fa0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                             Рассчитать
                         </button>
-                        <button type="button" id="saveReportBtn" class="btn" style="flex: 1; background-color: #d5e8f2; color: #3f6ca0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                            Сохранить в отчёт
+                        <button type="button" id="saveReportBtn" class="btn" style="flex: 1; min-width: 140px; background-color: #d5e8f2; color: #3f6ca0; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                            В отчёт
                         </button>
-                        <button type="button" id="saveHistoryBtn" class="btn" style="flex: 1; background-color: #e8f2d5; color: #6ca03f; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                            Сохранить в историю
+                        <button type="button" id="saveHistoryBtn" class="btn" style="flex: 1; min-width: 140px; background-color: #e8f2d5; color: #6ca03f; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                            В историю
                         </button>
-                        <button type="button" id="clearBtn" class="btn" style="flex: 1; background-color: #f2d5d5; color: #a03f3f; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                            Очистить всё
+                        <button type="button" id="clearBtn" class="btn" style="flex: 1; min-width: 140px; background-color: #f2d5d5; color: #a03f3f; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                            Очистить
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div style="background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 24px;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 20px;">Последние расчеты</h3>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover" style="font-size: 0.9rem;">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Сумма</th>
+                                <th class="text-end"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($history as $item)
+                                <tr>
+                                    <td class="text-truncate" style="max-width: 150px;">{{ $item->report_title }}</td>
+                                    <td style="white-space: nowrap;">{{ number_format($item->amount, 0, '.', ' ') }}</td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadHistory({{ $item->id }})" title="Загрузить в форму">
+                                            <i class="bi bi-arrow-left-square"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-3">История пуста</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                </div>
             </div>
         </div>
     </div>
@@ -239,6 +274,54 @@
 </style>
 
 <script>
+    function loadHistory(id) {
+        fetch(`/managers/reports/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const calc = data.calculation;
+                    const report = data.report;
+
+                    document.getElementsByName('report_name')[0].value = report.report_title;
+                    document.getElementById('report_id_hidden').value = report.id;
+                    document.getElementsByName('buying_name')[0].value = calc.buying_name;
+                    
+                    const sellingType = calc.selling_name.includes('ИП (ИНН)') ? 'inn' : (calc.selling_name.includes('ИП (ФВН)') ? 'fvn' : 'ooo');
+                    document.getElementById('selling_type').value = sellingType;
+
+                    document.getElementsByName('spk')[0].value = calc.spk;
+                    document.getElementsByName('purchase_price')[0].value = calc.purchase_price;
+                    document.getElementsByName('quantity')[0].value = calc.quantity;
+                    document.getElementsByName('markup_percent')[0].value = calc.markup_percent;
+                    document.getElementsByName('in_the_hand')[0].value = calc.in_the_hand;
+                    
+                    document.getElementById('calculationForm').dataset.calculationId = calc.id;
+
+                    const counteragentType = sellingType;
+                    const sellingNames = {
+                        'inn': 'ИП (ИНН)',
+                        'fvn': 'ИП (ФВН)',
+                        'ooo': 'ООО (УСН)'
+                    };
+                    document.getElementById('selling_name_hidden').value = sellingNames[counteragentType] || '';
+
+                    loadNdsForType(counteragentType, calc.nds_id);
+
+                    recalculate();
+
+                    showNotification('Данные загружены', 'info');
+                    
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    showNotification('Ошибка при загрузке данных', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Ошибка при выполнении запроса', 'error');
+            });
+    }
+
     function showNotification(message, type = 'success') {
         const container = document.getElementById('notificationContainer');
         const notification = document.createElement('div');
@@ -264,7 +347,7 @@
     }
 
     function loadNdsForType(counteragentType, selectedNdsId = null) {
-        const ndsContainer = document.getElementById('nds').closest('.col-md-4');
+        const ndsContainer = document.getElementById('nds').closest('[class*="col-md-"]');
         if (counteragentType === 'inn') {
             ndsContainer.style.display = 'none';
             document.getElementById('nds_percent_hidden').value = '0';
@@ -480,7 +563,7 @@
         });
     });
 
-     document.getElementById('saveHistoryBtn').addEventListener('click', function(e) {
+    document.getElementById('saveHistoryBtn').addEventListener('click', function(e) {
         e.preventDefault();
 
         const formData = new FormData(document.getElementById('calculationForm'));
