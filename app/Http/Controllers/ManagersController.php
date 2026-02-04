@@ -10,6 +10,13 @@ use App\Models\Variable;
 
 class ManagersController extends Controller
 {
+    protected $calculationService;
+
+    public function __construct(\App\Services\Calculation\CalculationService $calculationService)
+    {
+        $this->calculationService = $calculationService;
+    }
+
     public function calculation()
     {
         $history = Reports::where('manager_id', auth()->id())
@@ -75,278 +82,51 @@ class ManagersController extends Controller
 
         return view('pages.managers.history', compact('reports'));
     }
-    private function calcultating(Request $request)
-    {
-        $sellingType = $request->input('selling_name');
-        $spk = $request->input('spk');
-        $inTheHand = $request->input('in_the_hand');
-        $ndsPercentPurchase = (float)$request->input('nds_percent', 0);
-
-        $counteragentType = strpos($sellingType, 'ИП (ИНН)') !== false ? 'inn' : (strpos($sellingType, 'ИП (ФВН)') !== false ? 'fvn' : 'ooo');
-        $dbCounteragentType = ($counteragentType === 'fvn') ? 'ooo' : $counteragentType;
-
-        if ($counteragentType === 'inn') {
-            $ndsPercentPurchase = 0;
-            $ndsPercentSelling = 0;
-        } else {
-            $standardNds = \App\Models\Nds::where('code_name', 'nds_standart')->first();
-            $ndsPercentSelling = $standardNds ? (float)$standardNds->percent : 22;
-        }
-
-        $variables = Variable::where('counteragent_type', $dbCounteragentType)
-            ->where('table_type', 'company')
-            ->get()
-            ->keyBy('name');
-
-        $riskReserveRate = (float)($variables['RiskReserveRate']->value ?? 0.05);
-        $k_log = (float)($variables['k_log']->value ?? 0.015);
-        $k_fin = (float)($variables['k_fin']->value ?? 0.015);
-        $k_fbr = (float)($variables['k_fbr']->value ?? 0.002);
-        $k_ps_total = (float)($variables['k_ps_total']->value ?? ($k_log + $k_fin + $k_fbr));
-        
-        if ($counteragentType === 'inn') {
-            $k_mgr = (float)($variables['k_mgr']->value ?? 0.245);
-            $rate_ins = (float)($variables['rate_ins']->value ?? 0.01);
-        } else {
-            $k_mgr = (float)($variables['k_mgr']->value ?? 0.20);
-            $rate_ins = (float)($variables['rate_ins']->value ?? 0.30);
-        }
-        
-        $rate_ndfl = (float)($variables['rate_ndfl']->value ?? 0.13);
-        $k_spk = (float)($variables['k_spk']->value ?? 0.20);
-
-        $purchasePrice = (float)$request->input('purchase_price', 0);
-        $quantity = (int)$request->input('quantity', 0) ?: 1;
-        $markupPercent = (float)$request->input('markup_percent', 0);
-
-        $purchaseSum = $purchasePrice * $quantity;
-        $sellingPrice = $purchasePrice * (1 + $markupPercent / 100);
-        $sellingSum = $sellingPrice * $quantity;
-
-        if ($counteragentType === 'inn') {
-            $k_bonus = (float)($variables['k_bonus_inn']->value ?? 0.20);
-        } else if ($counteragentType === 'ooo') {
-            $k_bonus = (float)($variables['k_bonus_ooo']->value ?? 0.20);
-        } else if ($counteragentType === 'fvn'){
-            $k_bonus = (float)($variables['k_bonus_fvn']->value ?? 0.20);
-        }
-
-        if ($counteragentType === 'inn') {
-            return $this->calculateInn($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand, 
-                                       $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total, 
-                                       $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables);
-        } else {
-            return $this->calculateOoo($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand, 
-                                       $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total, 
-                                       $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables,
-                                       $ndsPercentPurchase, $ndsPercentSelling);
-        }
-    }
-
-    private function calculateInn($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand,
-                                   $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total,
-                                   $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables)
-    {
-        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
-        $inTheDealPerUnit = $quantity > 0 ? $inTheDeal / $quantity : 0;
-
-        $rate_ausn = (float)($variables['rate_ausn']->value ?? 0.08);
-
-        $nacenka = $sellingSum - $purchaseSum;
-        $ausn = $sellingSum * $rate_ausn;
-        $P1 = $nacenka - $ausn;
-        
-        $riskReserve = max(0, $P1 * $riskReserveRate);
-        $premBase = max(0, $P1 - $riskReserve);
-
-        $logisticsBonus = $premBase * $k_log;
-        $finAdminBonus = $premBase * $k_fin;
-        $fbrBonus = $premBase * $k_fbr;
-        $premiyaTotal = $logisticsBonus + $finAdminBonus + $fbrBonus;
-
-        $managerBase = max(0, $premBase - $premiyaTotal);
-        $managerSalaryBrutto = $managerBase * $k_mgr;
-        $managerNdfl = $managerSalaryBrutto * $rate_ndfl;
-
-        $socialFunds = $managerSalaryBrutto * $rate_ins;
-        $percentSumm = $premiyaTotal * $rate_ins;
-
-        $managerPayment = $managerSalaryBrutto - $managerNdfl;       
-        $totalManagerCost = $managerSalaryBrutto + $socialFunds;
-        $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;
-
-        $spkPayment = 0;
-        if ($spk == 'Y') {
-            $spkPayment = $managerPayment * $k_spk;
-            $managerPayment -= $spkPayment;
-            $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;
-        }
-
-        $totalTaxes = $ausn + $managerNdfl + $socialFunds;
-        $companyProfit = $P1 - $riskReserve - $premiyaTotal - $managerSalaryBrutto - $socialFunds - $percentSumm;
-        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
-        $prfPercent = $sellingSum > 0 ? ($companyProfit / $sellingSum) * 100 : 0;
-
-        return [
-            'nacenka' => $nacenka,
-            'ausn' => $ausn,
-            'P1' => $P1,
-            'riskReserve' => $riskReserve,
-            'premBase' => $premBase,
-            'logisticsBonus' => $logisticsBonus,
-            'finAdminBonus' => $finAdminBonus,
-            'fbrBonus' => $fbrBonus,
-            'premiyaTotal' => $premiyaTotal,
-            'managerBase' => $managerBase,
-            'managerSalaryBrutto' => $managerSalaryBrutto,
-            'managerNdfl' => $managerNdfl,
-            'socialFunds' => $socialFunds,
-            'totalManagerCost' => $totalManagerCost,
-            'managerPayment' => $managerPayment,
-            'spkPayment' => $spkPayment,
-            'perUnitPayment' => $perUnitPayment,
-            'totalTaxes' => $totalTaxes,
-            'companyProfit' => $companyProfit,
-            'prfPercent' => $prfPercent,
-            'spk' => $spk,
-            'inTheDeal' => $inTheDeal,
-            'sellingSumPerUnit' => $sellingSum / $quantity + $inTheDealPerUnit,
-            'sellingSumTotal' => $sellingSum + $inTheDealPerUnit * $quantity
-        ];
-    }
-
-    private function calculateOoo($sellingSum, $purchaseSum, $quantity, $spk, $inTheHand,
-                                   $riskReserveRate, $k_log, $k_fin, $k_fbr, $k_ps_total,
-                                   $k_mgr, $rate_ndfl, $rate_ins, $k_bonus, $k_spk, $variables,
-                                   $ndsPercentPurchase = 0, $ndsPercentSelling = 18)
-    {
-        $inTheDeal = ($inTheHand * $k_bonus) + $inTheHand;
-        $inTheDealPerUnit = $quantity > 0 ? $inTheDeal / $quantity : 0;
-
-        $rate_cit = (float)($variables['rate_cit']->value ?? 0.25);
-
-        if ($ndsPercentPurchase > 0) {
-            $ndsIncoming = $purchaseSum / (100 + $ndsPercentPurchase) * $ndsPercentPurchase;
-        } else {
-            $ndsIncoming = 0;
-        }
-
-        $ndsOutgoing = $sellingSum / (100 + $ndsPercentSelling) * $ndsPercentSelling;
-        $ndsPaid = $ndsOutgoing - $ndsIncoming;
-
-        $nacenka = $sellingSum - $purchaseSum;
-        
-        $P1 = $nacenka - $ndsPaid;
-        
-        $riskReserve = max(0, $P1 * $riskReserveRate);
-        $premBase = max(0, $P1 - $riskReserve);
-
-        $logisticsBonus = $premBase * $k_log;
-        $finAdminBonus = $premBase * $k_fin;
-        $fbrBonus = $premBase * $k_fbr;
-        $premiyaTotal = $premBase * $k_ps_total;
-
-        $managerBase = max(0, $premBase - $premiyaTotal);
-        $managerSalaryBrutto = $managerBase * $k_mgr;
-        $managerNdfl = $managerSalaryBrutto * $rate_ndfl;
-
-        $socialFunds = $managerSalaryBrutto * $rate_ins;
-        $percentSumm = $premiyaTotal * $rate_ins;
-        
-        $managerPayment = $managerSalaryBrutto - $managerNdfl;       
-        $totalManagerCost = $managerSalaryBrutto + $socialFunds;
-        $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;
-
-        $spkPayment = 0;
-        if ($spk == 'Y') {
-            $spkPayment = $managerPayment * $k_spk;
-            $managerPayment -= $spkPayment;
-            $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;
-        }
-
-        $citBase = max(0, $P1 - $riskReserve - $premiyaTotal - $totalManagerCost - $percentSumm);
-        $citTax = $citBase * $rate_cit;
-
-        $totalTaxes = $ndsPaid + $managerNdfl + $socialFunds + $citTax;
-        $companyProfit = $P1 - $riskReserve - $premiyaTotal - $managerSalaryBrutto - $socialFunds - $percentSumm - $citTax;
-        
-        $prfPercent = $sellingSum > 0 ? ($companyProfit / $sellingSum) * 100 : 0;
-
-        return [
-            'nacenka' => $nacenka,
-            'ndsOutgoing' => $ndsOutgoing,
-            'ndsIncoming' => $ndsIncoming,
-            'ndsPaid' => $ndsPaid,
-            'P1' => $P1,
-            'riskReserve' => $riskReserve,
-            'premBase' => $premBase,
-            'logisticsBonus' => $logisticsBonus,
-            'finAdminBonus' => $finAdminBonus,
-            'fbrBonus' => $fbrBonus,
-            'premiyaTotal' => $premiyaTotal,
-            'managerBase' => $managerBase,
-            'managerSalaryBrutto' => $managerSalaryBrutto,
-            'managerNdfl' => $managerNdfl,
-            'socialFunds' => $socialFunds,
-            'totalManagerCost' => $totalManagerCost,
-            'managerPayment' => $managerPayment,
-            'spkPayment' => $spkPayment,
-            'perUnitPayment' => $perUnitPayment,
-            'citBase' => $citBase,
-            'citTax' => $citTax,
-            'totalTaxes' => $totalTaxes,
-            'companyProfit' => $companyProfit,
-            'prfPercent' => $prfPercent,
-            'spk' => $spk,
-            'inTheDeal' => $inTheDeal,
-            'sellingSumPerUnit' => $sellingSum / $quantity + $inTheDealPerUnit,
-            'sellingSumTotal' => $sellingSum + $inTheDealPerUnit * $quantity
-        ];
-    }
 
     public function calculate(Request $request)
     {
-        $result = $this->calcultating($request);
+        $dto = \App\Services\Calculation\DTO\CalculationRequestDTO::fromRequest($request);
+        $result = $this->calculationService->calculate($dto);
 
         $sellingType = $request->input('selling_name');
         $counteragentType = strpos($sellingType, 'ИП (ИНН)') !== false ? 'inn' : (strpos($sellingType, 'ИП (ФВН)') !== false ? 'fvn' : 'ooo');
 
         $calculations = [
-            'nacenka' => round($result['nacenka'], 0, PHP_ROUND_HALF_UP),
-            'P1' => round($result['P1'], 0, PHP_ROUND_HALF_UP),
-            'riskReserve' => round($result['riskReserve'], 0, PHP_ROUND_HALF_UP),
-            'premBase' => round($result['premBase'], 0, PHP_ROUND_HALF_UP),
-            'logisticsBonus' => round($result['logisticsBonus'], 0, PHP_ROUND_HALF_UP),
-            'finAdminBonus' => round($result['finAdminBonus'], 0, PHP_ROUND_HALF_UP),
-            'fbrBonus' => round($result['fbrBonus'], 0, PHP_ROUND_HALF_UP),
-            'premiyaTotal' => round($result['premiyaTotal'], 0, PHP_ROUND_HALF_UP),
-            'managerBase' => round($result['managerBase'], 0, PHP_ROUND_HALF_UP),
-            'managerSalaryBrutto' => round($result['managerSalaryBrutto'], 0, PHP_ROUND_HALF_UP),
-            'managerNdfl' => round($result['managerNdfl'], 0, PHP_ROUND_HALF_UP),
-            'socialFunds' => round($result['socialFunds'], 0, PHP_ROUND_HALF_UP),
-            'totalManagerCost' => round($result['totalManagerCost'], 0, PHP_ROUND_HALF_UP),
-            'managerPayment' => round($result['managerPayment'], 0, PHP_ROUND_HALF_UP),
-            'spkPayment' => round($result['spkPayment'], 0, PHP_ROUND_HALF_UP),
-            'perUnitPayment' => round($result['perUnitPayment'], 0, PHP_ROUND_HALF_UP),
-            'totalTaxes' => round($result['totalTaxes'], 0, PHP_ROUND_HALF_UP),
-            'companyProfit' => round($result['companyProfit'], 0, PHP_ROUND_HALF_UP),
-            'prfPercent' => round($result['prfPercent'], 2, PHP_ROUND_HALF_UP),
-            'spk' => $result['spk'],
-            'inTheDeal' => round($result['inTheDeal'], 0, PHP_ROUND_HALF_UP),
-            'sellingSumPerUnit' => round($result['sellingSumPerUnit'], 0, PHP_ROUND_HALF_UP),
-            'sellingSumTotal' => round($result['sellingSumTotal'], 0, PHP_ROUND_HALF_UP),
+            'nacenka' => round($result->nacenka, 0, PHP_ROUND_HALF_UP),
+            'P1' => round($result->P1, 0, PHP_ROUND_HALF_UP),
+            'riskReserve' => round($result->riskReserve, 0, PHP_ROUND_HALF_UP),
+            'premBase' => round($result->premBase, 0, PHP_ROUND_HALF_UP),
+            'logisticsBonus' => round($result->logisticsBonus, 0, PHP_ROUND_HALF_UP),
+            'finAdminBonus' => round($result->finAdminBonus, 0, PHP_ROUND_HALF_UP),
+            'fbrBonus' => round($result->fbrBonus, 0, PHP_ROUND_HALF_UP),
+            'premiyaTotal' => round($result->premiyaTotal, 0, PHP_ROUND_HALF_UP),
+            'managerBase' => round($result->managerBase, 0, PHP_ROUND_HALF_UP),
+            'managerSalaryBrutto' => round($result->managerSalaryBrutto, 0, PHP_ROUND_HALF_UP),
+            'managerNdfl' => round($result->managerNdfl, 0, PHP_ROUND_HALF_UP),
+            'socialFunds' => round($result->socialFunds, 0, PHP_ROUND_HALF_UP),
+            'totalManagerCost' => round($result->totalManagerCost, 0, PHP_ROUND_HALF_UP),
+            'managerPayment' => round($result->managerPayment, 0, PHP_ROUND_HALF_UP),
+            'spkPayment' => round($result->spkPayment, 0, PHP_ROUND_HALF_UP),
+            'perUnitPayment' => round($result->perUnitPayment, 0, PHP_ROUND_HALF_UP),
+            'totalTaxes' => round($result->totalTaxes, 0, PHP_ROUND_HALF_UP),
+            'companyProfit' => round($result->companyProfit, 0, PHP_ROUND_HALF_UP),
+            'prfPercent' => round($result->prfPercent, 2, PHP_ROUND_HALF_UP),
+            'spk' => $result->spk,
+            'inTheDeal' => round($result->inTheDeal, 0, PHP_ROUND_HALF_UP),
+            'sellingSumPerUnit' => round($result->sellingSumPerUnit, 0, PHP_ROUND_HALF_UP),
+            'sellingSumTotal' => round($result->sellingSumTotal, 0, PHP_ROUND_HALF_UP),
         ];
 
         if ($counteragentType === 'inn') {
-            $calculations['ausn'] = round($result['ausn'], 0, PHP_ROUND_HALF_UP);
+            $calculations['ausn'] = round($result->ausn, 0, PHP_ROUND_HALF_UP);
         }
 
-        if ($counteragentType === 'ooo') {
-            $calculations['ndsOutgoing'] = round($result['ndsOutgoing'], 0, PHP_ROUND_HALF_UP);
-            $calculations['ndsIncoming'] = round($result['ndsIncoming'], 0, PHP_ROUND_HALF_UP);
-            $calculations['ndsPaid'] = round($result['ndsPaid'], 0, PHP_ROUND_HALF_UP);
-            $calculations['citBase'] = round($result['citBase'], 0, PHP_ROUND_HALF_UP);
-            $calculations['citTax'] = round($result['citTax'], 0, PHP_ROUND_HALF_UP);
+        if ($counteragentType === 'ooo' || $counteragentType === 'fvn') {
+            $calculations['ndsOutgoing'] = round($result->ndsOutgoing, 0, PHP_ROUND_HALF_UP);
+            $calculations['ndsIncoming'] = round($result->ndsIncoming, 0, PHP_ROUND_HALF_UP);
+            $calculations['ndsPaid'] = round($result->ndsPaid, 0, PHP_ROUND_HALF_UP);
+            $calculations['citBase'] = round($result->citBase, 0, PHP_ROUND_HALF_UP);
+            $calculations['citTax'] = round($result->citTax, 0, PHP_ROUND_HALF_UP);
         }
 
         return response()->json([
@@ -354,33 +134,17 @@ class ManagersController extends Controller
             'calculations' => $calculations
         ], 201);
     }
-
-    /**
-     * Сохранить в отчеты
-     * @param Request $request
-     */
     public function storeDraftsReport(Request $request)
     {
         $calculationId = $request->query('calculation_id');
         return $this->saveReport($request, DraftsReports::class, 'Сохранено в отчёты', true, true, $calculationId);
     }
 
-    /**
-     * Сохранить в историю
-     * @param Request $request
-     */
     public function storeReport(Request $request)
     {
         return $this->saveReport($request, Reports::class, 'Сохранено в историю', false, true);
     }
 
-    /**
-     * Сохранение результатов расчёта
-     * @param Request $request
-     * @param string $reportModel
-     * @param string $message
-     * @param bool $includeCalculations
-     */
     private function saveReport(Request $request, string $reportModel, string $message, bool $includeCalculations = false, $isHistory = false, $existingCalculationId = null)
     {
         if ($existingCalculationId || ($request->has('calculation_id') && !empty($request->input('calculation_id')))) {
@@ -396,50 +160,36 @@ class ManagersController extends Controller
             $reportId = $reportModel::findOrFail($request->input('report_id'));
         }
         
-        $result = $this->calcultating($request);
+        $dto = \App\Services\Calculation\DTO\CalculationRequestDTO::fromRequest($request);
+        $result = $this->calculationService->calculate($dto);
         $userName = auth()->user()->name ?? 'Без имени';
 
         $calculation = Calculation::findOrFail($calculationId);
         $calculation->update([
             'nds_id' => $request->input('nds_id'),
-            'manager_payment' => $result['managerPayment'],
-            'manager_salary_brutto' => $result['managerSalaryBrutto'],
-            'per_unit_payment' => $result['perUnitPayment'],
-            'in_the_deal' => $result['inTheDeal'],
+            'manager_payment' => $result->managerPayment,
+            'manager_salary_brutto' => $result->managerSalaryBrutto,
+            'per_unit_payment' => $result->perUnitPayment,
+            'in_the_deal' => $result->inTheDeal,
         ]);
 
-        if ($existingCalculationId && $reportId) {
-            if ($reportId) {
-                $reportId->update([
-                    'date' => now()->toDateString(),
-                    'report_title' => $request->input(key: 'report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
-                    'amount' => $result['managerPayment'],
-                ]);
-            } else {
-                $reportModel::create([
-                    'manager_id' => auth()->id(),
-                    'date' => now()->toDateString(),
-                    'name' => $userName,
-                    'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
-                    'amount' => $result['managerPayment'],
-                    'calculate_id' => $calculationId,
-                ]);
-            }
-        } elseif ($reportId) {
+        $reportData = [
+            'manager_id' => auth()->id(),
+            'date' => now()->toDateString(),
+            'name' => $userName,
+            'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
+            'amount' => $result->managerPayment,
+            'calculate_id' => $calculationId,
+        ];
+
+        if ($reportId) {
             $reportId->update([
-                'date' => now()->toDateString(),
-                'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
-                'amount' => $result['managerPayment'],
+                'date' => $reportData['date'],
+                'report_title' => $reportData['report_title'],
+                'amount' => $reportData['amount'],
             ]);
         } else {
-            $reportModel::create([
-                'manager_id' => auth()->id(),
-                'date' => now()->toDateString(),
-                'name' => $userName,
-                'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
-                'amount' => $result['managerPayment'],
-                'calculate_id' => $calculationId,
-            ]);
+            $reportModel::create($reportData);
         }
 
         $response = [
@@ -449,38 +199,38 @@ class ManagersController extends Controller
 
         if ($includeCalculations) {
             $sellingType = $request->input('selling_name');
-            $counteragentType = strpos($sellingType, 'ИП') !== false ? 'inn' : 'ooo';
+            $counteragentType = strpos($sellingType, 'ИП (ИНН)') !== false ? 'inn' : (strpos($sellingType, 'ИП (ФВН)') !== false ? 'fvn' : 'ooo');
 
             $response['calculations'] = [
-                'nacenka' => round($result['nacenka'], 0, PHP_ROUND_HALF_UP),
-                'P1' => round($result['P1'], 0, PHP_ROUND_HALF_UP),
-                'riskReserve' => round($result['riskReserve'], 0, PHP_ROUND_HALF_UP),
-                'premBase' => round($result['premBase'], 0, PHP_ROUND_HALF_UP),
-                'logisticsBonus' => round($result['logisticsBonus'], 0, PHP_ROUND_HALF_UP),
-                'finAdminBonus' => round($result['finAdminBonus'], 0, PHP_ROUND_HALF_UP),
-                'fbrBonus' => round($result['fbrBonus'], 0, PHP_ROUND_HALF_UP),
-                'premiyaTotal' => round($result['premiyaTotal'], 0, PHP_ROUND_HALF_UP),
-                'managerBase' => round($result['managerBase'], 0, PHP_ROUND_HALF_UP),
-                'managerSalaryBrutto' => round($result['managerSalaryBrutto'], 0, PHP_ROUND_HALF_UP),
-                'managerNdfl' => round($result['managerNdfl'], 0, PHP_ROUND_HALF_UP),
-                'socialFunds' => round($result['socialFunds'], 0, PHP_ROUND_HALF_UP),
-                'totalManagerCost' => round($result['totalManagerCost'], 0, PHP_ROUND_HALF_UP),
-                'managerPayment' => round($result['managerPayment'], 0, PHP_ROUND_HALF_UP),
-                'spkPayment' => round($result['spkPayment'], 0, PHP_ROUND_HALF_UP),
-                'perUnitPayment' => round($result['perUnitPayment'], 0, PHP_ROUND_HALF_UP),
-                'totalTaxes' => round($result['totalTaxes'], 0, PHP_ROUND_HALF_UP),
-                'companyProfit' => round($result['companyProfit'], 0, PHP_ROUND_HALF_UP),
-                'prfPercent' => round($result['prfPercent'], 0, PHP_ROUND_HALF_UP),
+                'nacenka' => round($result->nacenka, 0, PHP_ROUND_HALF_UP),
+                'P1' => round($result->P1, 0, PHP_ROUND_HALF_UP),
+                'riskReserve' => round($result->riskReserve, 0, PHP_ROUND_HALF_UP),
+                'premBase' => round($result->premBase, 0, PHP_ROUND_HALF_UP),
+                'logisticsBonus' => round($result->logisticsBonus, 0, PHP_ROUND_HALF_UP),
+                'finAdminBonus' => round($result->finAdminBonus, 0, PHP_ROUND_HALF_UP),
+                'fbrBonus' => round($result->fbrBonus, 0, PHP_ROUND_HALF_UP),
+                'premiyaTotal' => round($result->premiyaTotal, 0, PHP_ROUND_HALF_UP),
+                'managerBase' => round($result->managerBase, 0, PHP_ROUND_HALF_UP),
+                'managerSalaryBrutto' => round($result->managerSalaryBrutto, 0, PHP_ROUND_HALF_UP),
+                'managerNdfl' => round($result->managerNdfl, 0, PHP_ROUND_HALF_UP),
+                'socialFunds' => round($result->socialFunds, 0, PHP_ROUND_HALF_UP),
+                'totalManagerCost' => round($result->totalManagerCost, 0, PHP_ROUND_HALF_UP),
+                'managerPayment' => round($result->managerPayment, 0, PHP_ROUND_HALF_UP),
+                'spkPayment' => round($result->spkPayment, 0, PHP_ROUND_HALF_UP),
+                'perUnitPayment' => round($result->perUnitPayment, 0, PHP_ROUND_HALF_UP),
+                'totalTaxes' => round($result->totalTaxes, 0, PHP_ROUND_HALF_UP),
+                'companyProfit' => round($result->companyProfit, 0, PHP_ROUND_HALF_UP),
+                'prfPercent' => round($result->prfPercent, 2, PHP_ROUND_HALF_UP),
             ];
 
             if ($counteragentType === 'inn') {
-                $response['calculations']['ausn'] = round($result['ausn'], 0);
+                $response['calculations']['ausn'] = round($result->ausn, 0, PHP_ROUND_HALF_UP);
             } else {
-                $response['calculations']['ndsOutgoing'] = round($result['ndsOutgoing'], 0);
-                $response['calculations']['ndsIncoming'] = round($result['ndsIncoming'], 0);
-                $response['calculations']['ndsPaid'] = round($result['ndsPaid'], 0);
-                $response['calculations']['citBase'] = round($result['citBase'], 0);
-                $response['calculations']['citTax'] = round($result['citTax'], 0);
+                $response['calculations']['ndsOutgoing'] = round($result->ndsOutgoing, 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['ndsIncoming'] = round($result->ndsIncoming, 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['ndsPaid'] = round($result->ndsPaid, 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['citBase'] = round($result->citBase, 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['citTax'] = round($result->citTax, 0, PHP_ROUND_HALF_UP);
             }
         }
 

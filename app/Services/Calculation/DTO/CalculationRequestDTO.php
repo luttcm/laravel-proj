@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Services\Calculation\DTO;
+
+class CalculationRequestDTO
+{
+    public function __construct(
+        public readonly string $sellingType,
+        public readonly string $spk,
+        public readonly float $inTheHand,
+        public readonly float $purchasePrice,
+        public readonly int $quantity,
+        public readonly float $markupPercent,
+        public readonly float $ndsPercentPurchase = 0
+    ) {}
+
+    public static function fromRequest(\Illuminate\Http\Request $request): self
+    {
+        return new self(
+            sellingType: (string)$request->input('selling_name'),
+            spk: (string)$request->input('spk'),
+            inTheHand: (float)$request->input('in_the_hand', 0),
+            purchasePrice: (float)$request->input('purchase_price', 0),
+            quantity: (int)$request->input('quantity', 0) ?: 1,
+            markupPercent: (float)$request->input('markup_percent', 0),
+            ndsPercentPurchase: (float)$request->input('nds_percent', 0)
+        );
+    }
+}
