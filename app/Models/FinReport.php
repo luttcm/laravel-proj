@@ -13,7 +13,12 @@ class FinReport extends Model
     protected $fillable = [
         'user_id',
         'report_title',
+        'customer',
+        'order_number',
+        'spk',
+        'tz_count',
         'amount',
+        'received_amount',
         'date',
     ];
 

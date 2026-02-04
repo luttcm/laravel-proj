@@ -31,14 +31,13 @@ class FinDirectorController extends ManagersController
 
         return view('pages.findirector.history', compact('reports'));
     }
-
-    // Ручные отчеты для финдиректора
+    
     public function finReportsIndex()
     {
         $reports = FinReport::where('user_id', auth()->id())
             ->orderBy('date', 'desc')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(20);
         return view('pages.findirector.fin_reports.index', compact('reports'));
     }
 
@@ -51,14 +50,24 @@ class FinDirectorController extends ManagersController
     {
         $validated = $request->validate([
             'report_title' => 'required|string|max:255',
+            'customer' => 'nullable|string|max:255',
+            'order_number' => 'nullable|string|max:255',
+            'spk' => 'nullable|string|max:255',
+            'tz_count' => 'nullable|integer',
             'amount' => 'required|numeric',
+            'received_amount' => 'nullable|integer',
             'date' => 'nullable|date',
         ]);
 
         FinReport::create([
             'user_id' => auth()->id(),
             'report_title' => $validated['report_title'],
+            'customer' => $validated['customer'] ?? null,
+            'order_number' => $validated['order_number'] ?? null,
+            'spk' => $validated['spk'] ?? null,
+            'tz_count' => $validated['tz_count'] ?? null,
             'amount' => $validated['amount'],
+            'received_amount' => $validated['received_amount'] ?? 0,
             'date' => $validated['date'] ?? now()->toDateString(),
         ]);
 
@@ -87,7 +96,12 @@ class FinDirectorController extends ManagersController
 
         $validated = $request->validate([
             'report_title' => 'required|string|max:255',
+            'customer' => 'nullable|string|max:255',
+            'order_number' => 'nullable|string|max:255',
+            'spk' => 'nullable|string|max:255',
+            'tz_count' => 'nullable|integer',
             'amount' => 'required|numeric',
+            'received_amount' => 'nullable|integer',
             'date' => 'required|date',
         ]);
 

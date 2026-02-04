@@ -12,7 +12,7 @@
 
             <div class="mb-4 d-flex justify-content-end">
                 <a href="{{ route('findirector.fin-reports.add') }}" class="btn btn-primary" style="padding: 10px 20px; border-radius: 6px; font-weight: 500;">
-                    Добавить отчет вручную
+                    Добавить
                 </a>
             </div>
 
@@ -23,29 +23,39 @@
                 </div>
             @endif
 
-            <div style="background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 32px;">
-                <table class="table table-hover">
+            <div style="background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 24px; overflow-x: auto;">
+                <table class="table table-hover" style="min-width: 1000px;">
                     <thead class="table-light">
                         <tr>
-                            <th>Дата</th>
-                            <th>Название отчета</th>
-                            <th>Итоговая сумма</th>
+                            <th style="white-space: nowrap;">Дата</th>
+                            <th>Название</th>
+                            <th>Заказчик</th>
+                            <th style="white-space: nowrap;">Номер заказа</th>
+                            <th>СПК</th>
+                            <th style="white-space: nowrap;">Количество ТЗ</th>
+                            <th>Сумма счета</th>
+                            <th>Фактически Поступило</th>
                             <th class="text-end">Действия</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($reports as $report)
                             <tr>
-                                <td>{{ \Carbon\Carbon::parse($report->date)->format('d.m.Y') }}</td>
+                                <td style="white-space: nowrap;">{{ \Carbon\Carbon::parse($report->date)->format('d.m.Y') }}</td>
                                 <td>{{ $report->report_title }}</td>
-                                <td style="font-weight: 600;">{{ number_format($report->amount, 2, '.', ' ') }} ₽</td>
+                                <td>{{ $report->customer }}</td>
+                                <td>{{ $report->order_number }}</td>
+                                <td>{{ $report->spk }}</td>
+                                <td class="text-center">{{ $report->tz_count }}</td>
+                                <td style="font-weight: 600; white-space: nowrap;">{{ number_format($report->amount, 0, '.', ' ') }}</td>
+                                <td style="font-weight: 600; white-space: nowrap;">{{ number_format($report->received_amount, 0, '.', ' ') }}</td>
                                 <td class="text-end">
                                     <div class="btn-group">
                                         <a href="{{ route('findirector.fin-reports.edit', $report->id) }}" class="btn btn-sm btn-outline-secondary">
-                                            Редактировать
+                                            <i class="bi bi-pencil"></i>
                                         </a>
                                         <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete({{ $report->id }})">
-                                            Удалить
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
                                     <form id="delete-form-{{ $report->id }}" action="{{ route('findirector.fin-reports.delete', $report->id) }}" method="POST" style="display: none;">
@@ -55,13 +65,17 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center text-muted py-5">
+                                <td colspan="9" class="text-center text-muted py-5">
                                     Нет данных. Нажмите "Добавить отчет", чтобы создать первую запись.
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
+
+                <div class="mt-4">
+                    {{ $reports->links() }}
+                </div>
             </div>
         </div>
     </div>

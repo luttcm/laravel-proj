@@ -25,19 +25,46 @@
                 <form action="{{ route('findirector.fin-reports.update', $report->id) }}" method="POST">
                     @csrf
                     @method('PUT')
-                    <div class="mb-4">
-                        <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Название отчета</label>
-                        <input type="text" class="form-control" name="report_title" value="{{ old('report_title', $report->report_title) }}" required style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
-                    </div>
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Название отчета</label>
+                            <input type="text" class="form-control" name="report_title" value="{{ old('report_title', $report->report_title) }}" required style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                        </div>
 
-                    <div class="mb-4">
-                        <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Итоговая сумма, ₽</label>
-                        <input type="number" step="0.01" class="form-control" name="amount" value="{{ old('amount', $report->amount) }}" required style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
-                    </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Заказчик</label>
+                            <input type="text" class="form-control" name="customer" value="{{ old('customer', $report->customer) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                        </div>
 
-                    <div class="mb-4">
-                        <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Дата</label>
-                        <input type="date" class="form-control" name="date" value="{{ old('date', \Carbon\Carbon::parse($report->date)->format('Y-m-d')) }}" required style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Номер заказа</label>
+                            <input type="text" class="form-control" name="order_number" value="{{ old('order_number', $report->order_number) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">СПК</label>
+                            <input type="text" class="form-control" name="spk" value="{{ old('spk', $report->spk) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Количество ТЗ</label>
+                            <input type="number" class="form-control" name="tz_count" value="{{ old('tz_count', $report->tz_count) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Итоговая сумма</label>
+                            <input type="number" step="0.01" class="form-control" name="amount" value="{{ old('amount', $report->amount) }}" required style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Фактически поступило</label>
+                            <input type="number" step="0.01" class="form-control" name="received_amount" value="{{ old('received_amount', $report->received_amount) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                        </div>
+
+                        <div class="col-md-12 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Дата</label>
+                            <input type="date" class="form-control" name="date" value="{{ old('date', \Carbon\Carbon::parse($report->date)->format('Y-m-d')) }}" required style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                        </div>
                     </div>
 
                     <div style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e0e0e0;">
