@@ -551,9 +551,15 @@ class ManagersController extends Controller
     /**
      * Получить отчет с данными расчета для загрузки в форму
      */
-    public function getReport($id)
+    public function getReport(Request $request, $id)
     {
-        $report = Reports::findOrFail($id);
+        $type = $request->query('type', 'history');
+
+        if ($type === 'draft') {
+            $report = DraftsReports::findOrFail($id);
+        } else {
+            $report = Reports::findOrFail($id);
+        }
 
         if ($report->manager_id !== auth()->id()) {
             abort(403);

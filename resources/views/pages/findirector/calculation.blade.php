@@ -9,13 +9,13 @@
     </div>
 
     <div style="display: flex; gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e0e0e0;">
-        <a href="{{ route('managers.calculation') }}" style="padding: 8px 16px; background-color: #0084ff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
+        <a href="{{ route('findirector.calculation') }}" style="padding: 8px 16px; background-color: #0084ff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
             Расчёт прибыли
         </a>
-        <a href="{{ route('managers.reports') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
+        <a href="{{ route('findirector.reports') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
             Отчёты
         </a>
-        <a href="{{ route('managers.history') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
+        <a href="{{ route('findirector.history') }}" style="padding: 8px 16px; background-color: #f0f0f0; color: #333; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #e0e0e0;">
             История расчётов
         </a>
     </div>
@@ -275,7 +275,7 @@
 
 <script>
     function loadHistory(id) {
-        fetch(`/managers/reports/${id}?type=history`)
+        fetch(`/findirector/reports/${id}?type=history`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -354,7 +354,7 @@
         } else {
             // fvn и ooo показывают НДС
             ndsContainer.style.display = 'block';
-            fetch(`{{ route('managers.get-nds') }}`)
+            fetch(`{{ route('findirector.get-nds') }}`)
                 .then(response => response.json())
                 .then(data => {
                     const ndsSelect = document.getElementById('nds');
@@ -392,7 +392,7 @@
 
         loadNdsForType(counteragentType);
 
-        fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
+        fetch(`{{ route('findirector.get-variables') }}?counteragent_type=${counteragentType}`)
             .then(response => response.json())
             .then(data => {
                 console.log('ok');
@@ -483,7 +483,7 @@
 
         loadNdsForType(counteragentType);
 
-        fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
+        fetch(`{{ route('findirector.get-variables') }}?counteragent_type=${counteragentType}`)
             .then(response => response.json())
             .then(data => {
                 console.log('ok');
@@ -504,7 +504,7 @@
 
         const formData = new FormData(document.getElementById('calculationForm'));
         
-        fetch("{{ route('managers.calculate') }}", {
+        fetch("{{ route('findirector.calculate') }}", {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
@@ -538,8 +538,8 @@
         const calculationId = document.getElementById('calculationForm').dataset.calculationId;
         
         const url = calculationId 
-            ? `{{ route('managers.store-drafts-report') }}?calculation_id=${calculationId}`
-            : "{{ route('managers.store-drafts-report') }}";
+            ? `{{ route('findirector.store-drafts-report') }}?calculation_id=${calculationId}`
+            : "{{ route('findirector.store-drafts-report') }}";
         
         fetch(url, {
             method: 'POST',
@@ -578,7 +578,7 @@
             formData.append('calculation_id', calculationId);
         }
         
-        const url = "{{ route('managers.store-report') }}";
+        const url = "{{ route('findirector.store-report') }}";
         
         fetch(url, {
             method: 'POST',

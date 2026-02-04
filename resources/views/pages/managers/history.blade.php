@@ -69,7 +69,7 @@
         button.addEventListener('click', function() {
             const reportId = this.dataset.reportId;
             
-            fetch(`{{ route('managers.get-report', '') }}/${reportId}`)
+            fetch(`{{ route('managers.get-report', '') }}/${reportId}?type=history`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
