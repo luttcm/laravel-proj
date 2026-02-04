@@ -297,7 +297,6 @@
                     
                     document.getElementById('calculationForm').dataset.calculationId = calc.id;
 
-                    // Initialize form based on new selling type
                     const counteragentType = sellingType;
                     const sellingNames = {
                         'inn': 'ИП (ИНН)',
@@ -308,13 +307,10 @@
 
                     loadNdsForType(counteragentType, calc.nds_id);
 
-                    // Recalculate local fields
                     recalculate();
-                    
-                    // Show notification
+
                     showNotification('Данные загружены', 'info');
                     
-                    // Scroll to top of form
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
                     showNotification('Ошибка при загрузке данных', 'error');
