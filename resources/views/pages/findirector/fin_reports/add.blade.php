@@ -42,7 +42,12 @@
 
                         <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">СПК</label>
-                            <input type="text" class="form-control" name="spk" value="{{ old('spk') }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <select class="form-control" name="spk_id" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                                <option value="">Без СПК</option>
+                                @foreach($spks as $spk)
+                                    <option value="{{ $spk->id }}" {{ old('spk_id') == $spk->id ? 'selected' : '' }}>{{ $spk->fio }}</option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <div class="col-md-6 mb-4">

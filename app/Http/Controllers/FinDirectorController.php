@@ -36,7 +36,8 @@ class FinDirectorController extends ManagersController
 
     public function finReportsIndex()
     {
-        $reports = FinReport::where('user_id', auth()->id())
+        $reports = FinReport::with('spkPerson')
+            ->where('user_id', auth()->id())
             ->orderBy('date', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
@@ -45,7 +46,8 @@ class FinDirectorController extends ManagersController
 
     public function finReportsAdd()
     {
-        return view('pages.findirector.fin_reports.add');
+        $spks = \App\Models\Spk::all();
+        return view('pages.findirector.fin_reports.add', compact('spks'));
     }
 
     public function finReportsStore(Request $request)
@@ -55,6 +57,7 @@ class FinDirectorController extends ManagersController
             'customer' => 'nullable|string|max:255',
             'order_number' => 'nullable|string|max:255',
             'spk' => 'nullable|string|max:255',
+            'spk_id' => 'nullable|exists:spks,id',
             'tz_count' => 'nullable|integer',
             'amount' => 'required|numeric',
             'received_amount' => 'nullable|integer',
@@ -67,6 +70,7 @@ class FinDirectorController extends ManagersController
             'customer' => $validated['customer'] ?? null,
             'order_number' => $validated['order_number'] ?? null,
             'spk' => $validated['spk'] ?? null,
+            'spk_id' => $validated['spk_id'] ?? null,
             'tz_count' => $validated['tz_count'] ?? null,
             'amount' => $validated['amount'],
             'received_amount' => $validated['received_amount'] ?? 0,
@@ -85,7 +89,8 @@ class FinDirectorController extends ManagersController
             abort(403);
         }
 
-        return view('pages.findirector.fin_reports.edit', compact('report'));
+        $spks = \App\Models\Spk::all();
+        return view('pages.findirector.fin_reports.edit', compact('report', 'spks'));
     }
 
     public function finReportsUpdate(Request $request, $id)
@@ -101,6 +106,7 @@ class FinDirectorController extends ManagersController
             'customer' => 'nullable|string|max:255',
             'order_number' => 'nullable|string|max:255',
             'spk' => 'nullable|string|max:255',
+            'spk_id' => 'nullable|exists:spks,id',
             'tz_count' => 'nullable|integer',
             'amount' => 'required|numeric',
             'received_amount' => 'nullable|integer',

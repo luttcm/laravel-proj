@@ -20,6 +20,7 @@ class FinReport extends Model
         'amount',
         'received_amount',
         'date',
+        'spk_id',
     ];
 
     /**
@@ -28,5 +29,13 @@ class FinReport extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the SPK associated with the report.
+     */
+    public function spkPerson(): BelongsTo
+    {
+        return $this->belongsTo(Spk::class, 'spk_id');
     }
 }

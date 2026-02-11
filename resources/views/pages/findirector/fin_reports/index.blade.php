@@ -47,7 +47,7 @@
                                 <td>{{ $report->report_title }}</td>
                                 <td>{{ $report->customer }}</td>
                                 <td>{{ $report->order_number }}</td>
-                                <td>{{ $report->spk }}</td>
+                                <td>{{ $report->spk_id ? ($report->spkPerson->fio ?? 'Неизвестно') : ($report->spk ?: 'Без СПК') }}</td>
                                 <td class="text-center">{{ $report->tz_count }}</td>
                                 <td style="font-weight: 600; white-space: nowrap;">{{ number_format($report->amount, 0, '.', ' ') }}</td>
                                 <td style="font-weight: 600; white-space: nowrap;">{{ number_format($report->received_amount, 0, '.', ' ') }}</td>
