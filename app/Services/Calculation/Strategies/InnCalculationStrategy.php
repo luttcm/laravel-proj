@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 class InnCalculationStrategy implements CalculationStrategyInterface
 {
-    public function calculate(CalculationRequestDTO $data, Collection $variables, float $ndsPercentSelling = 0): array
+    public function calculate(CalculationRequestDTO $data, Collection $variables, float $ndsPercentSelling = 0, float $spkCoefficient = 0): array
     {
         $sellingSum = ($data->purchasePrice * (1 + $data->markupPercent / 100)) * $data->quantity;
         $purchaseSum = $data->purchasePrice * $data->quantity;
@@ -23,7 +23,7 @@ class InnCalculationStrategy implements CalculationStrategyInterface
         $k_mgr = (float)($variables['k_mgr']->value ?? 0.245);
         $rate_ins = (float)($variables['rate_ins']->value ?? 0.01);
         $rate_ndfl = (float)($variables['rate_ndfl']->value ?? 0.13);
-        $k_spk = (float)($variables['k_spk']->value ?? 0.20);
+        $k_spk = $spkCoefficient;
         $k_bonus = (float)($variables['k_bonus_inn']->value ?? 0.20);
         $rate_ausn = (float)($variables['rate_ausn']->value ?? 0.08);
 
@@ -54,7 +54,7 @@ class InnCalculationStrategy implements CalculationStrategyInterface
         $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;
 
         $spkPayment = 0;
-        if ($spk == 'Y') {
+        if ($spk == 'Y' || $data->spkId) {
             $spkPayment = $managerPayment * $k_spk;
             $managerPayment -= $spkPayment;
             $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;

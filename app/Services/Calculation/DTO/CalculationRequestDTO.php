@@ -11,7 +11,8 @@ class CalculationRequestDTO
         public readonly float $purchasePrice,
         public readonly int $quantity,
         public readonly float $markupPercent,
-        public readonly float $ndsPercentPurchase = 0
+        public readonly float $ndsPercentPurchase = 0,
+        public readonly ?int $spkId = null
     ) {}
 
     public static function fromRequest(\Illuminate\Http\Request $request): self
@@ -23,7 +24,8 @@ class CalculationRequestDTO
             purchasePrice: (float)$request->input('purchase_price', 0),
             quantity: (int)$request->input('quantity', 0) ?: 1,
             markupPercent: (float)$request->input('markup_percent', 0),
-            ndsPercentPurchase: (float)$request->input('nds_percent', 0)
+            ndsPercentPurchase: (float)$request->input('nds_percent', 0),
+            spkId: $request->input('spk_id') ? (int)$request->input('spk_id') : null
         );
     }
 }

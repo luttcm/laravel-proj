@@ -72,7 +72,7 @@
                     <div class="row mb-4">
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Цена покупки, р.</label>
-                            <input type="number" class="form-control" name="purchase_price" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0.00" step="0.01" value="">
+                            <input type="number" class="form-control" name="purchase_price" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;" placeholder="0.00" step="0.01" value="0">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Кол-во изделий, шт.</label>
@@ -356,6 +356,7 @@
             ndsContainer.style.display = 'none';
             document.getElementById('nds_percent_hidden').value = '0';
         } else {
+            // fvn и ooo показывают НДС
             ndsContainer.style.display = 'block';
             fetch(`{{ route('managers.get-nds') }}`)
                 .then(response => response.json())

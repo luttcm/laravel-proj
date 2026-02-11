@@ -23,8 +23,10 @@ class ManagersController extends Controller
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
+        $spks = \App\Models\Spk::all();
+        $suppliers = \App\Models\Supplier::all();
             
-        return view('pages.managers.calculation', compact('history'));
+        return view('pages.managers.calculation', compact('history', 'spks', 'suppliers'));
     }
 
     public function getVariables(Request $request)
@@ -167,6 +169,7 @@ class ManagersController extends Controller
         $calculation = Calculation::findOrFail($calculationId);
         $calculation->update([
             'nds_id' => $request->input('nds_id'),
+            'spk_id' => $request->input('spk_id'),
             'manager_payment' => $result->managerPayment,
             'manager_salary_brutto' => $result->managerSalaryBrutto,
             'per_unit_payment' => $result->perUnitPayment,
@@ -273,11 +276,11 @@ class ManagersController extends Controller
         }
         
         $data = $request->all();
-
         $numericFields = [
             'purchase_price', 'purchase_sum', 'markup_percent', 'selling_price', 
             'selling_sum', 'prf_percent', 'deal_payment', 'per_unit_payment', 
-            'in_the_hand', 'manager_payment', 'manager_salary_brutto', 'in_the_deal'
+            'in_the_hand', 'manager_payment', 'manager_salary_brutto', 'in_the_deal',
+            'spk_id'
         ];
 
         foreach ($numericFields as $field) {

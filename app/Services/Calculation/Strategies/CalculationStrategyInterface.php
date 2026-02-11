@@ -8,5 +8,5 @@ use Illuminate\Support\Collection;
 
 interface CalculationStrategyInterface
 {
-    public function calculate(CalculationRequestDTO $request, Collection $variables, float $ndsPercentSelling = 0): array;
+    public function calculate(CalculationRequestDTO $request, Collection $variables, float $ndsPercentSelling = 0, float $spkCoefficient = 0): array;
 }

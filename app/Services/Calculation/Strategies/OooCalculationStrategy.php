@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 class OooCalculationStrategy implements CalculationStrategyInterface
 {
-    public function calculate(CalculationRequestDTO $data, Collection $variables, float $ndsPercentSelling = 18): array
+    public function calculate(CalculationRequestDTO $data, Collection $variables, float $ndsPercentSelling = 18, float $spkCoefficient = 0): array
     {
         $sellingSum = ($data->purchasePrice * (1 + $data->markupPercent / 100)) * $data->quantity;
         $purchaseSum = $data->purchasePrice * $data->quantity;
@@ -25,7 +25,7 @@ class OooCalculationStrategy implements CalculationStrategyInterface
         $k_mgr = (float)($variables['k_mgr']->value ?? 0.20);
         $rate_ins = (float)($variables['rate_ins']->value ?? 0.30);
         $rate_ndfl = (float)($variables['rate_ndfl']->value ?? 0.13);
-        $k_spk = (float)($variables['k_spk']->value ?? 0.20);
+        $k_spk = $spkCoefficient;
         
         $counteragentType = strpos($data->sellingType, 'ИП (ФВН)') !== false ? 'fvn' : 'ooo';
         if ($counteragentType === 'ooo') {
@@ -71,7 +71,7 @@ class OooCalculationStrategy implements CalculationStrategyInterface
         $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;
 
         $spkPayment = 0;
-        if ($spk == 'Y') {
+        if ($spk == 'Y' || $data->spkId) {
             $spkPayment = $managerPayment * $k_spk;
             $managerPayment -= $spkPayment;
             $perUnitPayment = $quantity > 0 ? $managerPayment / $quantity : 0;

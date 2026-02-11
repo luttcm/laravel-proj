@@ -11,7 +11,9 @@ class FinDirectorController extends ManagersController
 {
     public function calculation()
     {
-        return view('pages.findirector.calculation');
+        $spks = \App\Models\Spk::all();
+        $suppliers = \App\Models\Supplier::all();
+        return view('pages.findirector.calculation', compact('spks', 'suppliers'));
     }
 
     public function reports()
