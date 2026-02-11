@@ -33,7 +33,7 @@ class FinDirectorController extends ManagersController
 
         return view('pages.findirector.history', compact('reports'));
     }
-    
+
     public function finReportsIndex()
     {
         $reports = FinReport::where('user_id', auth()->id())
@@ -80,7 +80,7 @@ class FinDirectorController extends ManagersController
     public function finReportsEdit($id)
     {
         $report = FinReport::findOrFail($id);
-        
+
         if ($report->user_id !== auth()->id()) {
             abort(403);
         }
@@ -91,7 +91,7 @@ class FinDirectorController extends ManagersController
     public function finReportsUpdate(Request $request, $id)
     {
         $report = \App\Models\FinReport::findOrFail($id);
-        
+
         if ($report->user_id !== auth()->id()) {
             abort(403);
         }
@@ -116,7 +116,7 @@ class FinDirectorController extends ManagersController
     public function finReportsDelete($id)
     {
         $report = FinReport::findOrFail($id);
-        
+
         if ($report->user_id !== auth()->id()) {
             abort(403);
         }

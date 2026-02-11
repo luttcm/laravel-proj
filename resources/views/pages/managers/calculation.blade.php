@@ -278,7 +278,7 @@
 
 <script>
     function loadHistory(id) {
-        fetch(`/managers/reports/${id}`)
+        fetch(`/managers/reports/${id}?type=history`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

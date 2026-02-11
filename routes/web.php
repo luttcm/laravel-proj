@@ -102,13 +102,6 @@ Route::middleware(['auth', 'check.access'])->group(function () {
 
     // Страница финансового директора
     Route::middleware('role:admin,finance')->group(function () {
-        Route::get('/findirector', [FinDirectorController::class, 'reports'])->name('findirector');
-        Route::get('/findirector/calculation', [FinDirectorController::class, 'calculation'])->name('findirector.calculation');
-        Route::get('/findirector/reports', [FinDirectorController::class, 'reports'])->name('findirector.reports');
-        Route::get('/findirector/reports/{id}', [FinDirectorController::class, 'getReport'])->name('findirector.get-report')->whereNumber('id');
-        Route::get('/findirector/history', [FinDirectorController::class, 'history'])->name('findirector.history');
-        
-        // Ручные отчеты (как переменные)
         Route::get('/findirector/fin-reports', [FinDirectorController::class, 'finReportsIndex'])->name('findirector.fin-reports.index');
         Route::get('/findirector/fin-reports/add', [FinDirectorController::class, 'finReportsAdd'])->name('findirector.fin-reports.add');
         Route::post('/findirector/fin-reports', [FinDirectorController::class, 'finReportsStore'])->name('findirector.fin-reports.store');
@@ -116,10 +109,5 @@ Route::middleware(['auth', 'check.access'])->group(function () {
         Route::put('/findirector/fin-reports/{id}', [FinDirectorController::class, 'finReportsUpdate'])->name('findirector.fin-reports.update')->whereNumber('id');
         Route::post('/findirector/fin-reports/{id}/delete', [FinDirectorController::class, 'finReportsDelete'])->name('findirector.fin-reports.delete')->whereNumber('id');
 
-        Route::get('/findirector/variables', [FinDirectorController::class, 'getVariables'])->name('findirector.get-variables');
-        Route::get('/findirector/nds', [FinDirectorController::class, 'getNds'])->name('findirector.get-nds');
-        Route::post('/findirector/store-drafts-report', [FinDirectorController::class, 'storeDraftsReport'])->name('findirector.store-drafts-report');
-        Route::post('/findirector/store-report', [FinDirectorController::class, 'storeReport'])->name('findirector.store-report');
-        Route::post('/findirector/calculate', [FinDirectorController::class, 'calculate'])->name('findirector.calculate');
     });
 });

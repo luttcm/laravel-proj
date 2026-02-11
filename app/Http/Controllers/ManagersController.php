@@ -25,14 +25,14 @@ class ManagersController extends Controller
             ->get();
         $spks = \App\Models\Spk::all();
         $suppliers = \App\Models\Supplier::all();
-            
+
         return view('pages.managers.calculation', compact('history', 'spks', 'suppliers'));
     }
 
     public function getVariables(Request $request)
     {
         $counteragentType = $request->query('counteragent_type');
-        
+
         if (!in_array($counteragentType, ['inn', 'ooo', 'fvn'])) {
             return response()->json(['error' => 'Invalid counteragent type'], 400);
         }
@@ -159,9 +159,9 @@ class ManagersController extends Controller
 
         $reportId = null;
         if ($request->has('report_id') && !empty($request->input('report_id'))) {
-            $reportId = $reportModel::findOrFail($request->input('report_id'));
+            $reportId = $reportModel::find($request->input('report_id'));
         }
-        
+
         $dto = \App\Services\Calculation\DTO\CalculationRequestDTO::fromRequest($request);
         $result = $this->calculationService->calculate($dto);
         $userName = auth()->user()->name ?? 'Без имени';
@@ -274,11 +274,11 @@ class ManagersController extends Controller
                 'in_the_hand' => 'required|numeric',
             ]);
         }
-        
+
         $data = $request->all();
         $numericFields = [
-            'purchase_price', 'purchase_sum', 'markup_percent', 'selling_price', 
-            'selling_sum', 'prf_percent', 'deal_payment', 'per_unit_payment', 
+            'purchase_price', 'purchase_sum', 'markup_percent', 'selling_price',
+            'selling_sum', 'prf_percent', 'deal_payment', 'per_unit_payment',
             'in_the_hand', 'manager_payment', 'manager_salary_brutto', 'in_the_deal',
             'spk_id'
         ];
@@ -304,9 +304,15 @@ class ManagersController extends Controller
     /**
      * Получить отчет с данными расчета для загрузки в форму
      */
-    public function getReport($id)
+    public function getReport(Request $request, $id)
     {
-        $report = Reports::findOrFail($id);
+        $type = $request->query('type', 'history');
+
+        if ($type === 'draft') {
+            $report = DraftsReports::findOrFail($id);
+        } else {
+            $report = Reports::findOrFail($id);
+        }
 
         if ($report->manager_id !== auth()->id()) {
             abort(403);
