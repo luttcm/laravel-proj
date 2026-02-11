@@ -36,7 +36,7 @@ class FinDirectorController extends ManagersController
 
     public function finReportsIndex()
     {
-        $reports = FinReport::with('spkPerson')
+        $reports = FinReport::with(['spkPerson', 'supplier', 'nds'])
             ->where('user_id', auth()->id())
             ->orderBy('date', 'desc')
             ->orderBy('created_at', 'desc')
@@ -47,7 +47,9 @@ class FinDirectorController extends ManagersController
     public function finReportsAdd()
     {
         $spks = \App\Models\Spk::all();
-        return view('pages.findirector.fin_reports.add', compact('spks'));
+        $suppliers = \App\Models\Supplier::all();
+        $nds = \App\Models\Nds::all();
+        return view('pages.findirector.fin_reports.add', compact('spks', 'suppliers', 'nds'));
     }
 
     public function finReportsStore(Request $request)
@@ -60,22 +62,38 @@ class FinDirectorController extends ManagersController
             'spk_id' => 'nullable|exists:spks,id',
             'tz_count' => 'nullable|integer',
             'amount' => 'required|numeric',
-            'received_amount' => 'nullable|integer',
+            'received_amount' => 'nullable|numeric',
             'date' => 'nullable|date',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'nds_id' => 'nullable|exists:nds,id',
+            'bonus_client' => 'nullable|numeric',
+            'net_sales' => 'nullable|numeric',
+            'remainder' => 'nullable|numeric',
+            'manager_name' => 'nullable|string|max:255',
+            'supplier_invoice_number' => 'nullable|string|max:255',
+            'supplier_amount' => 'nullable|numeric',
+            'payment_manager' => 'nullable|numeric',
+            'payment_spk' => 'nullable|numeric',
+            'sold_from' => 'nullable|string|max:255',
+            'profit' => 'nullable|numeric',
+            'markup' => 'nullable|numeric',
         ]);
 
-        FinReport::create([
-            'user_id' => auth()->id(),
-            'report_title' => $validated['report_title'],
-            'customer' => $validated['customer'] ?? null,
-            'order_number' => $validated['order_number'] ?? null,
-            'spk' => $validated['spk'] ?? null,
-            'spk_id' => $validated['spk_id'] ?? null,
-            'tz_count' => $validated['tz_count'] ?? null,
-            'amount' => $validated['amount'],
-            'received_amount' => $validated['received_amount'] ?? 0,
-            'date' => $validated['date'] ?? now()->toDateString(),
-        ]);
+        $data = $validated;
+        $data['user_id'] = auth()->id();
+        $data['received_amount'] = $validated['received_amount'] ?? 0;
+        $data['date'] = $validated['date'] ?? now()->toDateString();
+        $data['bonus_client'] = $validated['bonus_client'] ?? 0;
+        $data['net_sales'] = $validated['net_sales'] ?? 0;
+        $data['remainder'] = $validated['remainder'] ?? 0;
+        $data['supplier_amount'] = $validated['supplier_amount'] ?? 0;
+        $data['payment_manager'] = $validated['payment_manager'] ?? 0;
+        $data['payment_spk'] = $validated['payment_spk'] ?? 0;
+        $data['profit'] = $validated['profit'] ?? 0;
+        $data['markup'] = $validated['markup'] ?? 0;
+        $data['nds_percent'] = $validated['nds_percent'] ?? 0;
+
+        FinReport::create($data);
 
         return redirect()->route('findirector.fin-reports.index')
             ->with('success', 'Отчет успешно создан');
@@ -90,7 +108,9 @@ class FinDirectorController extends ManagersController
         }
 
         $spks = \App\Models\Spk::all();
-        return view('pages.findirector.fin_reports.edit', compact('report', 'spks'));
+        $suppliers = \App\Models\Supplier::all();
+        $nds = \App\Models\Nds::all();
+        return view('pages.findirector.fin_reports.edit', compact('report', 'spks', 'suppliers', 'nds'));
     }
 
     public function finReportsUpdate(Request $request, $id)
@@ -109,8 +129,21 @@ class FinDirectorController extends ManagersController
             'spk_id' => 'nullable|exists:spks,id',
             'tz_count' => 'nullable|integer',
             'amount' => 'required|numeric',
-            'received_amount' => 'nullable|integer',
+            'received_amount' => 'nullable|numeric',
             'date' => 'required|date',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'nds_id' => 'nullable|exists:nds,id',
+            'bonus_client' => 'nullable|numeric',
+            'net_sales' => 'nullable|numeric',
+            'remainder' => 'nullable|numeric',
+            'manager_name' => 'nullable|string|max:255',
+            'supplier_invoice_number' => 'nullable|string|max:255',
+            'supplier_amount' => 'nullable|numeric',
+            'payment_manager' => 'nullable|numeric',
+            'payment_spk' => 'nullable|numeric',
+            'sold_from' => 'nullable|string|max:255',
+            'profit' => 'nullable|numeric',
+            'markup' => 'nullable|numeric',
         ]);
 
         $report->update($validated);
