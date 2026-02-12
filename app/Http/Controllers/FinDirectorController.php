@@ -77,6 +77,7 @@ class FinDirectorController extends ManagersController
             'sold_from' => 'nullable|string|max:255',
             'profit' => 'nullable|numeric',
             'markup' => 'nullable|numeric',
+            'nds_percent' => 'nullable|numeric',
         ]);
 
         $data = $validated;
@@ -144,6 +145,7 @@ class FinDirectorController extends ManagersController
             'sold_from' => 'nullable|string|max:255',
             'profit' => 'nullable|numeric',
             'markup' => 'nullable|numeric',
+            'nds_percent' => 'nullable|numeric',
         ]);
 
         $report->update($validated);

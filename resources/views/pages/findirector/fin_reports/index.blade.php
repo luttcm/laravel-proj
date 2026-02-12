@@ -3,9 +3,9 @@
 @section('title', 'Финансовый директор - Отчёты (ручные)')
 
 @section('content')
-<div class="container my-5">
+<div class="container-fluid px-4 my-5">
     <div class="row">
-        <div class="col-lg-10 offset-lg-1">
+        <div class="col-12">
             <div class="mb-5">
                 <h1 style="font-size: 2rem; font-weight: 600; margin-bottom: 8px;">Отчёты Финансового директора</h1>
             </div>
@@ -24,7 +24,7 @@
             @endif
 
             <div style="background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 24px; overflow-x: auto;">
-                <table class="table table-hover" style="min-width: 1000px;">
+                <table class="table table-hover" style="min-width: 1600px;">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
