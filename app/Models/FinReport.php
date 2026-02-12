@@ -20,6 +20,21 @@ class FinReport extends Model
         'amount',
         'received_amount',
         'date',
+        'spk_id',
+        'supplier_id',
+        'nds_id',
+        'bonus_client',
+        'net_sales',
+        'remainder',
+        'manager_name',
+        'supplier_invoice_number',
+        'supplier_amount',
+        'payment_manager',
+        'payment_spk',
+        'sold_from',
+        'profit',
+        'markup',
+        'nds_percent',
     ];
 
     /**
@@ -28,5 +43,29 @@ class FinReport extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the SPK associated with the report.
+     */
+    public function spkPerson(): BelongsTo
+    {
+        return $this->belongsTo(Spk::class, 'spk_id');
+    }
+
+    /**
+     * Get the supplier associated with the report.
+     */
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * Get the NDS associated with the report.
+     */
+    public function nds(): BelongsTo
+    {
+        return $this->belongsTo(Nds::class);
     }
 }

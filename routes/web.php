@@ -3,6 +3,8 @@
 use App\Http\Controllers\NdsController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\VariableController;
+use App\Http\Controllers\SpkController;
+use App\Http\Controllers\SupplierController;
 use App\Models\Nds;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -48,6 +50,22 @@ Route::middleware(['auth', 'check.access'])->group(function () {
         Route::get('/nds/{id}/edit', [NdsController::class, 'edit'])->name('nds.edit')->whereNumber('id');
         Route::put('/nds/{id}', [NdsController::class, 'update'])->name('nds.update')->whereNumber('id');
         Route::post('/nds/{id}/delete', [NdsController::class, 'delete'])->name('nds.delete')->whereNumber('id');
+
+        // СПК
+        Route::get('/spk', [SpkController::class, 'index'])->name('spk.index');
+        Route::get('/spk/add', [SpkController::class, 'add'])->name('spk.add');
+        Route::post('/spk', [SpkController::class, 'store'])->name('spk.store');
+        Route::get('/spk/{id}/edit', [SpkController::class, 'edit'])->name('spk.edit')->whereNumber('id');
+        Route::put('/spk/{id}', [SpkController::class, 'update'])->name('spk.update')->whereNumber('id');
+        Route::post('/spk/{id}/delete', [SpkController::class, 'delete'])->name('spk.delete')->whereNumber('id');
+
+        // Поставщики
+        Route::get('/suppliers', [SupplierController::class, 'index'])->name('supplier.index');
+        Route::get('/suppliers/add', [SupplierController::class, 'add'])->name('supplier.add');
+        Route::post('/suppliers', [SupplierController::class, 'store'])->name('supplier.store');
+        Route::get('/suppliers/{id}/edit', [SupplierController::class, 'edit'])->name('supplier.edit')->whereNumber('id');
+        Route::put('/suppliers/{id}', [SupplierController::class, 'update'])->name('supplier.update')->whereNumber('id');
+        Route::post('/suppliers/{id}/delete', [SupplierController::class, 'delete'])->name('supplier.delete')->whereNumber('id');
     });
 
     // Профиль

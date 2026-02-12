@@ -57,6 +57,14 @@
                                     <li>
                                         <a class="dropdown-item" href="{{ route('nds.index') }}">НДС</a>         
                                     </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('spk.index') }}">СПК</a>         
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('supplier.index') }}">Поставщики</a>         
+                                    </li>
                                 @endif
 
                                 @if(auth()->user() && in_array(auth()->user()->role, ['admin','redactor']))
@@ -85,4 +93,5 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @yield('scripts')
 </body>

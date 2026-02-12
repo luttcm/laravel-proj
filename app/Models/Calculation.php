@@ -28,6 +28,7 @@ class Calculation extends Model
         'in_the_deal_sum',
         'in_the_hand_sum',
         'nds_id',
+        'spk_id',
     ];
 
     protected $casts = [

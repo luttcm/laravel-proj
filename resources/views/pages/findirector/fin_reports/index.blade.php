@@ -3,9 +3,9 @@
 @section('title', 'Финансовый директор - Отчёты (ручные)')
 
 @section('content')
-<div class="container my-5">
+<div class="container-fluid px-4 my-5">
     <div class="row">
-        <div class="col-lg-10 offset-lg-1">
+        <div class="col-12">
             <div class="mb-5">
                 <h1 style="font-size: 2rem; font-weight: 600; margin-bottom: 8px;">Отчёты Финансового директора</h1>
             </div>
@@ -24,7 +24,7 @@
             @endif
 
             <div style="background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 24px; overflow-x: auto;">
-                <table class="table table-hover" style="min-width: 1000px;">
+                <table class="table table-hover" style="min-width: 1600px;">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
@@ -33,9 +33,20 @@
                             <th>Заказчик</th>
                             <th style="white-space: nowrap;">Номер заказа</th>
                             <th>СПК</th>
-                            <th style="white-space: nowrap;">Количество ТЗ</th>
-                            <th>Сумма счета</th>
-                            <th>Фактически Поступило</th>
+                            <th style="white-space: nowrap;">Сумма счета</th>
+                            <th style="white-space: nowrap;">Фактически Поступило</th>
+                            <th>Поставщик</th>
+                            <th>НДС</th>
+                            <th style="white-space: nowrap;">Бонус клиенту</th>
+                            <th style="white-space: nowrap;">Чистая продажа</th>
+                            <th style="white-space: nowrap;">Остаток, руб.</th>
+                            <th>Менеджер</th>
+                            <th style="white-space: nowrap;">№ счета Поставщика</th>
+                            <th style="white-space: nowrap;">Сумма Поставщика</th>
+                            <th style="white-space: nowrap;">Выплата Менеджеру</th>
+                            <th style="white-space: nowrap;">Выплата СПК</th>
+                            <th>Профит (PRF)</th>
+                            <th>Наценка (%)</th>
                             <th class="text-end">Действия</th>
                         </tr>
                     </thead>
@@ -47,10 +58,21 @@
                                 <td>{{ $report->report_title }}</td>
                                 <td>{{ $report->customer }}</td>
                                 <td>{{ $report->order_number }}</td>
-                                <td>{{ $report->spk }}</td>
-                                <td class="text-center">{{ $report->tz_count }}</td>
+                                <td>{{ $report->spk_id ? ($report->spkPerson->fio ?? 'Неизвестно') : ($report->spk ?: 'Без СПК') }}</td>
                                 <td style="font-weight: 600; white-space: nowrap;">{{ number_format($report->amount, 0, '.', ' ') }}</td>
                                 <td style="font-weight: 600; white-space: nowrap;">{{ number_format($report->received_amount, 0, '.', ' ') }}</td>
+                                <td>{{ $report->supplier->name ?? '—' }}</td>
+                                <td>{{ (float)$report->nds_percent }}%</td>
+                                <td style="white-space: nowrap;">{{ number_format($report->bonus_client, 0, '.', ' ') }}</td>
+                                <td style="white-space: nowrap;">{{ number_format($report->net_sales, 0, '.', ' ') }}</td>
+                                <td style="white-space: nowrap;">{{ number_format($report->remainder, 0, '.', ' ') }}</td>
+                                <td>{{ $report->manager_name ?? '—' }}</td>
+                                <td>{{ $report->supplier_invoice_number ?? '—' }}</td>
+                                <td style="white-space: nowrap;">{{ number_format($report->supplier_amount, 0, '.', ' ') }}</td>
+                                <td style="white-space: nowrap;">{{ number_format($report->payment_manager, 0, '.', ' ') }}</td>
+                                <td style="white-space: nowrap;">{{ number_format($report->payment_spk, 0, '.', ' ') }}</td>
+                                <td style="font-weight: 600; white-space: nowrap;">{{ number_format($report->profit, 0, '.', ' ') }}</td>
+                                <td style="white-space: nowrap;">{{ (float)$report->markup }}%</td>
                                 <td class="text-end">
                                     <div class="btn-group">
                                         <a href="{{ route('findirector.fin-reports.edit', $report->id) }}" class="btn btn-sm btn-outline-secondary">
@@ -67,7 +89,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-5">
+                                <td colspan="21" class="text-center text-muted py-5">
                                     Нет данных. Нажмите "Добавить", чтобы создать первую запись.
                                 </td>
                             </tr>
