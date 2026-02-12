@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\DraftsReports;
 use App\Models\Reports;
 use App\Models\FinReport;
+use App\Services\Calculation\DTO\FinDirectorCalculationRequestDTO;
+use App\Services\Calculation\Strategies\FinDirectorCalculationStrategy;
 
 class FinDirectorController extends ManagersController
 {
@@ -93,6 +95,13 @@ class FinDirectorController extends ManagersController
         $data['profit'] = $validated['profit'] ?? 0;
         $data['markup'] = $validated['markup'] ?? 0;
         $data['nds_percent'] = $validated['nds_percent'] ?? 0;
+        
+        $calcRequest = FinDirectorCalculationRequestDTO::fromRequest($request);
+        $calcStrategy = new FinDirectorCalculationStrategy();
+        $calcResult = $calcStrategy->calculate($calcRequest);
+        
+        $data['remainder'] = $calcResult->remainder;
+        $data['net_sales'] = $calcResult->netSales;
 
         FinReport::create($data);
 
@@ -128,7 +137,7 @@ class FinDirectorController extends ManagersController
             'order_number' => 'nullable|string|max:255',
             'spk' => 'nullable|string|max:255',
             'spk_id' => 'nullable|exists:spks,id',
-            'tz_count' => 'nullable|integer',
+            'tz_count' => 'nullable|integer', 
             'amount' => 'required|numeric',
             'received_amount' => 'nullable|numeric',
             'date' => 'required|date',
@@ -148,7 +157,16 @@ class FinDirectorController extends ManagersController
             'nds_percent' => 'nullable|numeric',
         ]);
 
-        $report->update($validated);
+        $data = $validated;
+        
+        $calcRequest = FinDirectorCalculationRequestDTO::fromRequest($request);
+        $calcStrategy = new FinDirectorCalculationStrategy();
+        $calcResult = $calcStrategy->calculate($calcRequest);
+        
+        $data['remainder'] = $calcResult->remainder;
+        $data['net_sales'] = $calcResult->netSales;
+
+        $report->update($data);
 
         return redirect()->route('findirector.fin-reports.index')
             ->with('success', 'Отчет успешно обновлен');

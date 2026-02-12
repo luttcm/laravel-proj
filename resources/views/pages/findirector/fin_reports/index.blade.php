@@ -1,9 +1,10 @@
 @extends('layouts.app')
 
 @section('title', 'Финансовый директор - Отчёты (ручные)')
+@section('container_class', 'container-fluid')
 
 @section('content')
-<div class="container-fluid px-4 my-5">
+<div class="px-4 my-5">
     <div class="row">
         <div class="col-12">
             <div class="mb-5">
@@ -24,7 +25,7 @@
             @endif
 
             <div style="background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 24px; overflow-x: auto;">
-                <table class="table table-hover" style="min-width: 1600px;">
+                <table class="table table-hover" style="min-width: 2000px;">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>

@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Services\Calculation\DTO;
+
+class FinDirectorCalculationResultDTO
+{
+    public function __construct(
+        public readonly float $remainder,
+        public readonly float $netSales
+    ) {}
+
+    public function toArray(): array
+    {
+        return [
+            'remainder' => $this->remainder,
+            'net_sales' => $this->netSales,
+        ];
+    }
+}

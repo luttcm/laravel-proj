@@ -160,6 +160,33 @@
 document.addEventListener('DOMContentLoaded', function() {
     const supplierSelect = document.getElementById('supplier_id');
     const ndsPercentInput = document.getElementById('nds_percent');
+    
+    const amountInput = document.querySelector('input[name="amount"]');
+    const receivedAmountInput = document.querySelector('input[name="received_amount"]');
+    const bonusClientInput = document.querySelector('input[name="bonus_client"]');
+    const netSalesInput = document.querySelector('input[name="net_sales"]');
+    const remainderInput = document.querySelector('input[name="remainder"]');
+
+    function calculateFinFields() {
+        const amount = parseFloat(amountInput.value) || 0;
+        const receivedAmount = parseFloat(receivedAmountInput.value) || 0;
+        const bonusClient = parseFloat(bonusClientInput.value) || 0;
+
+        // остаток руб = Сумма счета для КЛИЕНТА - Поступило реально, руб.
+        const remainder = amount - receivedAmount;
+        remainderInput.value = remainder.toFixed(2);
+
+        // Чистая продажа РУБ. = Сумма счета для КЛИЕНТА - ( Поступило реально, руб. - БОНУС КЛИЕНТУ)
+        const netSales = amount - (receivedAmount - bonusClient);
+        netSalesInput.value = netSales.toFixed(2);
+    }
+
+    if (amountInput) amountInput.addEventListener('input', calculateFinFields);
+    if (receivedAmountInput) receivedAmountInput.addEventListener('input', calculateFinFields);
+    if (bonusClientInput) bonusClientInput.addEventListener('input', calculateFinFields);
+
+    // Initial calculation
+    calculateFinFields();
 
     if (supplierSelect && ndsPercentInput) {
         supplierSelect.addEventListener('change', function() {

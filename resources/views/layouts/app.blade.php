@@ -88,7 +88,7 @@
         </div>
     </nav>
 
-    <div class="container my-4">
+    <div class="@yield('container_class', 'container') my-4">
         @yield('content')
     </div>
 
