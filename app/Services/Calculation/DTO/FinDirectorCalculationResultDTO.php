@@ -6,7 +6,11 @@ class FinDirectorCalculationResultDTO
 {
     public function __construct(
         public readonly float $remainder,
-        public readonly float $netSales
+        public readonly float $netSales,
+        public readonly float $paymentManager = 0,
+        public readonly float $paymentSpk = 0,
+        public readonly float $profit = 0,
+        public readonly float $markup = 0
     ) {}
 
     public function toArray(): array
@@ -14,6 +18,10 @@ class FinDirectorCalculationResultDTO
         return [
             'remainder' => $this->remainder,
             'net_sales' => $this->netSales,
+            'payment_manager' => $this->paymentManager,
+            'payment_spk' => $this->paymentSpk,
+            'profit' => $this->profit,
+            'markup' => $this->markup,
         ];
     }
 }

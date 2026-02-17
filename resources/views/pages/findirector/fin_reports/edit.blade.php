@@ -93,13 +93,18 @@
                         </div>
 
                         <div class="col-md-6 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Надбавка на ОТКАТ (кикбэк)</label>
+                            <input type="number" step="0.01" class="form-control" name="kickback" value="{{ old('kickback', $report->kickback) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                        </div>
+
+                        <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Чистая продажа</label>
-                            <input type="number" step="0.01" class="form-control" name="net_sales" value="{{ old('net_sales', $report->net_sales) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <input type="number" step="0.01" class="form-control" name="net_sales" value="{{ old('net_sales', $report->net_sales) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
 
                         <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Остаток, руб.</label>
-                            <input type="number" step="0.01" class="form-control" name="remainder" value="{{ old('remainder', $report->remainder) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <input type="number" step="0.01" class="form-control" name="remainder" value="{{ old('remainder', $report->remainder) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
 
                         <div class="col-md-6 mb-4">
@@ -119,12 +124,12 @@
 
                         <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Выплата менеджеру</label>
-                            <input type="number" step="0.01" class="form-control" name="payment_manager" value="{{ old('payment_manager', $report->payment_manager) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <input type="number" step="0.01" class="form-control" name="payment_manager" value="{{ old('payment_manager', $report->payment_manager) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
 
                         <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Выплата СПК</label>
-                            <input type="number" step="0.01" class="form-control" name="payment_spk" value="{{ old('payment_spk', $report->payment_spk) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <input type="number" step="0.01" class="form-control" name="payment_spk" value="{{ old('payment_spk', $report->payment_spk) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
 
                         <div class="col-md-6 mb-4">
@@ -134,12 +139,12 @@
 
                         <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">PRF (Профит)</label>
-                            <input type="number" step="0.01" class="form-control" name="profit" value="{{ old('profit', $report->profit) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <input type="number" step="0.01" class="form-control" name="profit" value="{{ old('profit', $report->profit) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
 
                         <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Наценка на цену завода (%)</label>
-                            <input type="number" step="0.01" class="form-control" name="markup" value="{{ old('markup', $report->markup) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <input type="number" step="0.01" class="form-control" name="markup" value="{{ old('markup', $report->markup) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
                     </div>
 
@@ -165,26 +170,41 @@ document.addEventListener('DOMContentLoaded', function() {
     const amountInput = document.querySelector('input[name="amount"]');
     const receivedAmountInput = document.querySelector('input[name="received_amount"]');
     const bonusClientInput = document.querySelector('input[name="bonus_client"]');
+    const kickbackInput = document.querySelector('input[name="kickback"]');
     const netSalesInput = document.querySelector('input[name="net_sales"]');
     const remainderInput = document.querySelector('input[name="remainder"]');
+    const supplierAmountInput = document.querySelector('input[name="supplier_amount"]');
+    const markupInput = document.querySelector('input[name="markup"]');
 
     function calculateFinFields() {
         const amount = parseFloat(amountInput.value) || 0;
         const receivedAmount = parseFloat(receivedAmountInput.value) || 0;
         const bonusClient = parseFloat(bonusClientInput.value) || 0;
+        const kickback = parseFloat(kickbackInput.value) || 0;
+        const supplierAmount = parseFloat(supplierAmountInput.value) || 0;
 
         // остаток руб = Сумма счета для КЛИЕНТА - Поступило реально, руб.
         const remainder = amount - receivedAmount;
         remainderInput.value = remainder.toFixed(2);
 
-        // Чистая продажа РУБ. = Сумма счета для КЛИЕНТА - ( Поступило реально, руб. - БОНУС КЛИЕНТУ)
-        const netSales = amount - (receivedAmount - bonusClient);
+        // Чистая продажа РУБ. = Сумма счета для КЛИЕНТА - (Надбавка на ОТКАТ + БОНУС КЛИЕНТУ)
+        const netSales = amount - (kickback + bonusClient);
         netSalesInput.value = netSales.toFixed(2);
+
+        // Наценка на цену завода (%) = ((Чистая продажа - Сумма счета от поставщика) / Сумма счета от поставщика) * 100
+        if (supplierAmount > 0) {
+            const markup = ((netSales - supplierAmount) / supplierAmount) * 100;
+            markupInput.value = markup.toFixed(2);
+        } else {
+            markupInput.value = '0.00';
+        }
     }
 
     if (amountInput) amountInput.addEventListener('input', calculateFinFields);
     if (receivedAmountInput) receivedAmountInput.addEventListener('input', calculateFinFields);
     if (bonusClientInput) bonusClientInput.addEventListener('input', calculateFinFields);
+    if (kickbackInput) kickbackInput.addEventListener('input', calculateFinFields);
+    if (supplierAmountInput) supplierAmountInput.addEventListener('input', calculateFinFields);
 
     // Initial calculation
     calculateFinFields();

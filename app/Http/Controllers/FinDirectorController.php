@@ -87,6 +87,7 @@ class FinDirectorController extends ManagersController
         $data['received_amount'] = $validated['received_amount'] ?? 0;
         $data['date'] = $validated['date'] ?? now()->toDateString();
         $data['bonus_client'] = $validated['bonus_client'] ?? 0;
+        $data['kickback'] = $validated['kickback'] ?? 0;
         $data['net_sales'] = $validated['net_sales'] ?? 0;
         $data['remainder'] = $validated['remainder'] ?? 0;
         $data['supplier_amount'] = $validated['supplier_amount'] ?? 0;
@@ -102,6 +103,10 @@ class FinDirectorController extends ManagersController
         
         $data['remainder'] = $calcResult->remainder;
         $data['net_sales'] = $calcResult->netSales;
+        $data['payment_manager'] = $calcResult->paymentManager;
+        $data['payment_spk'] = $calcResult->paymentSpk;
+        $data['profit'] = $calcResult->profit;
+        $data['markup'] = $calcResult->markup;
 
         FinReport::create($data);
 
@@ -165,6 +170,10 @@ class FinDirectorController extends ManagersController
         
         $data['remainder'] = $calcResult->remainder;
         $data['net_sales'] = $calcResult->netSales;
+        $data['payment_manager'] = $calcResult->paymentManager;
+        $data['payment_spk'] = $calcResult->paymentSpk;
+        $data['profit'] = $calcResult->profit;
+        $data['markup'] = $calcResult->markup;
 
         $report->update($data);
 

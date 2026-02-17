@@ -39,6 +39,7 @@
                             <th>Поставщик</th>
                             <th>НДС</th>
                             <th style="white-space: nowrap;">Бонус клиенту</th>
+                            <th style="white-space: nowrap;">Кикбэк</th>
                             <th style="white-space: nowrap;">Чистая продажа</th>
                             <th style="white-space: nowrap;">Остаток, руб.</th>
                             <th>Менеджер</th>
@@ -65,6 +66,7 @@
                                 <td>{{ $report->supplier->name ?? '—' }}</td>
                                 <td>{{ (float)$report->nds_percent }}%</td>
                                 <td style="white-space: nowrap;">{{ number_format($report->bonus_client, 0, '.', ' ') }}</td>
+                                <td style="white-space: nowrap;">{{ number_format($report->kickback, 0, '.', ' ') }}</td>
                                 <td style="white-space: nowrap;">{{ number_format($report->net_sales, 0, '.', ' ') }}</td>
                                 <td style="white-space: nowrap;">{{ number_format($report->remainder, 0, '.', ' ') }}</td>
                                 <td>{{ $report->manager_name ?? '—' }}</td>
