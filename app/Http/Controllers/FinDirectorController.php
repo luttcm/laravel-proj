@@ -51,7 +51,9 @@ class FinDirectorController extends ManagersController
         $spks = \App\Models\Spk::all();
         $suppliers = \App\Models\Supplier::all();
         $nds = \App\Models\Nds::all();
-        return view('pages.findirector.fin_reports.add', compact('spks', 'suppliers', 'nds'));
+        $sellingCompanies = \App\Models\SoldFromCompany::all();
+        $companyVariables = \App\Models\Variable::where('table_type', 'company')->get();
+        return view('pages.findirector.fin_reports.add', compact('spks', 'suppliers', 'nds', 'sellingCompanies', 'companyVariables'));
     }
 
     public function finReportsStore(Request $request)
@@ -69,6 +71,7 @@ class FinDirectorController extends ManagersController
             'supplier_id' => 'nullable|exists:suppliers,id',
             'nds_id' => 'nullable|exists:nds,id',
             'bonus_client' => 'nullable|numeric',
+            'kickback' => 'nullable|numeric',
             'net_sales' => 'nullable|numeric',
             'remainder' => 'nullable|numeric',
             'manager_name' => 'nullable|string|max:255',
@@ -125,7 +128,9 @@ class FinDirectorController extends ManagersController
         $spks = \App\Models\Spk::all();
         $suppliers = \App\Models\Supplier::all();
         $nds = \App\Models\Nds::all();
-        return view('pages.findirector.fin_reports.edit', compact('report', 'spks', 'suppliers', 'nds'));
+        $sellingCompanies = \App\Models\SoldFromCompany::all();
+        $companyVariables = \App\Models\Variable::where('table_type', 'company')->get();
+        return view('pages.findirector.fin_reports.edit', compact('report', 'spks', 'suppliers', 'nds', 'sellingCompanies', 'companyVariables'));
     }
 
     public function finReportsUpdate(Request $request, $id)
@@ -149,6 +154,7 @@ class FinDirectorController extends ManagersController
             'supplier_id' => 'nullable|exists:suppliers,id',
             'nds_id' => 'nullable|exists:nds,id',
             'bonus_client' => 'nullable|numeric',
+            'kickback' => 'nullable|numeric',
             'net_sales' => 'nullable|numeric',
             'remainder' => 'nullable|numeric',
             'manager_name' => 'nullable|string|max:255',
@@ -163,6 +169,7 @@ class FinDirectorController extends ManagersController
         ]);
 
         $data = $validated;
+        $data['kickback'] = $validated['kickback'] ?? 0;
         
         $calcRequest = FinDirectorCalculationRequestDTO::fromRequest($request);
         $calcStrategy = new FinDirectorCalculationStrategy();

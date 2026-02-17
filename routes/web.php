@@ -66,6 +66,14 @@ Route::middleware(['auth', 'check.access'])->group(function () {
         Route::get('/suppliers/{id}/edit', [SupplierController::class, 'edit'])->name('supplier.edit')->whereNumber('id');
         Route::put('/suppliers/{id}', [SupplierController::class, 'update'])->name('supplier.update')->whereNumber('id');
         Route::post('/suppliers/{id}/delete', [SupplierController::class, 'delete'])->name('supplier.delete')->whereNumber('id');
+
+        // ОТ КОГО
+        Route::get('/sold-from-companies', [\App\Http\Controllers\SoldFromCompanyController::class, 'index'])->name('sold-from-companies.index');
+        Route::get('/sold-from-companies/add', [\App\Http\Controllers\SoldFromCompanyController::class, 'add'])->name('sold-from-companies.add');
+        Route::post('/sold-from-companies', [\App\Http\Controllers\SoldFromCompanyController::class, 'store'])->name('sold-from-companies.store');
+        Route::get('/sold-from-companies/{id}/edit', [\App\Http\Controllers\SoldFromCompanyController::class, 'edit'])->name('sold-from-companies.edit')->whereNumber('id');
+        Route::put('/sold-from-companies/{id}', [\App\Http\Controllers\SoldFromCompanyController::class, 'update'])->name('sold-from-companies.update')->whereNumber('id');
+        Route::post('/sold-from-companies/{id}/delete', [\App\Http\Controllers\SoldFromCompanyController::class, 'delete'])->name('sold-from-companies.delete')->whereNumber('id');
     });
 
     // Профиль

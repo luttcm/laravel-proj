@@ -65,6 +65,10 @@
                                     <li>
                                         <a class="dropdown-item" href="{{ route('supplier.index') }}">Поставщики</a>         
                                     </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('sold-from-companies.index') }}">ОТ КОГО</a>         
+                                    </li>
                                 @endif
 
                                 @if(auth()->user() && in_array(auth()->user()->role, ['admin','redactor']))

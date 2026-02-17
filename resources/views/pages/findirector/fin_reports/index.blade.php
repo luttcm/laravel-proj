@@ -29,26 +29,28 @@
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            <th style="white-space: nowrap;">Дата</th>
+                            <th>Дата</th>
                             <th>Название</th>
                             <th>Заказчик</th>
-                            <th style="white-space: nowrap;">Номер заказа</th>
+                            <th>Номер заказа</th>
                             <th>СПК</th>
-                            <th style="white-space: nowrap;">Сумма счета</th>
-                            <th style="white-space: nowrap;">Фактически Поступило</th>
+                            <th>Кол-во ТЗ</th>
+                            <th>Сумма счета</th>
+                            <th>Фактически Поступило</th>
                             <th>Поставщик</th>
+                            <th>ОТ КОГО</th>
                             <th>НДС</th>
-                            <th style="white-space: nowrap;">Бонус клиенту</th>
-                            <th style="white-space: nowrap;">Кикбэк</th>
-                            <th style="white-space: nowrap;">Чистая продажа</th>
-                            <th style="white-space: nowrap;">Остаток, руб.</th>
+                            <th>Бонус клиенту</th>
+                            <th>Надбавка на ОТКАТ</th>
+                            <th>Чистая продажа</th>
+                            <th>Остаток, руб.</th>
                             <th>Менеджер</th>
-                            <th style="white-space: nowrap;">№ счета Поставщика</th>
-                            <th style="white-space: nowrap;">Сумма Поставщика</th>
-                            <th style="white-space: nowrap;">Выплата Менеджеру</th>
-                            <th style="white-space: nowrap;">Выплата СПК</th>
-                            <th>Профит (PRF)</th>
-                            <th>Наценка (%)</th>
+                            <th>№ счета Поставщика</th>
+                            <th>Сумма Поставщика</th>
+                            <th>Выплата Менеджеру</th>
+                            <th>Выплата СПК</th>
+                            <th>PRF</th>
+                            <th>Наценка</th>
                             <th class="text-end">Действия</th>
                         </tr>
                     </thead>
@@ -61,9 +63,11 @@
                                 <td>{{ $report->customer }}</td>
                                 <td>{{ $report->order_number }}</td>
                                 <td>{{ $report->spk_id ? ($report->spkPerson->fio ?? 'Неизвестно') : ($report->spk ?: 'Без СПК') }}</td>
+                                <td>{{ $report->tz_count ?? 0 }}</td>
                                 <td style="font-weight: 600; white-space: nowrap;">{{ number_format($report->amount, 0, '.', ' ') }}</td>
                                 <td style="font-weight: 600; white-space: nowrap;">{{ number_format($report->received_amount, 0, '.', ' ') }}</td>
                                 <td>{{ $report->supplier->name ?? '—' }}</td>
+                                <td>{{ $report->sold_from ?? '—' }}</td>
                                 <td>{{ (float)$report->nds_percent }}%</td>
                                 <td style="white-space: nowrap;">{{ number_format($report->bonus_client, 0, '.', ' ') }}</td>
                                 <td style="white-space: nowrap;">{{ number_format($report->kickback, 0, '.', ' ') }}</td>
@@ -92,7 +96,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="21" class="text-center text-muted py-5">
+                                <td colspan="24" class="text-center text-muted py-5">
                                     Нет данных. Нажмите "Добавить", чтобы создать первую запись.
                                 </td>
                             </tr>
