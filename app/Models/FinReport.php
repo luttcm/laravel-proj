@@ -24,6 +24,7 @@ class FinReport extends Model
         'supplier_id',
         'nds_id',
         'bonus_client',
+        'kickback',
         'net_sales',
         'remainder',
         'manager_name',

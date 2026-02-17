@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\DraftsReports;
 use App\Models\Reports;
 use App\Models\FinReport;
+use App\Services\Calculation\DTO\FinDirectorCalculationRequestDTO;
+use App\Services\Calculation\Strategies\FinDirectorCalculationStrategy;
 
 class FinDirectorController extends ManagersController
 {
@@ -49,7 +51,9 @@ class FinDirectorController extends ManagersController
         $spks = \App\Models\Spk::all();
         $suppliers = \App\Models\Supplier::all();
         $nds = \App\Models\Nds::all();
-        return view('pages.findirector.fin_reports.add', compact('spks', 'suppliers', 'nds'));
+        $sellingCompanies = \App\Models\SoldFromCompany::all();
+        $companyVariables = \App\Models\Variable::where('table_type', 'company')->get();
+        return view('pages.findirector.fin_reports.add', compact('spks', 'suppliers', 'nds', 'sellingCompanies', 'companyVariables'));
     }
 
     public function finReportsStore(Request $request)
@@ -67,6 +71,7 @@ class FinDirectorController extends ManagersController
             'supplier_id' => 'nullable|exists:suppliers,id',
             'nds_id' => 'nullable|exists:nds,id',
             'bonus_client' => 'nullable|numeric',
+            'kickback' => 'nullable|numeric',
             'net_sales' => 'nullable|numeric',
             'remainder' => 'nullable|numeric',
             'manager_name' => 'nullable|string|max:255',
@@ -85,6 +90,7 @@ class FinDirectorController extends ManagersController
         $data['received_amount'] = $validated['received_amount'] ?? 0;
         $data['date'] = $validated['date'] ?? now()->toDateString();
         $data['bonus_client'] = $validated['bonus_client'] ?? 0;
+        $data['kickback'] = $validated['kickback'] ?? 0;
         $data['net_sales'] = $validated['net_sales'] ?? 0;
         $data['remainder'] = $validated['remainder'] ?? 0;
         $data['supplier_amount'] = $validated['supplier_amount'] ?? 0;
@@ -93,6 +99,17 @@ class FinDirectorController extends ManagersController
         $data['profit'] = $validated['profit'] ?? 0;
         $data['markup'] = $validated['markup'] ?? 0;
         $data['nds_percent'] = $validated['nds_percent'] ?? 0;
+        
+        $calcRequest = FinDirectorCalculationRequestDTO::fromRequest($request);
+        $calcStrategy = new FinDirectorCalculationStrategy();
+        $calcResult = $calcStrategy->calculate($calcRequest);
+        
+        $data['remainder'] = $calcResult->remainder;
+        $data['net_sales'] = $calcResult->netSales;
+        $data['payment_manager'] = $calcResult->paymentManager;
+        $data['payment_spk'] = $calcResult->paymentSpk;
+        $data['profit'] = $calcResult->profit;
+        $data['markup'] = $calcResult->markup;
 
         FinReport::create($data);
 
@@ -111,7 +128,9 @@ class FinDirectorController extends ManagersController
         $spks = \App\Models\Spk::all();
         $suppliers = \App\Models\Supplier::all();
         $nds = \App\Models\Nds::all();
-        return view('pages.findirector.fin_reports.edit', compact('report', 'spks', 'suppliers', 'nds'));
+        $sellingCompanies = \App\Models\SoldFromCompany::all();
+        $companyVariables = \App\Models\Variable::where('table_type', 'company')->get();
+        return view('pages.findirector.fin_reports.edit', compact('report', 'spks', 'suppliers', 'nds', 'sellingCompanies', 'companyVariables'));
     }
 
     public function finReportsUpdate(Request $request, $id)
@@ -128,13 +147,14 @@ class FinDirectorController extends ManagersController
             'order_number' => 'nullable|string|max:255',
             'spk' => 'nullable|string|max:255',
             'spk_id' => 'nullable|exists:spks,id',
-            'tz_count' => 'nullable|integer',
+            'tz_count' => 'nullable|integer', 
             'amount' => 'required|numeric',
             'received_amount' => 'nullable|numeric',
             'date' => 'required|date',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'nds_id' => 'nullable|exists:nds,id',
             'bonus_client' => 'nullable|numeric',
+            'kickback' => 'nullable|numeric',
             'net_sales' => 'nullable|numeric',
             'remainder' => 'nullable|numeric',
             'manager_name' => 'nullable|string|max:255',
@@ -148,7 +168,21 @@ class FinDirectorController extends ManagersController
             'nds_percent' => 'nullable|numeric',
         ]);
 
-        $report->update($validated);
+        $data = $validated;
+        $data['kickback'] = $validated['kickback'] ?? 0;
+        
+        $calcRequest = FinDirectorCalculationRequestDTO::fromRequest($request);
+        $calcStrategy = new FinDirectorCalculationStrategy();
+        $calcResult = $calcStrategy->calculate($calcRequest);
+        
+        $data['remainder'] = $calcResult->remainder;
+        $data['net_sales'] = $calcResult->netSales;
+        $data['payment_manager'] = $calcResult->paymentManager;
+        $data['payment_spk'] = $calcResult->paymentSpk;
+        $data['profit'] = $calcResult->profit;
+        $data['markup'] = $calcResult->markup;
+
+        $report->update($data);
 
         return redirect()->route('findirector.fin-reports.index')
             ->with('success', 'Отчет успешно обновлен');

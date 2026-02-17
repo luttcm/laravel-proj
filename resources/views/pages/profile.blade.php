@@ -23,14 +23,12 @@ $displayName = $roleNames[$user->role] ?? ucfirst($user->role);
         @endif
     </div>
 
-    <!-- Profile Info Card -->
     <div class="profile-info-block">
         <img src="{{ auth()->user()->avatar }}" alt="avatar" class="profile-avatar">
         <h3 style="margin: 16px 0 8px 0; font-weight: 600;">{{ $user->name }}</h3>
         <p style="color: #999; margin: 0; font-size: 0.95rem;">{{ $user->role ?? 'user' }}</p>
     </div>
 
-    <!-- Edit Name Card -->
     <div class="profile-card">
         <div class="profile-card-body">
             <form method="POST" action="{{ route('profile.update') }}">
@@ -53,7 +51,6 @@ $displayName = $roleNames[$user->role] ?? ucfirst($user->role);
         </div>
     </div>
 
-    <!-- Avatar Upload Card -->
     <div class="profile-card">
         <div class="profile-card-header">
             <h6 style="margin: 0; font-weight: 600;">Фото профиля</h6>

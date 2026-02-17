@@ -66,7 +66,7 @@
                         </div>
 
                         <div class="col-md-6 mb-4">
-                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Дата (по умолчанию сегодня)</label>
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Дата</label>
                             <input type="date" class="form-control" name="date" value="{{ old('date', date('Y-m-d')) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
                         </div>
 
@@ -81,7 +81,7 @@
                         </div>
 
                         <div class="col-md-6 mb-4">
-                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">НДС (%)</label>
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">НДС</label>
                             <input type="number" step="0.01" class="form-control" id="nds_percent" name="nds_percent" value="{{ old('nds_percent', 0) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                             <input type="hidden" name="nds_id" id="nds_id_hidden">
                         </div>
@@ -92,13 +92,18 @@
                         </div>
 
                         <div class="col-md-6 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Надбавка на ОТКАТ</label>
+                            <input type="number" step="0.01" class="form-control" name="kickback" value="{{ old('kickback', 0) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                        </div>
+
+                        <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Чистая продажа</label>
-                            <input type="number" step="0.01" class="form-control" name="net_sales" value="{{ old('net_sales', 0) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <input type="number" step="0.01" class="form-control" name="net_sales" value="{{ old('net_sales', 0) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
 
                         <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Остаток, руб.</label>
-                            <input type="number" step="0.01" class="form-control" name="remainder" value="{{ old('remainder', 0) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <input type="number" step="0.01" class="form-control" name="remainder" value="{{ old('remainder', 0) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
 
                         <div class="col-md-6 mb-4">
@@ -118,27 +123,34 @@
 
                         <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Выплата менеджеру</label>
-                            <input type="number" step="0.01" class="form-control" name="payment_manager" value="{{ old('payment_manager', 0) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <input type="number" step="0.01" class="form-control" name="payment_manager" value="{{ old('payment_manager', 0) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
 
                         <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Выплата СПК</label>
-                            <input type="number" step="0.01" class="form-control" name="payment_spk" value="{{ old('payment_spk', 0) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <input type="number" step="0.01" class="form-control" name="payment_spk" value="{{ old('payment_spk', 0) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
 
                         <div class="col-md-6 mb-4">
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">ОТ КОГО продано</label>
-                            <input type="text" class="form-control" name="sold_from" value="{{ old('sold_from') }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <select class="form-control" name="sold_from" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                                <option value="">Выберите компанию</option>
+                                @foreach($sellingCompanies as $company)
+                                    <option value="{{ $company->name }}" {{ old('sold_from') == $company->name ? 'selected' : '' }}>
+                                        {{ $company->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <div class="col-md-6 mb-4">
-                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">PRF (Профит)</label>
-                            <input type="number" step="0.01" class="form-control" name="profit" value="{{ old('profit', 0) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">PRF</label>
+                            <input type="number" step="0.01" class="form-control" name="profit" value="{{ old('profit', 0) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
 
                         <div class="col-md-6 mb-4">
-                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Наценка на цену завода (%)</label>
-                            <input type="number" step="0.01" class="form-control" name="markup" value="{{ old('markup', 0) }}" style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px;">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Наценка</label>
+                            <input type="number" step="0.01" class="form-control" name="markup" value="{{ old('markup', 0) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
                     </div>
 
@@ -155,11 +167,103 @@
         </div>
     </div>
 </div>
+@endsection
+
 @section('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+    const companyVariables = @json($companyVariables);
+    
+    document.addEventListener('DOMContentLoaded', function() {
     const supplierSelect = document.getElementById('supplier_id');
     const ndsPercentInput = document.getElementById('nds_percent');
+    
+    const amountInput = document.querySelector('input[name="amount"]');
+    const receivedAmountInput = document.querySelector('input[name="received_amount"]');
+    const bonusClientInput = document.querySelector('input[name="bonus_client"]');
+    const kickbackInput = document.querySelector('input[name="kickback"]');
+    const netSalesInput = document.querySelector('input[name="net_sales"]');
+    const remainderInput = document.querySelector('input[name="remainder"]');
+    const supplierAmountInput = document.querySelector('input[name="supplier_amount"]');
+    const markupInput = document.querySelector('input[name="markup"]');
+
+    const paymentManagerInput = document.querySelector('input[name="payment_manager"]');
+    const paymentSpkInput = document.querySelector('input[name="payment_spk"]');
+    const profitInput = document.querySelector('input[name="profit"]');
+
+    const spkSelect = document.querySelector('select[name="spk"]');
+    const spkIdSelect = document.querySelector('select[name="spk_id"]');
+    const soldFromInput = document.querySelector('select[name="sold_from"]');
+    
+    function calculateFinFields() {
+        const amount = parseFloat(amountInput.value) || 0;
+        const receivedAmount = parseFloat(receivedAmountInput.value) || 0;
+        const bonusClient = parseFloat(bonusClientInput.value) || 0;
+        const kickback = parseFloat(kickbackInput.value) || 0;
+        const supplierAmount = parseFloat(supplierAmountInput.value) || 0;
+
+        const remainder = amount - receivedAmount;
+        remainderInput.value = remainder.toFixed(2);
+
+        const netSales = amount - (kickback + bonusClient);
+        netSalesInput.value = netSales.toFixed(2);
+
+        if (supplierAmount > 0) {
+            const markup = ((netSales - supplierAmount) / supplierAmount) * 100;
+            markupInput.value = markup.toFixed(2);
+        } else {
+            markupInput.value = '0.00';
+        }
+
+        const soldFrom = soldFromInput ? soldFromInput.value : '';
+        const isSpk = (spkSelect && (spkSelect.value === 'Y' || spkSelect.value === 'УЧАСТВУЕТ')) || (spkIdSelect && spkIdSelect.value !== '');
+
+        if (soldFrom) {
+            const getVarValue = (name, defaultValue) => {
+                const v = companyVariables.find(v => v.name === name && v.title === soldFrom);
+                if (v) return parseFloat(v.value) || 0;
+                const genericV = companyVariables.find(v => v.name === name && v.title === name);
+                if (genericV) return parseFloat(genericV.value) || 0;
+                return defaultValue;
+            };
+
+            const k_ps_total = getVarValue('k_ps_total', 0.032);
+            const k_mgr = getVarValue('k_mgr', 0.245);
+            const k_spk = getVarValue('k_spk', 0.2);
+
+            const profit = netSales * k_ps_total;
+            const paymentBase = netSales * k_mgr;
+
+            let paymentManager = 0;
+            let paymentSpk = 0;
+
+            if (isSpk) {
+                paymentSpk = paymentBase * k_spk;
+                paymentManager = paymentBase - paymentSpk;
+            } else {
+                paymentSpk = 0;
+                paymentManager = paymentBase;
+            }
+
+            if (profitInput) profitInput.value = profit.toFixed(2);
+            if (paymentManagerInput) paymentManagerInput.value = paymentManager.toFixed(2);
+            if (paymentSpkInput) paymentSpkInput.value = paymentSpk.toFixed(2);
+        } else {
+            if (profitInput) profitInput.value = '0.00';
+            if (paymentManagerInput) paymentManagerInput.value = '0.00';
+            if (paymentSpkInput) paymentSpkInput.value = '0.00';
+        }
+    }
+
+    if (amountInput) amountInput.addEventListener('input', calculateFinFields);
+    if (receivedAmountInput) receivedAmountInput.addEventListener('input', calculateFinFields);
+    if (bonusClientInput) bonusClientInput.addEventListener('input', calculateFinFields);
+    if (kickbackInput) kickbackInput.addEventListener('input', calculateFinFields);
+    if (supplierAmountInput) supplierAmountInput.addEventListener('input', calculateFinFields);
+    if (soldFromInput) soldFromInput.addEventListener('change', calculateFinFields);
+    if (spkSelect) spkSelect.addEventListener('change', calculateFinFields);
+    if (spkIdSelect) spkIdSelect.addEventListener('change', calculateFinFields);
+
+    calculateFinFields();
 
     if (supplierSelect && ndsPercentInput) {
         supplierSelect.addEventListener('change', function() {
@@ -177,5 +281,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-@endsection
 @endsection

@@ -30,7 +30,6 @@ class CalculationService
                 $spkCoefficient = (float)$spk->coefficient;
             }
         } elseif ($data->spk === 'Y') {
-            // Fallback to variable if spkId is not provided but spk is 'Y'
             $k_spk_var = Variable::where('name', 'k_spk')->first();
             $spkCoefficient = $k_spk_var ? (float)$k_spk_var->value : 0.20;
         }
