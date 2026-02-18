@@ -2,19 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreManagerReportRequest;
+use App\Services\Calculation\CalculationService;
+use App\Services\ManagerReportService;
 use App\Models\DraftsReports;
 use App\Models\Reports;
-use App\Models\Calculation;
 use App\Models\Variable;
+use Illuminate\Http\Request;
 
 class ManagersController extends Controller
 {
     protected $calculationService;
+    protected $managerReportService;
 
-    public function __construct(\App\Services\Calculation\CalculationService $calculationService)
-    {
+    public function __construct(
+        CalculationService $calculationService,
+        ManagerReportService $managerReportService
+    ) {
         $this->calculationService = $calculationService;
+        $this->managerReportService = $managerReportService;
     }
 
     public function calculation()
@@ -69,19 +75,13 @@ class ManagersController extends Controller
 
     public function reports()
     {
-        $reports = DraftsReports::all()
-        ->where('manager_id', auth()->id())
-        ->sortByDesc('created_at');
-
+        $reports = $this->managerReportService->getReportsForManager(DraftsReports::class, auth()->id());
         return view('pages.managers.reports', compact('reports'));
     }
 
     public function history()
     {
-        $reports = Reports::all()
-        ->where('manager_id', auth()->id())
-        ->sortByDesc('created_at');
-
+        $reports = $this->managerReportService->getReportsForManager(Reports::class, auth()->id());
         return view('pages.managers.history', compact('reports'));
     }
 
@@ -136,71 +136,33 @@ class ManagersController extends Controller
             'calculations' => $calculations
         ], 201);
     }
-    public function storeDraftsReport(Request $request)
+
+    public function storeDraftsReport(StoreManagerReportRequest $request)
     {
         $calculationId = $request->query('calculation_id');
-        return $this->saveReport($request, DraftsReports::class, 'Сохранено в отчёты', true, true, $calculationId);
+        $report = $this->managerReportService->saveReport($request->validated(), DraftsReports::class, auth()->id(), false, $calculationId);
+
+        return $this->formatSaveResponse($request, $report, 'Сохранено в отчёты', true);
     }
 
-    public function storeReport(Request $request)
+    public function storeReport(StoreManagerReportRequest $request)
     {
-        return $this->saveReport($request, Reports::class, 'Сохранено в историю', false, true);
+        $report = $this->managerReportService->saveReport($request->validated(), Reports::class, auth()->id(), true);
+
+        return $this->formatSaveResponse($request, $report, 'Сохранено в историю', false);
     }
 
-    private function saveReport(Request $request, string $reportModel, string $message, bool $includeCalculations = false, $isHistory = false, $existingCalculationId = null)
+    protected function formatSaveResponse(Request $request, $report, string $message, bool $includeCalculations)
     {
-        if ($existingCalculationId || ($request->has('calculation_id') && !empty($request->input('calculation_id')))) {
-            $calculationId = $existingCalculationId ?? $request->input('calculation_id');
-            $calculation = Calculation::findOrFail($calculationId);
-            $calculation->update($request->all());
-        } else {
-            $calculationId = $this->saveCalculation($request, $isHistory);
-        }
-
-        $reportId = null;
-        if ($request->has('report_id') && !empty($request->input('report_id'))) {
-            $reportId = $reportModel::find($request->input('report_id'));
-        }
-
-        $dto = \App\Services\Calculation\DTO\CalculationRequestDTO::fromRequest($request);
-        $result = $this->calculationService->calculate($dto);
-        $userName = auth()->user()->name ?? 'Без имени';
-
-        $calculation = Calculation::findOrFail($calculationId);
-        $calculation->update([
-            'nds_id' => $request->input('nds_id'),
-            'spk_id' => $request->input('spk_id'),
-            'manager_payment' => $result->managerPayment,
-            'manager_salary_brutto' => $result->managerSalaryBrutto,
-            'per_unit_payment' => $result->perUnitPayment,
-            'in_the_deal' => $result->inTheDeal,
-        ]);
-
-        $reportData = [
-            'manager_id' => auth()->id(),
-            'date' => now()->toDateString(),
-            'name' => $userName,
-            'report_title' => $request->input('report_name') ?: 'Отчет ' . now()->format('d.m.Y H:i'),
-            'amount' => $result->managerPayment,
-            'calculate_id' => $calculationId,
-        ];
-
-        if ($reportId) {
-            $reportId->update([
-                'date' => $reportData['date'],
-                'report_title' => $reportData['report_title'],
-                'amount' => $reportData['amount'],
-            ]);
-        } else {
-            $reportModel::create($reportData);
-        }
-
         $response = [
             'success' => true,
             'message' => $message,
         ];
 
         if ($includeCalculations) {
+            $dto = \App\Services\Calculation\DTO\CalculationRequestDTO::fromRequest($request);
+            $result = $this->calculationService->calculate($dto);
+            
             $sellingType = $request->input('selling_name');
             $counteragentType = strpos($sellingType, 'ИП (ИНН)') !== false ? 'inn' : (strpos($sellingType, 'ИП (ФВН)') !== false ? 'fvn' : 'ooo');
 
@@ -240,91 +202,17 @@ class ManagersController extends Controller
         return response()->json($response, 201);
     }
 
-    /**
-     * Summary of saveCalculation
-     * @param Request $request
-     * @throws \Exception
-     * @return int
-     */
-    private function saveCalculation(Request $request, bool $isHistory = false): int
-    {
-        if ($isHistory) {
-            $validated = $request->validate([
-                'report_name' => 'nullable|string',
-                'date' => 'nullable|string',
-                'selling_name' => 'nullable|string',
-                'spk' => 'nullable|string',
-            ]);
-        } else {
-            $validated = $request->validate([
-                'report_name' => 'required|string',
-                'buying_name' => 'required|string',
-                'date' => 'required|string',
-                'selling_name' => 'required|string',
-                'spk' => 'required|string',
-                'purchase_price' => 'required|numeric',
-                'quantity' => 'required|integer',
-                'purchase_sum' => 'required|numeric',
-                'markup_percent' => 'required|numeric',
-                'selling_price' => 'required|numeric',
-                'selling_sum' => 'required|numeric',
-                'prf_percent' => 'required|numeric',
-                'deal_payment' => 'required|numeric',
-                'per_unit_payment' => 'required|numeric',
-                'in_the_hand' => 'required|numeric',
-            ]);
-        }
-
-        $data = $request->all();
-        $numericFields = [
-            'purchase_price', 'purchase_sum', 'markup_percent', 'selling_price',
-            'selling_sum', 'prf_percent', 'deal_payment', 'per_unit_payment',
-            'in_the_hand', 'manager_payment', 'manager_salary_brutto', 'in_the_deal',
-            'spk_id'
-        ];
-
-        foreach ($numericFields as $field) {
-            if (isset($data[$field])) {
-                $data[$field] = round((float)$data[$field], 2);
-            }
-        }
-
-        $calculation = Calculation::create([
-            'user_id' => auth()->id(),
-            ...$data,
-        ]);
-
-        if (!$calculation) {
-            throw new \Exception('Ошибка сохранения расчёта');
-        }
-
-        return $calculation->id;
-    }
-
-    /**
-     * Получить отчет с данными расчета для загрузки в форму
-     */
     public function getReport(Request $request, $id)
     {
         $type = $request->query('type', 'history');
+        $modelClass = ($type === 'draft') ? DraftsReports::class : Reports::class;
 
-        if ($type === 'draft') {
-            $report = DraftsReports::findOrFail($id);
-        } else {
-            $report = Reports::findOrFail($id);
-        }
+        $data = $this->managerReportService->getReportWithCalculation($modelClass, $id, auth()->id());
 
-        if ($report->manager_id !== auth()->id()) {
+        if (empty($data)) {
             abort(403);
         }
 
-        $calculation = Calculation::findOrFail($report->calculate_id);
-
-        return response()->json([
-            'success' => true,
-            'report' => $report,
-            'calculation' => $calculation,
-        ]);
+        return response()->json(array_merge(['success' => true], $data));
     }
 }
-
