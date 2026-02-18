@@ -2,15 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreFinReportRequest;
+use App\Http\Requests\UpdateFinReportRequest;
+use App\Services\FinReportService;
+use App\Services\ManagerReportService;
 use App\Models\DraftsReports;
 use App\Models\Reports;
-use App\Models\FinReport;
-use App\Services\Calculation\DTO\FinDirectorCalculationRequestDTO;
-use App\Services\Calculation\Strategies\FinDirectorCalculationStrategy;
+use Illuminate\Http\Request;
 
 class FinDirectorController extends ManagersController
 {
+    protected $finReportService;
+
+    public function __construct(
+        \App\Services\Calculation\CalculationService $calculationService,
+        FinReportService $finReportService,
+        ManagerReportService $managerReportService
+    ) {
+        parent::__construct($calculationService, $managerReportService);
+        $this->finReportService = $finReportService;
+    }
+
     public function calculation()
     {
         $spks = \App\Models\Spk::all();
@@ -20,29 +32,19 @@ class FinDirectorController extends ManagersController
 
     public function reports()
     {
-        $reports = DraftsReports::all()
-        ->where('manager_id', auth()->id())
-        ->sortByDesc('created_at');
-
+        $reports = $this->managerReportService->getReportsForManager(DraftsReports::class, auth()->id());
         return view('pages.findirector.reports', compact('reports'));
     }
 
     public function history()
     {
-        $reports = Reports::all()
-        ->where('manager_id', auth()->id())
-        ->sortByDesc('created_at');
-
+        $reports = $this->managerReportService->getReportsForManager(Reports::class, auth()->id());
         return view('pages.findirector.history', compact('reports'));
     }
 
     public function finReportsIndex()
     {
-        $reports = FinReport::with(['spkPerson', 'supplier', 'nds'])
-            ->where('user_id', auth()->id())
-            ->orderBy('date', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $reports = $this->finReportService->getPaginatedForUser(auth()->id());
         return view('pages.findirector.fin_reports.index', compact('reports'));
     }
 
@@ -56,62 +58,9 @@ class FinDirectorController extends ManagersController
         return view('pages.findirector.fin_reports.add', compact('spks', 'suppliers', 'nds', 'sellingCompanies', 'companyVariables'));
     }
 
-    public function finReportsStore(Request $request)
+    public function finReportsStore(StoreFinReportRequest $request)
     {
-        $validated = $request->validate([
-            'report_title' => 'required|string|max:255',
-            'customer' => 'nullable|string|max:255',
-            'order_number' => 'nullable|string|max:255',
-            'spk' => 'nullable|string|max:255',
-            'spk_id' => 'nullable|exists:spks,id',
-            'tz_count' => 'nullable|integer',
-            'amount' => 'required|numeric',
-            'received_amount' => 'nullable|numeric',
-            'date' => 'nullable|date',
-            'supplier_id' => 'nullable|exists:suppliers,id',
-            'nds_id' => 'nullable|exists:nds,id',
-            'bonus_client' => 'nullable|numeric',
-            'kickback' => 'nullable|numeric',
-            'net_sales' => 'nullable|numeric',
-            'remainder' => 'nullable|numeric',
-            'manager_name' => 'nullable|string|max:255',
-            'supplier_invoice_number' => 'nullable|string|max:255',
-            'supplier_amount' => 'nullable|numeric',
-            'payment_manager' => 'nullable|numeric',
-            'payment_spk' => 'nullable|numeric',
-            'sold_from' => 'nullable|string|max:255',
-            'profit' => 'nullable|numeric',
-            'markup' => 'nullable|numeric',
-            'nds_percent' => 'nullable|numeric',
-        ]);
-
-        $data = $validated;
-        $data['user_id'] = auth()->id();
-        $data['received_amount'] = $validated['received_amount'] ?? 0;
-        $data['date'] = $validated['date'] ?? now()->toDateString();
-        $data['bonus_client'] = $validated['bonus_client'] ?? 0;
-        $data['kickback'] = $validated['kickback'] ?? 0;
-        $data['net_sales'] = $validated['net_sales'] ?? 0;
-        $data['remainder'] = $validated['remainder'] ?? 0;
-        $data['supplier_amount'] = $validated['supplier_amount'] ?? 0;
-        $data['payment_manager'] = $validated['payment_manager'] ?? 0;
-        $data['payment_spk'] = $validated['payment_spk'] ?? 0;
-        $data['profit'] = $validated['profit'] ?? 0;
-        $data['markup'] = $validated['markup'] ?? 0;
-        $data['nds_percent'] = $validated['nds_percent'] ?? 0;
-        
-        $calcRequest = FinDirectorCalculationRequestDTO::fromRequest($request);
-        $calcStrategy = new FinDirectorCalculationStrategy();
-        $calcResult = $calcStrategy->calculate($calcRequest);
-        
-        $data['remainder'] = $calcResult->remainder;
-        $data['net_sales'] = $calcResult->netSales;
-        $data['payment_manager'] = $calcResult->paymentManager;
-        $data['payment_spk'] = $calcResult->paymentSpk;
-        $data['profit'] = $calcResult->profit;
-        $data['markup'] = $calcResult->markup;
-
-        FinReport::create($data);
+        $this->finReportService->createReport($request->validated(), auth()->id());
 
         return redirect()->route('findirector.fin-reports.index')
             ->with('success', 'Отчет успешно создан');
@@ -119,9 +68,9 @@ class FinDirectorController extends ManagersController
 
     public function finReportsEdit($id)
     {
-        $report = FinReport::findOrFail($id);
+        $report = $this->finReportService->findForUser($id, auth()->id());
 
-        if ($report->user_id !== auth()->id()) {
+        if (!$report) {
             abort(403);
         }
 
@@ -133,56 +82,13 @@ class FinDirectorController extends ManagersController
         return view('pages.findirector.fin_reports.edit', compact('report', 'spks', 'suppliers', 'nds', 'sellingCompanies', 'companyVariables'));
     }
 
-    public function finReportsUpdate(Request $request, $id)
+    public function finReportsUpdate(UpdateFinReportRequest $request, $id)
     {
-        $report = \App\Models\FinReport::findOrFail($id);
+        $result = $this->finReportService->updateReport($id, $request->validated(), auth()->id());
 
-        if ($report->user_id !== auth()->id()) {
+        if (!$result) {
             abort(403);
         }
-
-        $validated = $request->validate([
-            'report_title' => 'required|string|max:255',
-            'customer' => 'nullable|string|max:255',
-            'order_number' => 'nullable|string|max:255',
-            'spk' => 'nullable|string|max:255',
-            'spk_id' => 'nullable|exists:spks,id',
-            'tz_count' => 'nullable|integer', 
-            'amount' => 'required|numeric',
-            'received_amount' => 'nullable|numeric',
-            'date' => 'required|date',
-            'supplier_id' => 'nullable|exists:suppliers,id',
-            'nds_id' => 'nullable|exists:nds,id',
-            'bonus_client' => 'nullable|numeric',
-            'kickback' => 'nullable|numeric',
-            'net_sales' => 'nullable|numeric',
-            'remainder' => 'nullable|numeric',
-            'manager_name' => 'nullable|string|max:255',
-            'supplier_invoice_number' => 'nullable|string|max:255',
-            'supplier_amount' => 'nullable|numeric',
-            'payment_manager' => 'nullable|numeric',
-            'payment_spk' => 'nullable|numeric',
-            'sold_from' => 'nullable|string|max:255',
-            'profit' => 'nullable|numeric',
-            'markup' => 'nullable|numeric',
-            'nds_percent' => 'nullable|numeric',
-        ]);
-
-        $data = $validated;
-        $data['kickback'] = $validated['kickback'] ?? 0;
-        
-        $calcRequest = FinDirectorCalculationRequestDTO::fromRequest($request);
-        $calcStrategy = new FinDirectorCalculationStrategy();
-        $calcResult = $calcStrategy->calculate($calcRequest);
-        
-        $data['remainder'] = $calcResult->remainder;
-        $data['net_sales'] = $calcResult->netSales;
-        $data['payment_manager'] = $calcResult->paymentManager;
-        $data['payment_spk'] = $calcResult->paymentSpk;
-        $data['profit'] = $calcResult->profit;
-        $data['markup'] = $calcResult->markup;
-
-        $report->update($data);
 
         return redirect()->route('findirector.fin-reports.index')
             ->with('success', 'Отчет успешно обновлен');
@@ -190,13 +96,11 @@ class FinDirectorController extends ManagersController
 
     public function finReportsDelete($id)
     {
-        $report = FinReport::findOrFail($id);
+        $result = $this->finReportService->deleteReport($id, auth()->id());
 
-        if ($report->user_id !== auth()->id()) {
+        if (!$result) {
             abort(403);
         }
-
-        $report->delete();
 
         return redirect()->route('findirector.fin-reports.index')
             ->with('success', 'Отчет удален');

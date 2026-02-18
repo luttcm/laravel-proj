@@ -28,8 +28,7 @@ class CalculationResultDTO
         public readonly float $inTheDeal,
         public readonly float $sellingSumPerUnit,
         public readonly float $sellingSumTotal,
-        
-        // Strategy specific fields (optional)
+
         public readonly ?float $ausn = null,
         public readonly ?float $ndsOutgoing = null,
         public readonly ?float $ndsIncoming = null,
