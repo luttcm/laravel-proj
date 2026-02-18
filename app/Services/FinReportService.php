@@ -36,7 +36,6 @@ class FinReportService
     {
         $data['user_id'] = $userId;
         
-        // Ensure defaults for missing values
         $data['received_amount'] = $data['received_amount'] ?? 0;
         $data['date'] = $data['date'] ?? now()->toDateString();
         $data['bonus_client'] = $data['bonus_client'] ?? 0;
@@ -50,11 +49,9 @@ class FinReportService
         $data['markup'] = $data['markup'] ?? 0;
         $data['nds_percent'] = $data['nds_percent'] ?? 0;
 
-        // Perform calculation
         $calcRequest = FinDirectorCalculationRequestDTO::fromArray($data);
         $calcResult = $this->calculationStrategy->calculate($calcRequest);
 
-        // Update data with calculation results
         $data['remainder'] = $calcResult->remainder;
         $data['net_sales'] = $calcResult->netSales;
         $data['payment_manager'] = $calcResult->paymentManager;
@@ -77,11 +74,9 @@ class FinReportService
 
         $data['kickback'] = $data['kickback'] ?? 0;
 
-        // Perform calculation
         $calcRequest = FinDirectorCalculationRequestDTO::fromArray($data);
         $calcResult = $this->calculationStrategy->calculate($calcRequest);
 
-        // Update data with calculation results
         $data['remainder'] = $calcResult->remainder;
         $data['net_sales'] = $calcResult->netSales;
         $data['payment_manager'] = $calcResult->paymentManager;

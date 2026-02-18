@@ -56,7 +56,6 @@ class ManagerReportService
         $dto = CalculationRequestDTO::fromArray($data);
         $result = $this->calculationService->calculate($dto);
 
-        // Update calculation with results
         $this->calculationRepository->update([
             'nds_id' => $data['nds_id'] ?? null,
             'spk_id' => $data['spk_id'] ?? null,

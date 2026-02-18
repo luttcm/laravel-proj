@@ -11,7 +11,7 @@ class StoreFinReportRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization logic can be added here if needed
+        return true;
     }
 
     /**
