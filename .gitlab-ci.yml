@@ -25,14 +25,14 @@ deploy:
     - chmod 700 ~/.ssh
     - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
   script:
-    - ssh $SERVER_USER@$SERVER_IP "
-        cd  public_html/app/ && 
+    - $ ssh $SERVER_USER@$SERVER_IP "
+        cd public_html/app/ && 
         git -c pack.threads=1 pull origin master && 
-        composer install --no-dev --optimize-autoloader && 
-        php artisan migrate --force && 
-        php artisan config:cache && 
-        php artisan route:cache && 
-        php artisan view:cache
+        php8.2 composer.phar install --no-dev --optimize-autoloader && 
+        php8.2 artisan migrate --force && 
+        php8.2 artisan config:cache && 
+        php8.2 artisan route:cache && 
+        php8.2 artisan view:cache
       "
   only:
     - master 
