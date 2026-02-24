@@ -27,7 +27,7 @@ deploy:
   script:
     - ssh $SERVER_USER@$SERVER_IP "
         cd  public_html/app/ && 
-        git -c pack.threads=1 pull origin main && 
+        git -c pack.threads=1 pull origin master && 
         composer install --no-dev --optimize-autoloader && 
         php artisan migrate --force && 
         php artisan config:cache && 
@@ -35,4 +35,4 @@ deploy:
         php artisan view:cache
       "
   only:
-    - main 
+    - master 
