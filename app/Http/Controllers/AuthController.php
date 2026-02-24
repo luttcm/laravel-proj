@@ -119,6 +119,8 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
+            Auth::logoutOtherDevices($credentials['password']);
+
             if ($remember) {
                 $user = Auth::user();
                 $token = $user->getRememberToken();
