@@ -2,24 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Repositories\PictureRepository;
+use App\Repositories\UserRepository;
+use App\Services\UserService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use App\Models\Picture;
-use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
+    protected $userRepository;
+    protected $userService;
+    protected $pictureRepository;
+
+    public function __construct(
+        UserRepository $userRepository,
+        UserService $userService,
+        PictureRepository $pictureRepository
+    ) {
+        $this->userRepository = $userRepository;
+        $this->userService = $userService;
+        $this->pictureRepository = $pictureRepository;
+    }
+
     public function index()
     {
-        $users = User::all();
+        $users = $this->userRepository->getAll();
         return view('pages.users.index', compact('users'));
     }
 
     public function show($id)
     {
-        $user = User::findOrFail($id);
+        $user = $this->userRepository->findById($id);
         return view('pages.users.detail', compact('user'));
     }
 
@@ -29,38 +43,17 @@ class UserController extends Controller
         return view('pages.users.add', compact('roles'));
     }
 
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'nullable|string|min:8',
-            'role' => 'required|string|in:admin,user,finance,redactor,manager',
-        ]);
-
-        $password = $validated['password'] ?? Str::random(12);
-
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($password),
-            'role' => $validated['role'],
-        ]);
-
-        Picture::create([
-            'path' => 'avatars/classicAvatar.png',
-            'entity_type' => 'user',
-            'entity_id' => $user->id,
-        ]);
+        $result = $this->userService->createUser($request->validated());
 
         return redirect()->route('users.index')
-            ->with('success', "Пользователь создан! Пароль: {$password}");
+            ->with('success', "Пользователь создан! Пароль: {$result['password']}");
     }
 
     public function delete(Request $request)
     {
-        $user = User::findOrFail($request->id);
-        $user->delete();
+        $this->userService->deleteUser($request->id);
 
         return redirect()->route('users.index')
             ->with('success', "Пользователь удален");
@@ -69,9 +62,7 @@ class UserController extends Controller
     public function profile()
     {
         $user = auth()->user();
-        $picture = Picture::where('entity_type', 'user')
-                    ->where('entity_id', $user->id)
-                    ->first();
+        $picture = $this->pictureRepository->findByCondition('user', $user->id)->first();
 
         return view('pages.profile', compact('user', 'picture'));
     }
@@ -83,18 +74,9 @@ class UserController extends Controller
         ]);
 
         $user = auth()->user();
-
         $path = $request->file('avatar')->store('avatars', 'public');
 
-        Picture::where('entity_type', 'user')
-            ->where('entity_id', $user->id)
-            ->delete();
-
-        Picture::create([
-            'path' => 'storage/' . $path,
-            'entity_type' => 'user',
-            'entity_id' => $user->id,
-        ]);
+        $this->userService->updateAvatar($user->id, $path);
 
         return redirect()->route('profile')->with('success', 'Аватар обновлён');
     }
@@ -105,32 +87,22 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
-        $user = auth()->user();
-        $user->name = $validated['name'];
-        $user->save();
+        $this->userService->updateUser(auth()->id(), $validated);
 
         return redirect()->route('profile')->with('success', 'Имя обновлено');
     }
 
     public function edit($id)
     {
-        $user = User::findOrFail($id);
+        $user = $this->userRepository->findById($id);
         $roles = ['admin', 'user', 'finance', 'redactor', 'manager'];
         return view('pages.users.edit', compact('user', 'roles'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateUserRequest $request, $id)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'role' => 'required|string|in:admin,user,finance,redactor,manager',
-        ]);
+        $this->userService->updateUser($id, $request->validated());
 
-        $user = User::findOrFail($id);
-        $user->name = $validated['name'];
-        $user->role = $validated['role'];
-        $user->save();
-
-        return redirect()->route('users.show', ['id' => $user->id])->with('success', 'Пользователь обновлён');
+        return redirect()->route('users.show', ['id' => $id])->with('success', 'Пользователь обновлён');
     }
 }

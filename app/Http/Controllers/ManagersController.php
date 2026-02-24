@@ -14,13 +14,19 @@ class ManagersController extends Controller
 {
     protected $calculationService;
     protected $managerReportService;
+    protected $variableRepository;
+    protected $ndsRepository;
 
     public function __construct(
         CalculationService $calculationService,
-        ManagerReportService $managerReportService
+        ManagerReportService $managerReportService,
+        \App\Repositories\VariableRepository $variableRepository,
+        \App\Repositories\NdsRepository $ndsRepository
     ) {
         $this->calculationService = $calculationService;
         $this->managerReportService = $managerReportService;
+        $this->variableRepository = $variableRepository;
+        $this->ndsRepository = $ndsRepository;
     }
 
     public function calculation()
@@ -45,9 +51,7 @@ class ManagersController extends Controller
 
         $dbCounteragentType = ($counteragentType === 'fvn') ? 'ooo' : $counteragentType;
 
-        $variables = Variable::where('counteragent_type', $dbCounteragentType)
-            ->where('table_type', 'company')
-            ->get()
+        $variables = $this->variableRepository->getCompanyVariablesByType($dbCounteragentType)
             ->map(function ($var) {
                 return [
                     'id' => $var->id,
@@ -61,7 +65,7 @@ class ManagersController extends Controller
 
     public function getNds(Request $request)
     {
-        $ndsList = \App\Models\Nds::all()->map(function ($nds) {
+        $ndsList = $this->ndsRepository->getAll()->map(function ($nds) {
             return [
                 'id' => $nds->id,
                 'title' => $nds->title,

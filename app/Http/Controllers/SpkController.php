@@ -2,14 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Spk;
+use App\Http\Requests\StoreSpkRequest;
+use App\Http\Requests\UpdateSpkRequest;
+use App\Repositories\SpkRepository;
 use Illuminate\Http\Request;
 
 class SpkController extends Controller
 {
+    protected $spkRepository;
+
+    public function __construct(SpkRepository $spkRepository)
+    {
+        $this->spkRepository = $spkRepository;
+    }
+
     public function index()
     {
-        $spks = Spk::paginate(10);
+        $spks = $this->spkRepository->getAllPaginated(10);
         return view("pages.spk.index", compact("spks"));
     }
 
@@ -18,13 +27,9 @@ class SpkController extends Controller
         return view("pages.spk.add");
     }
 
-    public function store(Request $request) {
-        $validated = $request->validate([
-            'fio' => 'required|string|max:255',
-            'coefficient' => 'required|numeric',
-        ]);
-
-        Spk::create($validated);
+    public function store(StoreSpkRequest $request) 
+    {
+        $this->spkRepository->create($request->validated());
 
         return redirect()->route('spk.index')
             ->with('success', "СПК создан!");
@@ -32,27 +37,20 @@ class SpkController extends Controller
 
     public function edit($id)
     {
-        $spk = Spk::findOrFail($id);
+        $spk = $this->spkRepository->findById($id);
         return view('pages.spk.edit', compact('spk'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateSpkRequest $request, $id)
     {
-        $validated = $request->validate([
-            'fio' => 'required|string|max:255',
-            'coefficient' => 'required|numeric',
-        ]);
-
-        $spk = Spk::findOrFail($id);
-        $spk->update($validated);
+        $this->spkRepository->update($id, $request->validated());
 
         return redirect()->route('spk.index')->with('success', 'СПК обновлен');
     }
 
     public function delete($id)
     {
-        $spk = Spk::findOrFail($id);
-        $spk->delete();
+        $this->spkRepository->delete($id);
         return redirect()->route('spk.index')->with('success', 'СПК удален');
     }
 }

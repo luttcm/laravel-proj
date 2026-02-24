@@ -2,14 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SoldFromCompany;
+use App\Http\Requests\StoreSoldFromCompanyRequest;
+use App\Http\Requests\UpdateSoldFromCompanyRequest;
+use App\Repositories\SoldFromCompanyRepository;
 use Illuminate\Http\Request;
 
 class SoldFromCompanyController extends Controller
 {
+    protected $companyRepository;
+
+    public function __construct(SoldFromCompanyRepository $companyRepository)
+    {
+        $this->companyRepository = $companyRepository;
+    }
+
     public function index()
     {
-        $companies = SoldFromCompany::paginate(10);
+        $companies = $this->companyRepository->getAllPaginated(10);
         return view("pages.sold_from_companies.index", compact("companies"));
     }
 
@@ -18,33 +27,23 @@ class SoldFromCompanyController extends Controller
         return view("pages.sold_from_companies.add");
     }
 
-    public function store(Request $request)
+    public function store(StoreSoldFromCompanyRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:sold_from_companies,name',
-        ]);
-
-        SoldFromCompany::create($validated);
+        $this->companyRepository->create($request->validated());
 
         return redirect()->route('sold-from-companies.index')
-            ->with('success', "Компания \"{$validated['name']}\" добавлена!");
+            ->with('success', "Компания \"{$request->validated()['name']}\" добавлена!");
     }
 
     public function edit($id)
     {
-        $company = SoldFromCompany::findOrFail($id);
+        $company = $this->companyRepository->findById($id);
         return view('pages.sold_from_companies.edit', compact('company'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateSoldFromCompanyRequest $request, $id)
     {
-        $company = SoldFromCompany::findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:sold_from_companies,name,' . $id,
-        ]);
-
-        $company->update($validated);
+        $this->companyRepository->update($id, $request->validated());
 
         return redirect()->route('sold-from-companies.index')
             ->with('success', 'Компания обновлена');
@@ -52,8 +51,7 @@ class SoldFromCompanyController extends Controller
 
     public function delete($id)
     {
-        $company = SoldFromCompany::findOrFail($id);
-        $company->delete();
+        $this->companyRepository->delete($id);
         return redirect()->route('sold-from-companies.index')
             ->with('success', 'Компания удалена');
     }
