@@ -16,6 +16,10 @@ Route::get('/auth', function () {
     return view('auth.auth');
 })->name('auth');
 
+Route::get('/login', function () {
+    return redirect()->route('auth');
+})->name('login');
+
 Route::post('/auth', [AuthController::class, 'webLogin'])->name('auth.post');
 
 Route::middleware(['auth', 'check.access'])->group(function () {
