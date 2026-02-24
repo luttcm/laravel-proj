@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -115,11 +117,26 @@ class AuthController extends Controller
         ]);
 
         $remember = $request->has('remember');
-        $rememberMinutes = (int) env('REMEMBER_ME_MINUTES', 43200); // 30 дней по умолчанию
+        $rememberMinutes = (int) env('REMEMBER_ME_MINUTES', 43200);
+
+        $user = User::where('email', $credentials['email'])->first();
+
+        \Log::info("Login attempt for {$credentials['email']}", [
+            'user_found' => (bool)$user,
+            'is_online' => $user ? Cache::has('user_session_' . $user->id) : false,
+            'cache_key' => $user ? 'user_session_' . $user->id : null
+        ]);
+
+        if ($user && Cache::has('user_session_' . $user->id)) {
+            return back()->withErrors([
+                'email' => 'Пользователь уже находится в системе с другого устройства.',
+            ])->onlyInput('email');
+        }
 
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
-            Auth::logoutOtherDevices($credentials['password']);
+            
+            Cache::put('user_session_' . Auth::id(), $request->session()->getId(), now()->addMinutes(2));
 
             if ($remember) {
                 $user = Auth::user();
@@ -148,6 +165,11 @@ class AuthController extends Controller
      */
     public function webLogout(Request $request)
     {
+        if (Auth::check()) {
+            \Log::info("User logout, clearing online status", ['user_id' => Auth::id()]);
+            Cache::forget('user_session_' . Auth::id());
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
