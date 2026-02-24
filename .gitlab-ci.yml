@@ -13,6 +13,9 @@ test:
     - cp .env.example .env
     - php artisan key:generate
     - php artisan test
+  only:
+    - master
+    - tags
 
 deploy:
   stage: deploy
@@ -27,7 +30,8 @@ deploy:
   script:
     - ssh $SERVER_USER@$SERVER_IP "
         cd public_html/app/ && 
-        git -c pack.threads=1 pull origin master && 
+        git fetch --tags && 
+        git checkout $CI_COMMIT_TAG && 
         php composer.phar install --no-dev --optimize-autoloader && 
         php artisan migrate --force && 
         php artisan config:cache && 
@@ -35,4 +39,4 @@ deploy:
         php artisan view:cache
       "
   only:
-    - master
+    - tags 
