@@ -25,7 +25,7 @@ deploy:
     - chmod 700 ~/.ssh
     - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
   script:
-    - $ ssh $SERVER_USER@$SERVER_IP "
+    - ssh $SERVER_USER@$SERVER_IP "
         cd public_html/app/ && 
         git -c pack.threads=1 pull origin master && 
         php8.2 composer.phar install --no-dev --optimize-autoloader && 
