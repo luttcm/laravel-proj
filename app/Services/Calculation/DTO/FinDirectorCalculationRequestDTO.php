@@ -19,15 +19,20 @@ class FinDirectorCalculationRequestDTO
 
     public static function fromRequest(Request $request): self
     {
+        return self::fromArray($request->all());
+    }
+
+    public static function fromArray(array $data): self
+    {
         return new self(
-            amount: (float)$request->input('amount', 0),
-            receivedAmount: (float)$request->input('received_amount', 0),
-            bonusClient: (float)$request->input('bonus_client', 0),
-            soldFrom: $request->input('sold_from'),
-            spkId: $request->input('spk_id') ? (int)$request->input('spk_id') : null,
-            spk: $request->input('spk'),
-            supplierAmount: (float)$request->input('supplier_amount', 0),
-            kickback: (float)$request->input('kickback', 0)
+            amount: (float)($data['amount'] ?? 0),
+            receivedAmount: (float)($data['received_amount'] ?? 0),
+            bonusClient: (float)($data['bonus_client'] ?? 0),
+            soldFrom: $data['sold_from'] ?? null,
+            spkId: isset($data['spk_id']) ? (int)$data['spk_id'] : null,
+            spk: $data['spk'] ?? null,
+            supplierAmount: (float)($data['supplier_amount'] ?? 0),
+            kickback: (float)($data['kickback'] ?? 0)
         );
     }
 }
