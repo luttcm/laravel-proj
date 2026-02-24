@@ -2,14 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Supplier;
+use App\Http\Requests\StoreSupplierRequest;
+use App\Http\Requests\UpdateSupplierRequest;
+use App\Repositories\SupplierRepository;
 use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
+    protected $supplierRepository;
+
+    public function __construct(SupplierRepository $supplierRepository)
+    {
+        $this->supplierRepository = $supplierRepository;
+    }
+
     public function index()
     {
-        $suppliers = Supplier::paginate(10);
+        $suppliers = $this->supplierRepository->getAllPaginated(10);
         return view("pages.supplier.index", compact("suppliers"));
     }
 
@@ -18,13 +27,9 @@ class SupplierController extends Controller
         return view("pages.supplier.add");
     }
 
-    public function store(Request $request) {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'vat' => 'required|numeric',
-        ]);
-
-        Supplier::create($validated);
+    public function store(StoreSupplierRequest $request) 
+    {
+        $this->supplierRepository->create($request->validated());
 
         return redirect()->route('supplier.index')
             ->with('success', "Поставщик создан!");
@@ -32,27 +37,20 @@ class SupplierController extends Controller
 
     public function edit($id)
     {
-        $supplier = Supplier::findOrFail($id);
+        $supplier = $this->supplierRepository->findById($id);
         return view('pages.supplier.edit', compact('supplier'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateSupplierRequest $request, $id)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'vat' => 'required|numeric',
-        ]);
-
-        $supplier = Supplier::findOrFail($id);
-        $supplier->update($validated);
+        $this->supplierRepository->update($id, $request->validated());
 
         return redirect()->route('supplier.index')->with('success', 'Поставщик обновлен');
     }
 
     public function delete($id)
     {
-        $supplier = Supplier::findOrFail($id);
-        $supplier->delete();
+        $this->supplierRepository->delete($id);
         return redirect()->route('supplier.index')->with('success', 'Поставщик удален');
     }
 }

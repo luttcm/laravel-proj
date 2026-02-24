@@ -2,15 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreVariableRequest;
+use App\Http\Requests\UpdateVariableRequest;
+use App\Repositories\VariableRepository;
+use App\Services\VariableService;
 use Illuminate\Http\Request;
-use App\Models\Variable;
+use Exception;
 
 class VariableController extends Controller
 {
+    protected $variableRepository;
+    protected $variableService;
+
+    public function __construct(VariableRepository $variableRepository, VariableService $variableService)
+    {
+        $this->variableRepository = $variableRepository;
+        $this->variableService = $variableService;
+    }
+
     public function index()
     {
-        $companyVariables = Variable::where('table_type', 'company')->paginate(10, ['*'], 'company_page');
-        $fncVariables = Variable::where('table_type', 'fnc')->paginate(10, ['*'], 'fnc_page');
+        $companyVariables = $this->variableRepository->getAllCompanyPaginated(10);
+        $fncVariables = $this->variableRepository->getAllFncPaginated(10);
         return view("pages.variables.index", compact("companyVariables", "fncVariables"));
     }
 
@@ -20,127 +33,36 @@ class VariableController extends Controller
         return view("pages.variables.add", compact("types"));
     }
 
-    public function store(Request $request) {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'title' => 'required|string|max:255',
-            'type' => 'required|string|in:float,integer',
-            'table_type' => 'required|string|in:company,fnc',
-            'value' => 'required|string|min:1',
-            'counteragent_type' => 'required|string|in:inn,ooo',
-        ]);
-
-        $value = trim($validated['value']);
-        $type = $validated['type'];
-
-        if ($type === 'integer') {
-            if (strpos((string)$value, ',') == true) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Используйте точку в качестве разделителя десятичных чисел');
-            }
-            if (!is_numeric($value)) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Целое число: введите число без букв');
-            }
-            $value = (int)$value;
-        } else {
-            if (strpos((string)$value, ',') == true) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Используйте точку в качестве разделителя десятичных чисел');
-            }
-            if (!is_numeric($value)) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Дробное число: введите число без букв');
-            }
-            $value = (float)$value;
-            if (strpos((string)$value, '.') === false) {
-                $value = $value . '.0';
-            }
+    public function store(StoreVariableRequest $request) 
+    {
+        try {
+            $this->variableService->createVariable($request->validated());
+            return redirect()->route('variables.index')->with('success', "Переменная создана!");
+        } catch (Exception $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
-
-        $user = Variable::create([
-            'name' => $validated['name'],
-            'title' => $validated['title'],
-            'value' => (string)$value,
-            'type' => $type,
-            'table_type' => $validated['table_type'],
-            'counteragent_type' => $validated['counteragent_type'],
-        ]);
-
-        return redirect()->route('variables.index')
-            ->with('success', "Переменная создана!");
     }
 
     public function edit($id)
     {
-        $variable = Variable::findOrFail($id);
+        $variable = $this->variableRepository->findById($id);
         $types = ["float", "integer"];
         return view('pages.variables.edit', compact('variable', 'types'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateVariableRequest $request, $id)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|in:float,integer',
-            'table_type' => 'required|string|in:company,fnc',
-            'value' => 'required|string|min:1',
-            'counteragent_type' => 'required|string|in:inn,ooo',
-        ]);
-
-        $value = trim($validated['value']);
-        $type = $validated['type'];
-
-        if ($type === 'integer') {
-            if (strpos((string)$value, ',') == true) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Используйте точку в качестве разделителя десятичных чисел');
-            }
-            if (!is_numeric($value)) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Целое число: введите число без букв');
-            }
-            $value = (int)$value;
-        } else {
-            if (strpos((string)$value, ',') == true) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Используйте точку в качестве разделителя десятичных чисел');
-            }
-            if (!is_numeric($value)) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Дробное число: введите число без букв');
-            }
-            $value = (float)$value;
-            if (strpos((string)$value, '.') === false) {
-                $value = $value . '.0';
-            }
+        try {
+            $this->variableService->updateVariable($id, $request->validated());
+            return redirect()->route('variables.index')->with('success', 'Переменная обновлена');
+        } catch (Exception $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
-
-        $variable = Variable::findOrFail($id);
-        $variable->title = $validated['title'];
-        $variable->name = $validated['name'];
-        $variable->type = $type;
-        $variable->table_type = $validated['table_type'];
-        $variable->value = (string)$value;
-        $variable->counteragent_type = $validated['counteragent_type'];
-        $variable->save();
-
-        return redirect()->route('variables.index')->with('success', 'Переменная обновлена');
     }
 
     public function delete($id)
     {
-        $variable = Variable::findOrFail($id);
-        $variable->delete();
+        $this->variableService->deleteVariable($id);
         return redirect()->route('variables.index')->with('success', 'Переменная удалена');
     }
 }
