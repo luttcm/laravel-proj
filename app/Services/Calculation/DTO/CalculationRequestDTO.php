@@ -28,4 +28,18 @@ class CalculationRequestDTO
             spkId: $request->input('spk_id') ? (int)$request->input('spk_id') : null
         );
     }
+
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            sellingType: (string)($data['selling_name'] ?? ''),
+            spk: (string)($data['spk'] ?? ''),
+            inTheHand: (float)($data['in_the_hand'] ?? 0),
+            purchasePrice: (float)($data['purchase_price'] ?? 0),
+            quantity: (int)($data['quantity'] ?? 1) ?: 1,
+            markupPercent: (float)($data['markup_percent'] ?? 0),
+            ndsPercentPurchase: (float)($data['nds_percent'] ?? 0),
+            spkId: isset($data['spk_id']) ? (int)$data['spk_id'] : null
+        );
+    }
 }

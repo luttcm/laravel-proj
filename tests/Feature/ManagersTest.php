@@ -55,7 +55,7 @@ class ManagersTest extends TestCase
     public function test_can_store_draft_report(): void
     {
         $response = $this->post(route('managers.store-drafts-report'), [
-            'report_title' => 'Draft Report',
+            'report_name' => 'Draft Report',
             'selling_name' => 'ООО (ОСН)',
             'purchase_price' => 100,
             'selling_price' => 150,
@@ -72,7 +72,7 @@ class ManagersTest extends TestCase
     public function test_can_store_final_report(): void
     {
         $response = $this->post(route('managers.store-report'), [
-            'report_title' => 'Final Report',
+            'report_name' => 'Final Report',
             'selling_name' => 'ООО (ОСН)',
             'purchase_price' => 100,
             'selling_price' => 150,
