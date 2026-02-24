@@ -2,42 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\News;
-use App\Models\Picture;
-use App\Models\Comment;
+use App\Http\Requests\StoreNewsRequest;
+use App\Http\Requests\UpdateNewsRequest;
+use App\Http\Requests\StoreCommentRequest;
+use App\Services\NewsService;
+use App\Services\CommentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class NewsController extends Controller
 {
+    protected $newsService;
+    protected $commentService;
+
+    public function __construct(NewsService $newsService, CommentService $commentService)
+    {
+        $this->newsService = $newsService;
+        $this->commentService = $commentService;
+    }
+
     public function index()
     {
-        $news = News::with('comments')->orderBy('created_at', 'desc')->get();
-
-        foreach ($news as $n) {
-            $n->pictures = Picture::where('entity_type', 'news')
-                ->where('entity_id', $n->id)
-                ->limit(9)
-                ->get()
-                ->map(fn($p) => asset($p->path));
-            
-            $n->firstPicture = $n->pictures->first();
-            $n->comments_count = $n->comments->count();
-        }
-
+        $news = $this->newsService->getAllNews();
         return view('pages.news.index', compact('news'));
     }
 
     public function show($id)
     {
-        $newsItem = News::findOrFail($id);
-        $pictures = Picture::where('entity_type', 'news')
-            ->where('entity_id', $id)
-            ->limit(9)
-            ->get();
-        $newsItem->load('author');
-        $comments = Comment::where('news_id', $id)->with('user')->latest()->get();
+        $details = $this->newsService->getNewsDetails($id);
+        $newsItem = $details['newsItem'];
+        $pictures = $details['pictures'];
+        
+        $comments = app(\App\Repositories\CommentRepository::class)->getByNewsId($id);
 
         $reactions = (int)($newsItem->reactions ?? 0);
 
@@ -80,97 +75,39 @@ class NewsController extends Controller
         return view('pages.news.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreNewsRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'images' => 'nullable|array|max:9',
-            'images.*' => 'nullable|image|max:4096',
-        ], [
-            'images.max' => 'Максимум 9 картинок в новости',
-        ]);
+        $result = $this->newsService->createNews(
+            $request->validated(), 
+            $request->file('images'), 
+            auth()->id()
+        );
 
-        $news = News::create([
-            'title' => $validated['title'],
-            'content' => $validated['content'],
-            'author_id' => auth()->id() ?? null,
-            'reactions' => 0,
-        ]);
-
-        $message = 'Новость добавлена';
-        if ($request->hasFile('images')) {
-            $imageCount = 0;
-            $skipped = 0;
-            foreach ($request->file('images') as $file) {
-                if ($imageCount >= 9) {
-                    $skipped++;
-                    continue;
-                }
-                $path = $file->store('news', 'public');
-                Picture::create([
-                    'path' => 'storage/' . $path,
-                    'entity_type' => 'news',
-                    'entity_id' => $news->id,
-                ]);
-                $imageCount++;
-            }
-            if ($skipped > 0) {
-                $message .= " ({$skipped} картинок пропущено - максимум 9)";
-            }
-        }
-
-        return redirect()->route('news.index')->with('success', $message);
+        return redirect()->route('news.index')->with('success', $result['message']);
     }
 
     public function edit($id)
     {
-        $news = News::findOrFail($id);
-        $pictures = Picture::where('entity_type', 'news')->where('entity_id', $id)->get();
+        $details = $this->newsService->getNewsDetails($id);
+        $news = $details['newsItem'];
+        $pictures = $details['pictures'];
         return view('pages.news.edit', compact('news', 'pictures'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateNewsRequest $request, $id)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'images' => 'nullable|array|max:9',
-            'images.*' => 'nullable|image|max:4096',
-        ], [
-            'images.max' => 'Максимум 9 картинок в новости',
-        ]);
+        $message = $this->newsService->updateNews(
+            $id,
+            $request->validated(),
+            $request->file('images')
+        );
 
-        $news = News::findOrFail($id);
-        $news->title = $validated['title'];
-        $news->content = $validated['content'];
-        $news->save();
-
-        if ($request->hasFile('images')) {
-            $existingCount = Picture::where('entity_type', 'news')->where('entity_id', $news->id)->count();
-            $canAdd = 9 - $existingCount;
-
-            $imageCount = 0;
-            foreach ($request->file('images') as $file) {
-                if ($imageCount >= $canAdd) break;
-                $path = $file->store('news', 'public');
-                Picture::create([
-                    'path' => 'storage/' . $path,
-                    'entity_type' => 'news',
-                    'entity_id' => $news->id,
-                ]);
-                $imageCount++;
-            }
-        }
-
-        return redirect()->route('news.show', ['id' => $news->id])->with('success', 'Новость обновлена');
+        return redirect()->route('news.show', ['id' => $id])->with('success', $message);
     }
 
     public function destroy($id)
     {
-        $news = News::findOrFail($id);
-        Picture::where('entity_type', 'news')->where('entity_id', $id)->delete();
-        $news->delete();
+        $this->newsService->deleteNews($id);
 
         if (request()->wantsJson() || request()->expectsJson() || request()->ajax()) {
             return response()->json(['success' => true, 'message' => 'Новость удалена']);
@@ -181,56 +118,33 @@ class NewsController extends Controller
 
     public function toggleLike(Request $request, $id)
     {
-        $news = News::findOrFail($id);
         $liked = session('liked_news', []);
-
-        $idInt = (int) $id;
         $liked = array_map('intval', $liked);
 
-        if (in_array($idInt, $liked)) {
-            $news->decrement('reactions');
-            $liked = array_values(array_diff($liked, [$idInt]));
-            $isLiked = false;
-        } else {
-            $news->increment('reactions');
-            $liked[] = $idInt;
-            $isLiked = true;
-        }
-
-        session(['liked_news' => $liked]);
+        $result = $this->newsService->toggleLike((int)$id, $liked);
+        
+        session(['liked_news' => $result['liked_news']]);
 
         if ($request->wantsJson() || $request->ajax() || $request->expectsJson()) {
             return response()->json([
-                'reactions' => $news->reactions,
-                'liked' => $isLiked,
+                'reactions' => $result['reactions'],
+                'liked' => $result['liked'],
             ]);
         }
 
         return redirect()->back();
     }
 
-    public function storeComment(Request $request, $newsId)
+    public function storeComment(StoreCommentRequest $request, $newsId)
     {
-        $news = News::findOrFail($newsId);
-        
-        try {
-            $validated = $request->validate([
-                'content' => 'required|string|max:500',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            if ($request->expectsJson()) {
-                return response()->json(['errors' => $e->errors()], 422);
-            }
-            throw $e;
-        }
-
-        $comment = Comment::create([
-            'news_id' => $newsId,
-            'user_id' => auth()->id(),
-            'content' => $validated['content'],
-        ]);
+        $comment = $this->commentService->createComment(
+            $request->validated(),
+            $newsId,
+            auth()->id()
+        );
 
         if ($request->expectsJson()) {
+            $comment->load('user');
             return response()->json([
                 'id' => $comment->id,
                 'content' => $comment->content,
@@ -248,24 +162,20 @@ class NewsController extends Controller
 
     public function deletePicture($pictureId)
     {
-        $picture = Picture::findOrFail($pictureId);
+        $picture = app(\App\Repositories\PictureRepository::class)->findById($pictureId);
         
         if ($picture->entity_type !== 'news') {
             abort(403);
         }
 
         $user = auth()->user();
-        $news = News::findOrFail($picture->entity_id);
+        $news = app(\App\Repositories\NewsRepository::class)->findById($picture->entity_id);
         
         if ($user->id !== $news->author_id && !in_array($user->role, ['admin', 'redactor'])) {
             abort(403);
         }
 
-        if (Storage::disk('public')->exists(str_replace('storage/', '', $picture->path))) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $picture->path));
-        }
-
-        $picture->delete();
+        $this->newsService->deletePicture($pictureId);
 
         if (request()->wantsJson()) {
             return response()->json(['success' => true]);
@@ -276,17 +186,18 @@ class NewsController extends Controller
 
     public function deleteComment($newsId, $commentId)
     {
-        $comment = Comment::findOrFail($commentId);
+        $comment = app(\App\Repositories\CommentRepository::class)->findById($commentId);
 
         if ($comment->news_id != $newsId) {
             abort(404);
         }
+        
         $user = auth()->user();
         if ($user->id !== $comment->user_id && !in_array($user->role, ['admin', 'redactor'])) {
             abort(403);
         }
 
-        $comment->delete();
+        $this->commentService->deleteComment($commentId);
 
         if (request()->wantsJson()) {
             return response()->json(['success' => true]);
@@ -295,3 +206,4 @@ class NewsController extends Controller
         return redirect()->back();
     }
 }
+

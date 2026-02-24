@@ -17,9 +17,11 @@ class FinDirectorController extends ManagersController
     public function __construct(
         \App\Services\Calculation\CalculationService $calculationService,
         FinReportService $finReportService,
-        ManagerReportService $managerReportService
+        ManagerReportService $managerReportService,
+        \App\Repositories\VariableRepository $variableRepository,
+        \App\Repositories\NdsRepository $ndsRepository
     ) {
-        parent::__construct($calculationService, $managerReportService);
+        parent::__construct($calculationService, $managerReportService, $variableRepository, $ndsRepository);
         $this->finReportService = $finReportService;
     }
 
