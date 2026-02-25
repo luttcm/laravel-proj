@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'role' => \App\Http\Middleware\CheckRole::class,
         'check.access' => \App\Http\Middleware\CheckPageAccess::class,
+        '2fa' => \App\Http\Middleware\CheckTwoFactor::class,
     ];
 }

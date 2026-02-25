@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ManagersController;
 use App\Http\Controllers\FinDirectorController;
+use App\Http\Controllers\TwoFactorController;
 
 Route::get('/auth', function () {
     return view('auth.auth');
@@ -22,7 +23,7 @@ Route::get('/login', function () {
 
 Route::post('/auth', [AuthController::class, 'webLogin'])->name('auth.post');
 
-Route::middleware(['auth', 'check.access'])->group(function () {
+Route::middleware(['auth', 'check.access', '2fa'])->group(function () {
     Route::get('/', function () {
         return redirect()->route('news.index');
     })->name('home');
@@ -84,6 +85,15 @@ Route::middleware(['auth', 'check.access'])->group(function () {
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
     Route::post('/profile/avatar', [UserController::class, 'updateAvatar'])->name('profile.avatar');
     Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
+
+    // 2FA
+    Route::get('/2fa/setup', [TwoFactorController::class, 'setup'])->name('2fa.setup');
+    Route::post('/2fa/confirm', [TwoFactorController::class, 'confirm'])->name('2fa.confirm');
+    Route::post('/2fa/disable', [TwoFactorController::class, 'disable'])->name('2fa.disable');
+    Route::get('/2fa/verify', function () {
+        return view('auth.2fa_verify');
+    })->name('2fa.verify');
+    Route::post('/2fa/verify', [AuthController::class, 'webVerify2fa'])->name('2fa.verify.post');
 
     // Новости
     Route::get('/news', [NewsController::class, 'index'])->name('news.index');

@@ -30,6 +30,7 @@ class TrackUserOnline
                 ]);
 
                 Auth::logout();
+                Cache::forget('user_session_' . $userId);
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 

@@ -12,7 +12,7 @@ class AuthController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['auth', 'register', 'webLogin', 'webLogout', 'loginView']]);
+        $this->middleware('auth:api', ['except' => ['auth', 'register', 'webLogin', 'webLogout', 'loginView', 'webVerify2fa']]);
     }
 
     /**
@@ -127,7 +127,7 @@ class AuthController extends Controller
             'cache_key' => $user ? 'user_session_' . $user->id : null
         ]);
 
-        if ($user && Cache::has('user_session_' . $user->id)) {
+        if ($user && Cache::has('user_session_' . $user->id) && Cache::get('user_session_' . $user->id) !== $request->session()->getId()) {
             return back()->withErrors([
                 'email' => 'Пользователь уже находится в системе с другого устройства.',
             ])->onlyInput('email');
@@ -136,7 +136,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
             
-            Cache::put('user_session_' . Auth::id(), $request->session()->getId(), now()->addMinutes(2));
+            Cache::put('user_session_' . Auth::id(), $request->session()->getId(), now()->addMinutes(120));
 
             if ($remember) {
                 $user = Auth::user();
@@ -152,6 +152,12 @@ class AuthController extends Controller
                     $rememberMinutes
                 ));
             }
+            if ($user->two_factor_confirmed_at) {
+                // Если 2FA включена, перенаправляем на проверку кода
+                session()->put('2fa_verified', false);
+                return redirect()->route('2fa.verify');
+            }
+
             return redirect('/users');
         }
 
@@ -171,8 +177,31 @@ class AuthController extends Controller
         }
 
         Auth::logout();
+        $request->session()->forget('2fa_verified');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect('/auth');
+    }
+
+    /**
+     * Проверка 2FA кода (веб)
+     */
+    public function webVerify2fa(Request $request)
+    {
+        $request->validate([
+            'one_time_password' => 'required',
+        ]);
+
+        $user = Auth::user();
+        $google2fa = app('pragmarx.google2fa');
+
+        $valid = $google2fa->verifyKey($user->google2fa_secret, $request->one_time_password);
+
+        if ($valid) {
+            $request->session()->put('2fa_verified', true);
+            return redirect('/users');
+        }
+
+        return back()->withErrors(['one_time_password' => 'Неверный код. Попробуйте еще раз.']);
     }
 }

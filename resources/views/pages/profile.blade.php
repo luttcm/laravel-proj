@@ -53,6 +53,30 @@ $displayName = $roleNames[$user->role] ?? ucfirst($user->role);
 
     <div class="profile-card">
         <div class="profile-card-header">
+            <h6 style="margin: 0; font-weight: 600;">Двухфакторная аутентификация (2FA)</h6>
+        </div>
+        <div class="profile-card-body">
+            @if(auth()->user()->two_factor_confirmed_at)
+                <div class="alert alert-success d-flex align-items-center" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <div>2FA включена</div>
+                </div>
+                <form method="POST" action="{{ route('2fa.disable') }}">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-danger w-100" style="border-radius: 6px;">Отключить 2FA</button>
+                </form>
+            @else
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div>2FA не настроена</div>
+                </div>
+                <a href="{{ route('2fa.setup') }}" class="btn btn-primary w-100" style="border-radius: 6px;">Настроить 2FA</a>
+            @endif
+        </div>
+    </div>
+
+    <div class="profile-card">
+        <div class="profile-card-header">
             <h6 style="margin: 0; font-weight: 600;">Фото профиля</h6>
         </div>
         <div class="profile-card-body">
