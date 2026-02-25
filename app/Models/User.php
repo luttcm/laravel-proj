@@ -22,6 +22,8 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'role',
+        'google2fa_secret',
+        'two_factor_confirmed_at',
     ];
 
     /**
@@ -32,6 +34,7 @@ class User extends Authenticatable implements JWTSubject
     protected $hidden = [
         'password',
         'remember_token',
+        'google2fa_secret',
     ];
 
     /**
@@ -42,6 +45,8 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'google2fa_secret' => 'encrypted',
+        'two_factor_confirmed_at' => 'datetime',
     ];
 
     /**

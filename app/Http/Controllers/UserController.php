@@ -62,7 +62,7 @@ class UserController extends Controller
     public function profile()
     {
         $user = auth()->user();
-        $picture = $this->pictureRepository->findByCondition('user', $user->id)->first();
+        $picture = $this->pictureRepository->getByEntity('user', $user->id)->first();
 
         return view('pages.profile', compact('user', 'picture'));
     }
