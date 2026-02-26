@@ -1,0 +1,17 @@
+Note: Using configuration file /var/www/html/app/phpstan.neon.
+ ------ -------------------------------------------------------------------- 
+  Line   Services/NewsService.php                                            
+ ------ -------------------------------------------------------------------- 
+  185    Ternary operator condition is always true.                          
+         💡 Because the type is coming from a PHPDoc, you can turn off this  
+            check by setting treatPhpDocTypesAsCertain: false in your        
+            phpstan.neon.                                                    
+  186    Ternary operator condition is always true.                          
+         💡 Because the type is coming from a PHPDoc, you can turn off this  
+            check by setting treatPhpDocTypesAsCertain: false in your        
+            phpstan.neon.                                                    
+ ------ -------------------------------------------------------------------- 
+
+
+ [ERROR] Found 2 errors                                                         
+

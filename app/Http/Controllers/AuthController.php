@@ -8,10 +8,20 @@ use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
+use App\Services\AuthService;
+use App\Services\UserService;
+
 class AuthController extends Controller
 {
-    public function __construct()
+    /** @var AuthService */
+    protected $authService;
+    /** @var UserService */
+    protected $userService;
+
+    public function __construct(AuthService $authService, UserService $userService)
     {
+        $this->authService = $authService;
+        $this->userService = $userService;
         $this->middleware('auth:api', ['except' => ['auth', 'register', 'webLogin', 'webLogout', 'loginView', 'webVerify2fa']]);
     }
 
@@ -44,18 +54,11 @@ class AuthController extends Controller
             'role' => 'nullable|string|in:user,admin,finance,redactor,manager',
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'created_at' => now(),
-            'updated_at' => now(),
-            'role' => $validated['role'] ?? 'user',
-        ]);
+        $result = $this->userService->createUser($validated);
 
         return response()->json([
             'message' => 'Пользователь успешно зарегистрирован',
-            'user' => $user,
+            'user' => $result['user'],
         ], 201);
     }
 
@@ -157,14 +160,7 @@ class AuthController extends Controller
      */
     protected function respondWithToken(string $token): \Illuminate\Http\JsonResponse
     {
-        /** @var \Tymon\JWTAuth\JWTGuard $guard */
-        $guard = Auth::guard('api');
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'expires_in' => $guard->factory()->getTTL() * 60,
-            'user' => $guard->user(),
-        ]);
+        return response()->json($this->authService->getRespondWithToken($token));
     }
 
     /**
@@ -193,60 +189,13 @@ class AuthController extends Controller
         ]);
 
         $remember = $request->has('remember');
-        $rememberMinutes = (int) env('REMEMBER_ME_MINUTES', 43200);
+        $result = $this->authService->webLogin($credentials, $remember, $request);
 
-        $user = User::where('email', $credentials['email'])->first();
-
-        \Log::info("Login attempt for {$credentials['email']}", [
-            'user_found' => (bool)$user,
-            'is_online' => $user ? Cache::has('user_session_' . $user->id) : false,
-            'cache_key' => $user ? 'user_session_' . $user->id : null
-        ]);
-
-        if ($user && Cache::has('user_session_' . $user->id) && Cache::get('user_session_' . $user->id) !== $request->session()->getId()) {
-            return back()->withErrors([
-                'email' => 'Пользователь уже находится в системе с другого устройства.',
-            ])->onlyInput('email');
+        if (!$result['success']) {
+            return back()->withErrors($result['errors'] ?? [])->onlyInput('email');
         }
 
-        if (Auth::attempt($credentials, $remember)) {
-            $request->session()->regenerate();
-            
-            Cache::put('user_session_' . Auth::id(), $request->session()->getId(), now()->addMinutes(120));
-
-            /** @var \App\Models\User $user */
-            $user = Auth::user();
-
-            if ($remember) {
-                $token = $user->getRememberToken();
-                if (!$token) {
-                    $user->setRememberToken(Str::random(60));
-                    $user->save();
-                    $token = $user->getRememberToken();
-                }
-                /** @var string $name */
-                $name = Auth::getRecallerName();
-                if (empty($name)) {
-                    $name = 'remember_web';
-                }
-                cookie()->queue(cookie(
-                    $name,
-                    $user->getAuthIdentifier().'|'.$token.'|'.$user->password,
-                    $rememberMinutes
-                ));
-            }
-            if ($user->two_factor_confirmed_at) {
-                // Если 2FA включена, перенаправляем на проверку кода
-                session()->put('2fa_verified', false);
-                return redirect()->route('2fa.verify');
-            }
-
-            return redirect('/users');
-        }
-
-        return back()->withErrors([
-            'email' => 'Неправильные введенные логин или пароль.',
-        ])->onlyInput('email');
+        return redirect($result['redirect'] ?? '/users');
     }
 
     /**
@@ -275,12 +224,7 @@ class AuthController extends Controller
             'one_time_password' => 'required',
         ]);
 
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        /** @var \PragmaRX\Google2FA\Google2FA $google2fa */
-        $google2fa = app('pragmarx.google2fa');
-
-        $valid = $google2fa->verifyKey((string)$user->google2fa_secret, (string)$request->one_time_password);
+        $valid = $this->authService->verify2fa((string)$request->one_time_password);
 
         if ($valid) {
             $request->session()->put('2fa_verified', true);

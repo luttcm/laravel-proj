@@ -43,6 +43,17 @@ class ManagerReportService
     }
 
     /**
+     * Get latest reports for a user.
+     * @param int $userId
+     * @param int $limit
+     * @return Collection<int, Model>
+     */
+    public function getLatestReports(int $userId, int $limit = 10): Collection
+    {
+        return $this->reportRepository->getLatest(Reports::class, $userId, $limit);
+    }
+
+    /**
      * Save a report (draft or history).
      * @param array<string, mixed> $data
      * @param class-string<Model> $modelClass

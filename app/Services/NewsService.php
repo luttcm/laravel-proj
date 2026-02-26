@@ -153,6 +153,61 @@ class NewsService
         return $this->pictureRepository->delete($pictureId);
     }
 
+    /**
+     * @param \App\Models\News $newsItem
+     * @param \Illuminate\Database\Eloquent\Collection<int, \App\Models\Picture> $pictures
+     * @param \App\Models\User|null $user
+     * @return array<string, mixed>
+     */
+    public function formatNewsShowResponse($newsItem, $pictures, $user): array
+    {
+        $comments = app(\App\Repositories\CommentRepository::class)->getByNewsId($newsItem->id);
+        $reactions = (int)($newsItem->reactions ?? 0);
+        
+        $canEdit = $user && in_array($user->role, ['admin', 'manager']);
+        $canDelete = $user && in_array($user->role, ['admin', 'redactor', 'manager']);
+
+        return [
+            'id' => $newsItem->id,
+            'title' => $newsItem->title,
+            'content' => $newsItem->content,
+            'reactions' => $reactions,
+            'author' => $newsItem->author ? [
+                'name' => $newsItem->author->name,
+                'role' => $newsItem->author->role,
+            ] : null,
+            'created_at' => $newsItem->created_at,
+            'pictures' => $pictures->map(fn($p) => ['path' => asset($p->path)])->all(),
+            'comments' => $comments->map(fn(\App\Models\Comment $c) => [
+                'id' => $c->id,
+                'content' => $c->content,
+                'user' => [
+                    'id' => $c->user->id,
+                    'name' => $c->user->name,
+                ],
+                'created_at' => $c->created_at ? $c->created_at->format('Y-m-d H:i') : '',
+                'canDelete' => $user && ($user->id === $c->user_id || in_array($user->role, ['admin', 'redactor'])),
+            ])->all(),
+            'canEdit' => $canEdit,
+            'canDelete' => $canDelete,
+        ];
+    }
+
+    public function canUserManagePicture(\App\Models\User $user, int $pictureId): bool
+    {
+        $picture = $this->pictureRepository->findById($pictureId);
+        if (!$picture || $picture->entity_type !== 'news') {
+            return false;
+        }
+
+        $news = $this->newsRepository->findById($picture->entity_id);
+        if (!$news) {
+            return false;
+        }
+
+        return $user->id === (int)$news->author_id || in_array($user->role, ['admin', 'redactor']);
+    }
+
     protected function deleteEntityPictures(string $entityType, int $entityId): void
     {
         $pictures = $this->pictureRepository->getByEntity($entityType, $entityId);

@@ -56,40 +56,9 @@ class NewsController extends Controller
             abort(404);
         }
         $pictures = $details['pictures'];
-        
-        $comments = app(\App\Repositories\CommentRepository::class)->getByNewsId($id);
-
-        $reactions = (int)($newsItem->reactions ?? 0);
 
         if (request()->wantsJson() || request()->expectsJson() || request()->ajax()) {
-            $user = auth()->user();
-            $canEdit = $user && in_array($user->role, ['admin', 'manager']);
-            $canDelete = $user && in_array($user->role, ['admin', 'redactor', 'manager']);
-
-            return response()->json([
-                'id' => $newsItem->id,
-                'title' => $newsItem->title,
-                'content' => $newsItem->content,
-                'reactions' => $reactions,
-                'author' => $newsItem->author ? [
-                    'name' => $newsItem->author->name,
-                    'role' => $newsItem->author->role,
-                ] : null,
-                'created_at' => $newsItem->created_at,
-                'pictures' => $pictures->map(fn($p) => ['path' => asset($p->path)])->all(),
-                'comments' => $comments->map(fn(\App\Models\Comment $c) => [
-                    'id' => $c->id,
-                    'content' => $c->content,
-                    'user' => [
-                        'id' => $c->user->id,
-                        'name' => $c->user->name,
-                    ],
-                    'created_at' => $c->created_at ? $c->created_at->format('Y-m-d H:i') : '',
-                    'canDelete' => $user && ($user->id === $c->user_id || in_array($user->role, ['admin', 'redactor'])),
-                ])->all(),
-                'canEdit' => $canEdit,
-                'canDelete' => $canDelete,
-            ]);
+            return response()->json($this->newsService->formatNewsShowResponse($newsItem, $pictures, auth()->user()));
         }
 
         return view('pages.news.detail', compact('newsItem', 'pictures'));
@@ -287,22 +256,8 @@ class NewsController extends Controller
      */
     public function deletePicture(int $pictureId): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
-        $picture = app(\App\Repositories\PictureRepository::class)->findById($pictureId);
-        if (!$picture) {
-            abort(404);
-        }
-        
-        if ($picture->entity_type !== 'news') {
-            abort(403);
-        }
-
         $user = auth()->user();
-        $news = app(\App\Repositories\NewsRepository::class)->findById($picture->entity_id);
-        if (!$news || !$user) {
-            abort(404);
-        }
-        
-        if ($user->id !== $news->author_id && !in_array($user->role, ['admin', 'redactor'])) {
+        if (!$user || !$this->newsService->canUserManagePicture($user, $pictureId)) {
             abort(403);
         }
 

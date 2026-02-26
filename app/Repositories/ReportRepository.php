@@ -18,9 +18,27 @@ class ReportRepository
      */
     public function getForManager(string $modelClass, int $managerId): Collection
     {
-        return $modelClass::where('manager_id', $managerId)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        return $this->getLatest($modelClass, $managerId);
+    }
+
+    /**
+     * Get latest reports for a specific manager, with optional limit.
+     *
+     * @param class-string<Model> $modelClass
+     * @param int $managerId
+     * @param int|null $limit
+     * @return Collection<int, Model>
+     */
+    public function getLatest(string $modelClass, int $managerId, ?int $limit = null): Collection
+    {
+        $query = $modelClass::where('manager_id', $managerId)
+            ->orderBy('created_at', 'desc');
+
+        if ($limit) {
+            $query->take($limit);
+        }
+
+        return $query->get();
     }
 
     /**
