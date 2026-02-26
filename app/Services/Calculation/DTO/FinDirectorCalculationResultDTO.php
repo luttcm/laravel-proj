@@ -13,6 +13,9 @@ class FinDirectorCalculationResultDTO
         public readonly float $markup = 0
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         return [

@@ -8,18 +8,44 @@ use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
+use App\Services\AuthService;
+use App\Services\UserService;
+
 class AuthController extends Controller
 {
-    public function __construct()
+    /** @var AuthService */
+    protected $authService;
+    /** @var UserService */
+    protected $userService;
+
+    public function __construct(AuthService $authService, UserService $userService)
     {
+        $this->authService = $authService;
+        $this->userService = $userService;
         $this->middleware('auth:api', ['except' => ['auth', 'register', 'webLogin', 'webLogout', 'loginView', 'webVerify2fa']]);
     }
 
     /**
-     * Регистрация нового пользователя
-     * @param Request $request
+     * @OA\Post(
+     *     path="/api/register",
+     *     summary="Регистрация пользователя",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","email","password","password_confirmation"},
+     *             @OA\Property(property="name", type="string", example="Иван Иванов"),
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="secret123"),
+     *             @OA\Property(property="password_confirmation", type="string", example="secret123"),
+     *             @OA\Property(property="role", type="string", enum={"user","admin","finance","redactor","manager"})
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Пользователь зарегистрирован"),
+     *     @OA\Response(response=422, description="Ошибка валидации")
+     * )
      */
-    public function register(Request $request)
+    public function register(Request $request): \Illuminate\Http\JsonResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -28,25 +54,39 @@ class AuthController extends Controller
             'role' => 'nullable|string|in:user,admin,finance,redactor,manager',
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'created_at' => now(),
-            'updated_at' => now(),
-            'role' => $validated['role'] ?? 'user',
-        ]);
+        $result = $this->userService->createUser($validated);
 
         return response()->json([
             'message' => 'Пользователь успешно зарегистрирован',
-            'user' => $user,
+            'user' => $result['user'],
         ], 201);
     }
 
     /**
-     * Вход пользователя
+     * @OA\Post(
+     *     path="/api/auth",
+     *     summary="Вход пользователя (получение JWT токена)",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="secret123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200, description="Успешный вход",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="access_token", type="string"),
+     *             @OA\Property(property="token_type", type="string", example="Bearer"),
+     *             @OA\Property(property="expires_in", type="integer", example=3600)
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Неверные учётные данные")
+     * )
      */
-    public function login(Request $request)
+    public function login(Request $request): \Illuminate\Http\JsonResponse
     {
         $credentials = $request->validate([
             'email' => 'required|string|email',
@@ -57,51 +97,83 @@ class AuthController extends Controller
             return response()->json(['message' => 'Неверные учетные данные'], 401);
         }
 
-        return $this->respondWithToken($token);
+        return $this->respondWithToken((string)$token);
     }
 
     /**
-     * Получить текущего пользователя
+     * @OA\Get(
+     *     path="/api/me",
+     *     summary="Получить текущего пользователя",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Данные пользователя"),
+     *     @OA\Response(response=401, description="Не авторизован")
+     * )
      */
-    public function me()
+    public function me(): \Illuminate\Http\JsonResponse
     {
         return response()->json(Auth::guard('api')->user());
     }
 
     /**
-     * Выход пользователя
+     * @OA\Post(
+     *     path="/api/logout",
+     *     summary="Выход пользователя",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Успешный выход"),
+     *     @OA\Response(response=401, description="Не авторизован")
+     * )
      */
-    public function logout()
+    public function logout(): \Illuminate\Http\JsonResponse
     {
         Auth::guard('api')->logout();
         return response()->json(['message' => 'Успешный выход']);
     }
 
     /**
-     * Обновить токен
+     * @OA\Post(
+     *     path="/api/refresh",
+     *     summary="Обновить JWT токен",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200, description="Новый токен",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="access_token", type="string"),
+     *             @OA\Property(property="token_type", type="string", example="Bearer"),
+     *             @OA\Property(property="expires_in", type="integer", example=3600)
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Не авторизован")
+     * )
      */
-    public function refresh()
+    public function refresh(): \Illuminate\Http\JsonResponse
     {
-        return $this->respondWithToken(Auth::guard('api')->refresh());
+        /** @var \Tymon\JWTAuth\JWTGuard $guard */
+        $guard = Auth::guard('api');
+        return $this->respondWithToken($guard->refresh());
     }
 
     /**
      * Вернуть JSON ответ с токеном
      */
-    protected function respondWithToken($token)
+    protected function respondWithToken(string $token): \Illuminate\Http\JsonResponse
     {
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'expires_in' => Auth::guard('api')->factory()->getTTL() * 60,
-            'user' => Auth::guard('api')->user(),
-        ]);
+        return response()->json($this->authService->getRespondWithToken($token));
     }
 
     /**
      * Показать форму входа (веб)
      */
-    public function loginView()
+    /**
+     * @OA\Get(
+     *     path="/auth",
+     *     summary="Display login page",
+     *     @OA\Response(response=200, description="Login page")
+     * )
+     */
+    public function loginView(): \Illuminate\View\View
     {
         return view('auth.auth');
     }
@@ -109,7 +181,7 @@ class AuthController extends Controller
     /**
      * Вход пользователя (веб)
      */
-    public function webLogin(Request $request)
+    public function webLogin(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $credentials = $request->validate([
             'email' => 'required|string|email',
@@ -117,59 +189,19 @@ class AuthController extends Controller
         ]);
 
         $remember = $request->has('remember');
-        $rememberMinutes = (int) env('REMEMBER_ME_MINUTES', 43200);
+        $result = $this->authService->webLogin($credentials, $remember, $request);
 
-        $user = User::where('email', $credentials['email'])->first();
-
-        \Log::info("Login attempt for {$credentials['email']}", [
-            'user_found' => (bool)$user,
-            'is_online' => $user ? Cache::has('user_session_' . $user->id) : false,
-            'cache_key' => $user ? 'user_session_' . $user->id : null
-        ]);
-
-        if ($user && Cache::has('user_session_' . $user->id) && Cache::get('user_session_' . $user->id) !== $request->session()->getId()) {
-            return back()->withErrors([
-                'email' => 'Пользователь уже находится в системе с другого устройства.',
-            ])->onlyInput('email');
+        if (!$result['success']) {
+            return back()->withErrors($result['errors'] ?? [])->onlyInput('email');
         }
 
-        if (Auth::attempt($credentials, $remember)) {
-            $request->session()->regenerate();
-            
-            Cache::put('user_session_' . Auth::id(), $request->session()->getId(), now()->addMinutes(120));
-
-            if ($remember) {
-                $user = Auth::user();
-                $token = $user->getRememberToken();
-                if (!$token) {
-                    $user->setRememberToken(Str::random(60));
-                    $user->save();
-                    $token = $user->getRememberToken();
-                }
-                cookie()->queue(cookie(
-                    Auth::getRecallerName(),
-                    $user->getAuthIdentifier().'|'.$token.'|'.$user->password,
-                    $rememberMinutes
-                ));
-            }
-            if ($user->two_factor_confirmed_at) {
-                // Если 2FA включена, перенаправляем на проверку кода
-                session()->put('2fa_verified', false);
-                return redirect()->route('2fa.verify');
-            }
-
-            return redirect('/users');
-        }
-
-        return back()->withErrors([
-            'email' => 'Неправильные введенные логин или пароль.',
-        ])->onlyInput('email');
+        return redirect($result['redirect'] ?? '/users');
     }
 
     /**
      * Выход пользователя (веб)
      */
-    public function webLogout(Request $request)
+    public function webLogout(Request $request): \Illuminate\Http\RedirectResponse
     {
         if (Auth::check()) {
             \Log::info("User logout, clearing online status", ['user_id' => Auth::id()]);
@@ -186,16 +218,13 @@ class AuthController extends Controller
     /**
      * Проверка 2FA кода (веб)
      */
-    public function webVerify2fa(Request $request)
+    public function webVerify2fa(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
             'one_time_password' => 'required',
         ]);
 
-        $user = Auth::user();
-        $google2fa = app('pragmarx.google2fa');
-
-        $valid = $google2fa->verifyKey($user->google2fa_secret, $request->one_time_password);
+        $valid = $this->authService->verify2fa((string)$request->one_time_password);
 
         if ($valid) {
             $request->session()->put('2fa_verified', true);

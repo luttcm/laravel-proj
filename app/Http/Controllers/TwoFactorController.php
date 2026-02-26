@@ -17,8 +17,12 @@ class TwoFactorController extends Controller
     /**
      * Показать страницу настройки 2FA
      */
-    public function setup()
+    /**
+     * Показать страницу настройки 2FA
+     */
+    public function setup(): \Illuminate\View\View
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $google2fa = app('pragmarx.google2fa');
 
@@ -30,13 +34,13 @@ class TwoFactorController extends Controller
         $qrCodeUrl = $google2fa->getQRCodeUrl(
             config('app.name'),
             $user->email,
-            $user->google2fa_secret
+            (string)$user->google2fa_secret
         );
 
         $google2faUrl = app('pragmarx.google2fa')->getQRCodeInline(
             config('app.name'),
             $user->email,
-            $user->google2fa_secret
+            (string)$user->google2fa_secret
         );
 
         return view('auth.2fa_setup', [
@@ -49,13 +53,17 @@ class TwoFactorController extends Controller
     /**
      * Подтвердить настройку 2FA
      */
-    public function confirm(Request $request)
+    /**
+     * Подтвердить настройку 2FA
+     */
+    public function confirm(Request $request): \Illuminate\Http\RedirectResponse
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $google2fa = app('pragmarx.google2fa');
 
-        $secret = $request->input('code');
-        $valid = $google2fa->verifyKey($user->google2fa_secret, $secret);
+        $secret = (string)$request->input('code');
+        $valid = $google2fa->verifyKey((string)$user->google2fa_secret, $secret);
 
         if ($valid) {
             $user->two_factor_confirmed_at = now();
@@ -72,8 +80,12 @@ class TwoFactorController extends Controller
     /**
      * Отключить 2FA
      */
-    public function disable()
+    /**
+     * Отключить 2FA
+     */
+    public function disable(): \Illuminate\Http\RedirectResponse
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $user->google2fa_secret = null;
         $user->two_factor_confirmed_at = null;

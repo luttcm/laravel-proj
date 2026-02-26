@@ -10,7 +10,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class FinReportService
 {
+    /** @var FinReportRepository */
     protected $repository;
+    /** @var FinDirectorCalculationStrategy */
     protected $calculationStrategy;
 
     public function __construct(
@@ -23,6 +25,8 @@ class FinReportService
 
     /**
      * Get paginated reports for the current user.
+     * @param int $userId
+     * @return LengthAwarePaginator<FinReport>
      */
     public function getPaginatedForUser(int $userId): LengthAwarePaginator
     {
@@ -31,6 +35,9 @@ class FinReportService
 
     /**
      * Create a new financial report.
+     * @param array<string, mixed> $data
+     * @param int $userId
+     * @return FinReport
      */
     public function createReport(array $data, int $userId): FinReport
     {
@@ -64,6 +71,10 @@ class FinReportService
 
     /**
      * Update an existing financial report.
+     * @param int $id
+     * @param array<string, mixed> $data
+     * @param int $userId
+     * @return bool
      */
     public function updateReport(int $id, array $data, int $userId): bool
     {

@@ -11,7 +11,9 @@ use Exception;
 
 class NdsController extends Controller
 {
+    /** @var NdsRepository */
     protected $ndsRepository;
+    /** @var NdsService */
     protected $ndsService;
 
     public function __construct(NdsRepository $ndsRepository, NdsService $ndsService)
@@ -20,18 +22,18 @@ class NdsController extends Controller
         $this->ndsService = $ndsService;
     }
 
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         $nds = $this->ndsRepository->getAllPaginated(10);
         return view("pages.nds.index", compact("nds"));
     }
 
-     public function add()
+     public function add(): \Illuminate\View\View
     {
         return view("pages.nds.add");
     }
 
-    public function store(StoreNdsRequest $request) 
+    public function store(StoreNdsRequest $request): \Illuminate\Http\RedirectResponse
     {
         try {
             $this->ndsService->createNds($request->validated());
@@ -41,13 +43,13 @@ class NdsController extends Controller
         }
     }
 
-    public function edit($id)
+    public function edit(int $id): \Illuminate\View\View
     {
         $nds = $this->ndsRepository->findById($id);
         return view('pages.nds.edit', compact('nds'));
     }
 
-    public function update(UpdateNdsRequest $request, $id)
+    public function update(UpdateNdsRequest $request, int $id): \Illuminate\Http\RedirectResponse
     {
         try {
             $this->ndsService->updateNds($id, $request->validated());
@@ -57,7 +59,7 @@ class NdsController extends Controller
         }
     }
 
-    public function delete($id)
+    public function delete(int $id): \Illuminate\Http\RedirectResponse
     {
         $this->ndsService->deleteNds($id);
         return redirect()->route('nds.index')->with('success', 'НДС удален');

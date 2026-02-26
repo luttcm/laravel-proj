@@ -9,7 +9,9 @@ use Illuminate\Support\Str;
 
 class UserService
 {
+    /** @var UserRepository */
     protected $userRepository;
+    /** @var PictureRepository */
     protected $pictureRepository;
 
     public function __construct(UserRepository $userRepository, PictureRepository $pictureRepository)
@@ -18,6 +20,10 @@ class UserService
         $this->pictureRepository = $pictureRepository;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
     public function createUser(array $data)
     {
         $password = $data['password'] ?? Str::random(12);
@@ -41,17 +47,22 @@ class UserService
         ];
     }
     
+    /**
+     * @param int $id
+     * @param array<string, mixed> $data
+     * @return bool
+     */
     public function updateUser(int $id, array $data)
     {
         return $this->userRepository->update($id, $data);
     }
 
-    public function deleteUser(int $id)
+    public function deleteUser(int $id): bool
     {
         return $this->userRepository->delete($id);
     }
     
-    public function updateAvatar(int $userId, string $path)
+    public function updateAvatar(int $userId, string $path): \App\Models\Picture
     {
         $this->pictureRepository->deleteByEntity('user', $userId);
         

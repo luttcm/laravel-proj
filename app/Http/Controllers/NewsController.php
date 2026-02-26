@@ -11,7 +11,9 @@ use Illuminate\Http\Request;
 
 class NewsController extends Controller
 {
+    /** @var NewsService */
     protected $newsService;
+    /** @var CommentService */
     protected $commentService;
 
     public function __construct(NewsService $newsService, CommentService $commentService)
@@ -20,81 +22,121 @@ class NewsController extends Controller
         $this->commentService = $commentService;
     }
 
-    public function index()
+    /**
+     * @OA\Get(
+     *     path="/news",
+     *     summary="Список новостей",
+     *     tags={"News"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Список новостей (HTML или JSON)")
+     * )
+     */
+    public function index(): \Illuminate\View\View
     {
         $news = $this->newsService->getAllNews();
         return view('pages.news.index', compact('news'));
     }
 
-    public function show($id)
+    /**
+     * @OA\Get(
+     *     path="/news/{id}",
+     *     summary="Детали новости",
+     *     tags={"News"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Данные новости"),
+     *     @OA\Response(response=404, description="Новость не найдена")
+     * )
+     */
+    public function show(int $id): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\View\View
     {
         $details = $this->newsService->getNewsDetails($id);
         $newsItem = $details['newsItem'];
+        if (!$newsItem) {
+            abort(404);
+        }
         $pictures = $details['pictures'];
-        
-        $comments = app(\App\Repositories\CommentRepository::class)->getByNewsId($id);
-
-        $reactions = (int)($newsItem->reactions ?? 0);
 
         if (request()->wantsJson() || request()->expectsJson() || request()->ajax()) {
-            $user = auth()->user();
-            $canEdit = $user && in_array($user->role, ['admin', 'manager']);
-            $canDelete = $user && in_array($user->role, ['admin', 'redactor', 'manager']);
-
-            return response()->json([
-                'id' => $newsItem->id,
-                'title' => $newsItem->title,
-                'content' => $newsItem->content,
-                'reactions' => $reactions,
-                'author' => $newsItem->author ? [
-                    'name' => $newsItem->author->name,
-                    'role' => $newsItem->author->role,
-                ] : null,
-                'created_at' => $newsItem->created_at,
-                'pictures' => $pictures->map(fn($p) => ['path' => asset($p->path)])->all(),
-                'comments' => $comments->map(fn($c) => [
-                    'id' => $c->id,
-                    'content' => $c->content,
-                    'user' => [
-                        'id' => $c->user->id,
-                        'name' => $c->user->name,
-                    ],
-                    'created_at' => $c->created_at->format('Y-m-d H:i'),
-                    'canDelete' => $user && ($user->id === $c->user_id || in_array($user->role, ['admin', 'redactor'])),
-                ])->all(),
-                'canEdit' => $canEdit,
-                'canDelete' => $canDelete,
-            ]);
+            return response()->json($this->newsService->formatNewsShowResponse($newsItem, $pictures, auth()->user()));
         }
 
         return view('pages.news.detail', compact('newsItem', 'pictures'));
     }
 
-    public function create()
+    public function create(): \Illuminate\View\View
     {
         return view('pages.news.create');
     }
 
-    public function store(StoreNewsRequest $request)
+    /**
+     * @OA\Post(
+     *     path="/news",
+     *     summary="Создать новость",
+     *     tags={"News"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"title", "content"},
+     *                 @OA\Property(property="title", type="string"),
+     *                 @OA\Property(property="content", type="string"),
+     *                 @OA\Property(property="images[]", type="array", @OA\Items(type="string", format="binary"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=302, description="Перенаправление после создания"),
+     *     @OA\Response(response=422, description="Ошибка валидации")
+     * )
+     */
+    public function store(StoreNewsRequest $request): \Illuminate\Http\RedirectResponse
     {
         $result = $this->newsService->createNews(
             $request->validated(), 
             $request->file('images'), 
-            auth()->id()
+            (int)auth()->id()
         );
 
         return redirect()->route('news.index')->with('success', $result['message']);
     }
 
-    public function edit($id)
+    public function edit(int $id): \Illuminate\View\View
     {
         $details = $this->newsService->getNewsDetails($id);
         $news = $details['newsItem'];
+        if (!$news) {
+            abort(404);
+        }
         $pictures = $details['pictures'];
         return view('pages.news.edit', compact('news', 'pictures'));
     }
 
-    public function update(UpdateNewsRequest $request, $id)
+    /**
+     * @OA\Put(
+     *     path="/news/{id}",
+     *     summary="Обновить новость",
+     *     tags={"News"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"title", "content"},
+     *                 @OA\Property(property="title", type="string"),
+     *                 @OA\Property(property="content", type="string"),
+     *                 @OA\Property(property="images[]", type="array", @OA\Items(type="string", format="binary"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=302, description="Перенаправление после обновления"),
+     *     @OA\Response(response=404, description="Новость не найдена")
+     * )
+     */
+    public function update(UpdateNewsRequest $request, int $id): \Illuminate\Http\RedirectResponse
     {
         $message = $this->newsService->updateNews(
             $id,
@@ -105,7 +147,18 @@ class NewsController extends Controller
         return redirect()->route('news.show', ['id' => $id])->with('success', $message);
     }
 
-    public function destroy($id)
+    /**
+     * @OA\Delete(
+     *     path="/news/{id}",
+     *     summary="Удалить новость",
+     *     tags={"News"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Успешное удаление (JSON)"),
+     *     @OA\Response(response=302, description="Перенаправление после удаления")
+     * )
+     */
+    public function destroy(int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
         $this->newsService->deleteNews($id);
 
@@ -116,8 +169,20 @@ class NewsController extends Controller
         return redirect()->route('news.index')->with('success', 'Новость удалена');
     }
 
-    public function toggleLike(Request $request, $id)
+    /**
+     * @OA\Post(
+     *     path="/news/{id}/like",
+     *     summary="Лайкнуть новость",
+     *     tags={"News"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Результат лайка (JSON)"),
+     *     @OA\Response(response=302, description="Перенаправление")
+     * )
+     */
+    public function toggleLike(Request $request, int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
+        /** @var array<int, int> $liked */
         $liked = session('liked_news', []);
         $liked = array_map('intval', $liked);
 
@@ -135,12 +200,30 @@ class NewsController extends Controller
         return redirect()->back();
     }
 
-    public function storeComment(StoreCommentRequest $request, $newsId)
+    /**
+     * @OA\Post(
+     *     path="/news/{newsId}/comments",
+     *     summary="Добавить комментарий",
+     *     tags={"News"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="newsId", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"content"},
+     *             @OA\Property(property="content", type="string", example="Отличная новость!")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Комментарий добавлен (JSON)"),
+     *     @OA\Response(response=302, description="Перенаправление")
+     * )
+     */
+    public function storeComment(StoreCommentRequest $request, int $newsId): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
         $comment = $this->commentService->createComment(
             $request->validated(),
             $newsId,
-            auth()->id()
+            (int)auth()->id()
         );
 
         if ($request->expectsJson()) {
@@ -152,7 +235,7 @@ class NewsController extends Controller
                     'id' => $comment->user->id,
                     'name' => $comment->user->name,
                 ],
-                'created_at' => $comment->created_at->format('Y-m-d H:i'),
+                'created_at' => $comment->created_at ? $comment->created_at->format('Y-m-d H:i') : '',
                 'canDelete' => true,
             ]);
         }
@@ -160,18 +243,21 @@ class NewsController extends Controller
         return redirect()->back();
     }
 
-    public function deletePicture($pictureId)
+    /**
+     * @OA\Delete(
+     *     path="/pictures/{pictureId}",
+     *     summary="Удалить картинку новости",
+     *     tags={"News"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="pictureId", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Успешное удаление (JSON)"),
+     *     @OA\Response(response=302, description="Перенаправление")
+     * )
+     */
+    public function deletePicture(int $pictureId): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
-        $picture = app(\App\Repositories\PictureRepository::class)->findById($pictureId);
-        
-        if ($picture->entity_type !== 'news') {
-            abort(403);
-        }
-
         $user = auth()->user();
-        $news = app(\App\Repositories\NewsRepository::class)->findById($picture->entity_id);
-        
-        if ($user->id !== $news->author_id && !in_array($user->role, ['admin', 'redactor'])) {
+        if (!$user || !$this->newsService->canUserManagePicture($user, $pictureId)) {
             abort(403);
         }
 
@@ -184,15 +270,33 @@ class NewsController extends Controller
         return redirect()->back()->with('success', 'Картинка удалена');
     }
 
-    public function deleteComment($newsId, $commentId)
+    /**
+     * @OA\Delete(
+     *     path="/news/{newsId}/comments/{commentId}",
+     *     summary="Удалить комментарий",
+     *     tags={"News"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="newsId", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="commentId", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Успешное удаление (JSON)"),
+     *     @OA\Response(response=302, description="Перенаправление")
+     * )
+     */
+    public function deleteComment(int $newsId, int $commentId): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
         $comment = app(\App\Repositories\CommentRepository::class)->findById($commentId);
+        if (!$comment) {
+            abort(404);
+        }
 
         if ($comment->news_id != $newsId) {
             abort(404);
         }
         
         $user = auth()->user();
+        if (!$user) {
+            abort(403);
+        }
         if ($user->id !== $comment->user_id && !in_array($user->role, ['admin', 'redactor'])) {
             abort(403);
         }

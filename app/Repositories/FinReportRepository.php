@@ -5,6 +5,9 @@ namespace App\Repositories;
 use App\Models\FinReport;
 use Illuminate\Pagination\LengthAwarePaginator;
 
+/**
+ * @extends BaseRepository<FinReport>
+ */
 class FinReportRepository extends BaseRepository
 {
     public function __construct(FinReport $model)
@@ -17,7 +20,7 @@ class FinReportRepository extends BaseRepository
      *
      * @param int $userId
      * @param int $perPage
-     * @return LengthAwarePaginator
+     * @return LengthAwarePaginator<FinReport>
      */
     public function getPaginatedForUser(int $userId, int $perPage = 20): LengthAwarePaginator
     {
@@ -37,8 +40,10 @@ class FinReportRepository extends BaseRepository
      */
     public function findForUser(int $id, int $userId): ?FinReport
     {
-        return $this->model->where('id', $id)
+        /** @var FinReport|null $result */
+        $result = $this->model->where('id', $id)
             ->where('user_id', $userId)
             ->first();
+        return $result;
     }
 }

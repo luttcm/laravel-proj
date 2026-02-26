@@ -7,6 +7,7 @@ use App\Models\Comment;
 
 class CommentService
 {
+    /** @var CommentRepository */
     protected $commentRepository;
 
     public function __construct(CommentRepository $commentRepository)
@@ -14,6 +15,12 @@ class CommentService
         $this->commentRepository = $commentRepository;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @param int $newsId
+     * @param int $userId
+     * @return Comment
+     */
     public function createComment(array $data, int $newsId, int $userId): Comment
     {
         return $this->commentRepository->create([

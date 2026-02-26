@@ -11,6 +11,9 @@ class UpdateSoldFromCompanyRequest extends FormRequest
         return auth()->check();
     }
 
+    /**
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [

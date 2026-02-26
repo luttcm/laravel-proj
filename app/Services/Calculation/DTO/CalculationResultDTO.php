@@ -37,6 +37,10 @@ class CalculationResultDTO
         public readonly ?float $citTax = null
     ) {}
 
+    /**
+     * @param array<string, mixed> $data
+     * @return self
+     */
     public static function fromArray(array $data): self
     {
         return new self(
@@ -72,6 +76,9 @@ class CalculationResultDTO
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         $data = [
@@ -108,5 +115,59 @@ class CalculationResultDTO
         if ($this->citTax !== null) $data['citTax'] = $this->citTax;
 
         return $data;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function formatForResponse(): array
+    {
+        $calculations = [
+            'nacenka' => round($this->nacenka, 0, PHP_ROUND_HALF_UP),
+            'P1' => round($this->P1, 0, PHP_ROUND_HALF_UP),
+            'riskReserve' => round($this->riskReserve, 0, PHP_ROUND_HALF_UP),
+            'premBase' => round($this->premBase, 0, PHP_ROUND_HALF_UP),
+            'logisticsBonus' => round($this->logisticsBonus, 0, PHP_ROUND_HALF_UP),
+            'finAdminBonus' => round($this->finAdminBonus, 0, PHP_ROUND_HALF_UP),
+            'fbrBonus' => round($this->fbrBonus, 0, PHP_ROUND_HALF_UP),
+            'premiyaTotal' => round($this->premiyaTotal, 0, PHP_ROUND_HALF_UP),
+            'managerBase' => round($this->managerBase, 0, PHP_ROUND_HALF_UP),
+            'managerSalaryBrutto' => round($this->managerSalaryBrutto, 0, PHP_ROUND_HALF_UP),
+            'managerNdfl' => round($this->managerNdfl, 0, PHP_ROUND_HALF_UP),
+            'socialFunds' => round($this->socialFunds, 0, PHP_ROUND_HALF_UP),
+            'totalManagerCost' => round($this->totalManagerCost, 0, PHP_ROUND_HALF_UP),
+            'managerPayment' => round($this->managerPayment, 0, PHP_ROUND_HALF_UP),
+            'spkPayment' => round($this->spkPayment, 0, PHP_ROUND_HALF_UP),
+            'perUnitPayment' => round($this->perUnitPayment, 0, PHP_ROUND_HALF_UP),
+            'totalTaxes' => round($this->totalTaxes, 0, PHP_ROUND_HALF_UP),
+            'companyProfit' => round($this->companyProfit, 0, PHP_ROUND_HALF_UP),
+            'prfPercent' => round($this->prfPercent, 2, PHP_ROUND_HALF_UP),
+            'spk' => $this->spk,
+            'inTheDeal' => round($this->inTheDeal, 0, PHP_ROUND_HALF_UP),
+            'sellingSumPerUnit' => round($this->sellingSumPerUnit, 0, PHP_ROUND_HALF_UP),
+            'sellingSumTotal' => round($this->sellingSumTotal, 0, PHP_ROUND_HALF_UP),
+        ];
+
+        if ($this->ausn !== null) {
+            $calculations['ausn'] = round($this->ausn, 0, PHP_ROUND_HALF_UP);
+        }
+
+        if ($this->ndsOutgoing !== null) {
+            $calculations['ndsOutgoing'] = round($this->ndsOutgoing, 0, PHP_ROUND_HALF_UP);
+        }
+        if ($this->ndsIncoming !== null) {
+            $calculations['ndsIncoming'] = round($this->ndsIncoming, 0, PHP_ROUND_HALF_UP);
+        }
+        if ($this->ndsPaid !== null) {
+            $calculations['ndsPaid'] = round($this->ndsPaid, 0, PHP_ROUND_HALF_UP);
+        }
+        if ($this->citBase !== null) {
+            $calculations['citBase'] = round($this->citBase, 0, PHP_ROUND_HALF_UP);
+        }
+        if ($this->citTax !== null) {
+            $calculations['citTax'] = round($this->citTax, 0, PHP_ROUND_HALF_UP);
+        }
+
+        return $calculations;
     }
 }

@@ -4,6 +4,9 @@ namespace App\Repositories;
 
 use App\Models\Calculation;
 
+/**
+ * @extends BaseRepository<Calculation>
+ */
 class CalculationRepository extends BaseRepository
 {
     public function __construct(Calculation $model)
@@ -16,11 +19,11 @@ class CalculationRepository extends BaseRepository
      *
      * @param int $managerId
      * @param int $limit
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return \Illuminate\Database\Eloquent\Collection<int, Calculation>
      */
-    public function getRecentForManager(int $managerId, int $limit = 10)
+    public function getRecentForManager(int $managerId, int $limit = 10): \Illuminate\Database\Eloquent\Collection
     {
-        return $this->model->where('manager_id', $managerId) // Note: actual field in Calculation is user_id based on previous code usually, but let's check
+        return $this->model->where('manager_id', $managerId)
             ->orderBy('created_at', 'desc')
             ->take($limit)
             ->get();

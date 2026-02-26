@@ -6,16 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
+/**
+ * @template TModel of Model
+ */
 abstract class BaseRepository
 {
     /**
-     * @var Model
+     * @var TModel
      */
     protected $model;
 
     /**
      * BaseRepository constructor.
-     * @param Model $model
+     * @param TModel $model
      */
     public function __construct(Model $model)
     {
@@ -24,7 +27,7 @@ abstract class BaseRepository
 
     /**
      * Get all instances of the model.
-     * @return Collection
+     * @return Collection<int, TModel>
      */
     public function all(): Collection
     {
@@ -33,24 +36,26 @@ abstract class BaseRepository
 
     /**
      * Create a new record in the database.
-     * @param array $data
-     * @return Model
+     * @param array<string, mixed> $data
+     * @return TModel
      */
     public function create(array $data): Model
     {
-        return $this->model->create($data);
+        /** @var TModel $result */
+        $result = $this->model->create($data);
+        return $result;
     }
 
     /**
      * Update the record in the database.
-     * @param array $data
+     * @param array<string, mixed> $data
      * @param int|string $id
      * @param string $attribute
      * @return bool
      */
     public function update(array $data, $id, $attribute = "id"): bool
     {
-        return $this->model->where($attribute, $id)->update($data);
+        return (bool) $this->model->where($attribute, $id)->update($data);
     }
 
     /**
@@ -60,29 +65,33 @@ abstract class BaseRepository
      */
     public function delete($id): bool
     {
-        return $this->model->destroy($id);
+        return (bool) $this->model->destroy($id);
     }
 
     /**
      * Find a record in the database.
      * @param int|string $id
-     * @param array $columns
-     * @return Model|null
+     * @param array<int, string> $columns
+     * @return TModel|null
      */
     public function find($id, $columns = array('*')): ?Model
     {
-        return $this->model->find($id, $columns);
+        /** @var TModel|null $result */
+        $result = $this->model->find($id, $columns);
+        return $result;
     }
 
     /**
      * Find a record by a specific attribute.
      * @param string $attribute
      * @param string $value
-     * @param array $columns
-     * @return Model|null
+     * @param array<int, string> $columns
+     * @return TModel|null
      */
     public function findBy(string $attribute, string $value, $columns = array('*')): ?Model
     {
-        return $this->model->where($attribute, '=', $value)->first($columns);
+        /** @var TModel|null $result */
+        $result = $this->model->where($attribute, '=', $value)->first($columns);
+        return $result;
     }
 }
