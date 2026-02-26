@@ -37,8 +37,10 @@ class FinReportRepository extends BaseRepository
      */
     public function findForUser(int $id, int $userId): ?FinReport
     {
-        return $this->model->where('id', $id)
+        /** @var FinReport|null $result */
+        $result = $this->model->where('id', $id)
             ->where('user_id', $userId)
             ->first();
+        return $result;
     }
 }

@@ -16,8 +16,24 @@ class AuthController extends Controller
     }
 
     /**
-     * Регистрация нового пользователя
-     * @param Request $request
+     * @OA\Post(
+     *     path="/api/register",
+     *     summary="Регистрация пользователя",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","email","password","password_confirmation"},
+     *             @OA\Property(property="name", type="string", example="Иван Иванов"),
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="secret123"),
+     *             @OA\Property(property="password_confirmation", type="string", example="secret123"),
+     *             @OA\Property(property="role", type="string", enum={"user","admin","finance","redactor","manager"})
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Пользователь зарегистрирован"),
+     *     @OA\Response(response=422, description="Ошибка валидации")
+     * )
      */
     public function register(Request $request)
     {
@@ -44,7 +60,28 @@ class AuthController extends Controller
     }
 
     /**
-     * Вход пользователя
+     * @OA\Post(
+     *     path="/api/auth",
+     *     summary="Вход пользователя (получение JWT токена)",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="secret123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200, description="Успешный вход",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="access_token", type="string"),
+     *             @OA\Property(property="token_type", type="string", example="Bearer"),
+     *             @OA\Property(property="expires_in", type="integer", example=3600)
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Неверные учётные данные")
+     * )
      */
     public function login(Request $request)
     {
@@ -61,7 +98,14 @@ class AuthController extends Controller
     }
 
     /**
-     * Получить текущего пользователя
+     * @OA\Get(
+     *     path="/api/me",
+     *     summary="Получить текущего пользователя",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Данные пользователя"),
+     *     @OA\Response(response=401, description="Не авторизован")
+     * )
      */
     public function me()
     {
@@ -69,7 +113,14 @@ class AuthController extends Controller
     }
 
     /**
-     * Выход пользователя
+     * @OA\Post(
+     *     path="/api/logout",
+     *     summary="Выход пользователя",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Успешный выход"),
+     *     @OA\Response(response=401, description="Не авторизован")
+     * )
      */
     public function logout()
     {
@@ -78,11 +129,27 @@ class AuthController extends Controller
     }
 
     /**
-     * Обновить токен
+     * @OA\Post(
+     *     path="/api/refresh",
+     *     summary="Обновить JWT токен",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200, description="Новый токен",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="access_token", type="string"),
+     *             @OA\Property(property="token_type", type="string", example="Bearer"),
+     *             @OA\Property(property="expires_in", type="integer", example=3600)
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Не авторизован")
+     * )
      */
     public function refresh()
     {
-        return $this->respondWithToken(Auth::guard('api')->refresh());
+        /** @var \Tymon\JWTAuth\JWTGuard $guard */
+        $guard = Auth::guard('api');
+        return $this->respondWithToken($guard->refresh());
     }
 
     /**
@@ -90,16 +157,25 @@ class AuthController extends Controller
      */
     protected function respondWithToken($token)
     {
+        /** @var \Tymon\JWTAuth\JWTGuard $guard */
+        $guard = Auth::guard('api');
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'expires_in' => Auth::guard('api')->factory()->getTTL() * 60,
-            'user' => Auth::guard('api')->user(),
+            'expires_in' => $guard->factory()->getTTL() * 60,
+            'user' => $guard->user(),
         ]);
     }
 
     /**
      * Показать форму входа (веб)
+     */
+    /**
+     * @OA\Get(
+     *     path="/auth",
+     *     summary="Display login page",
+     *     @OA\Response(response=200, description="Login page")
+     * )
      */
     public function loginView()
     {

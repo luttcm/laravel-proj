@@ -8,6 +8,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @property string|null $name
+ * @property string $email
+ * @property string $role
+ * @property string|null $google2fa_secret
+ * @property \Illuminate\Support\Carbon|null $two_factor_confirmed_at
+ */
 class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;

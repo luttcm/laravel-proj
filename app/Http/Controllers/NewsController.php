@@ -52,7 +52,7 @@ class NewsController extends Controller
                 ] : null,
                 'created_at' => $newsItem->created_at,
                 'pictures' => $pictures->map(fn($p) => ['path' => asset($p->path)])->all(),
-                'comments' => $comments->map(fn($c) => [
+                'comments' => $comments->map(fn(\App\Models\Comment $c) => [
                     'id' => $c->id,
                     'content' => $c->content,
                     'user' => [

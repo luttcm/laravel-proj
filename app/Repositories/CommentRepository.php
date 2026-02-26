@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 class CommentRepository
 {
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Comment>
+     */
     public function getByNewsId(int $newsId): Collection
     {
         return Comment::where('news_id', $newsId)->with('user')->latest()->get();

@@ -50,7 +50,7 @@ abstract class BaseRepository
      */
     public function update(array $data, $id, $attribute = "id"): bool
     {
-        return $this->model->where($attribute, $id)->update($data);
+        return (bool) $this->model->where($attribute, $id)->update($data);
     }
 
     /**
@@ -60,7 +60,7 @@ abstract class BaseRepository
      */
     public function delete($id): bool
     {
-        return $this->model->destroy($id);
+        return (bool) $this->model->destroy($id);
     }
 
     /**

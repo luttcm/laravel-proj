@@ -37,12 +37,12 @@ class NewsRepository
     public function incrementReactions(int $id): bool
     {
         $news = clone $this->findById($id);
-        return $news->increment('reactions');
+        return (bool) $news->increment('reactions');
     }
 
     public function decrementReactions(int $id): bool
     {
         $news = clone $this->findById($id);
-        return $news->decrement('reactions');
+        return (bool) $news->decrement('reactions');
     }
 }
