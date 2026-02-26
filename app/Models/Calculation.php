@@ -51,6 +51,7 @@ class Calculation extends Model
 
     /**
      * Get the user that owns the calculation
+     * @return BelongsTo<User, Calculation>
      */
     public function user(): BelongsTo
     {

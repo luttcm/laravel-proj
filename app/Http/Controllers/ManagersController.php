@@ -12,9 +12,13 @@ use Illuminate\Http\Request;
 
 class ManagersController extends Controller
 {
+    /** @var CalculationService */
     protected $calculationService;
+    /** @var ManagerReportService */
     protected $managerReportService;
+    /** @var \App\Repositories\VariableRepository */
     protected $variableRepository;
+    /** @var \App\Repositories\NdsRepository */
     protected $ndsRepository;
 
     public function __construct(
@@ -29,7 +33,7 @@ class ManagersController extends Controller
         $this->ndsRepository = $ndsRepository;
     }
 
-    public function calculation()
+    public function calculation(): \Illuminate\View\View
     {
         $history = Reports::where('manager_id', auth()->id())
             ->orderBy('created_at', 'desc')
@@ -41,7 +45,7 @@ class ManagersController extends Controller
         return view('pages.managers.calculation', compact('history', 'spks', 'suppliers'));
     }
 
-    public function getVariables(Request $request)
+    public function getVariables(Request $request): \Illuminate\Http\JsonResponse
     {
         $counteragentType = $request->query('counteragent_type');
 
@@ -49,13 +53,14 @@ class ManagersController extends Controller
             return response()->json(['error' => 'Invalid counteragent type'], 400);
         }
 
+        /** @var string $dbCounteragentType */
         $dbCounteragentType = ($counteragentType === 'fvn') ? 'ooo' : $counteragentType;
 
         $variables = $this->variableRepository->getCompanyVariablesByType($dbCounteragentType)
             ->map(function ($var) {
                 return [
                     'id' => $var->id,
-                    'name' => $var->report_title,
+                    'name' => $var->title,
                     'value' => $var->value,
                 ];
             });
@@ -63,7 +68,7 @@ class ManagersController extends Controller
         return response()->json($variables);
     }
 
-    public function getNds(Request $request)
+    public function getNds(Request $request): \Illuminate\Http\JsonResponse
     {
         $ndsList = $this->ndsRepository->getAll()->map(function ($nds) {
             return [
@@ -77,62 +82,62 @@ class ManagersController extends Controller
         return response()->json($ndsList);
     }
 
-    public function reports()
+    public function reports(): \Illuminate\View\View
     {
-        $reports = $this->managerReportService->getReportsForManager(DraftsReports::class, auth()->id());
+        $reports = $this->managerReportService->getReportsForManager(DraftsReports::class, (int)auth()->id());
         return view('pages.managers.reports', compact('reports'));
     }
 
-    public function history()
+    public function history(): \Illuminate\View\View
     {
-        $reports = $this->managerReportService->getReportsForManager(Reports::class, auth()->id());
+        $reports = $this->managerReportService->getReportsForManager(Reports::class, (int)auth()->id());
         return view('pages.managers.history', compact('reports'));
     }
 
-    public function calculate(Request $request)
+    public function calculate(Request $request): \Illuminate\Http\JsonResponse
     {
         $dto = \App\Services\Calculation\DTO\CalculationRequestDTO::fromRequest($request);
         $result = $this->calculationService->calculate($dto);
 
-        $sellingType = $request->input('selling_name');
+        $sellingType = (string)$request->input('selling_name');
         $counteragentType = strpos($sellingType, 'ИП (ИНН)') !== false ? 'inn' : (strpos($sellingType, 'ИП (ФВН)') !== false ? 'fvn' : 'ooo');
 
         $calculations = [
-            'nacenka' => round($result->nacenka, 0, PHP_ROUND_HALF_UP),
-            'P1' => round($result->P1, 0, PHP_ROUND_HALF_UP),
-            'riskReserve' => round($result->riskReserve, 0, PHP_ROUND_HALF_UP),
-            'premBase' => round($result->premBase, 0, PHP_ROUND_HALF_UP),
-            'logisticsBonus' => round($result->logisticsBonus, 0, PHP_ROUND_HALF_UP),
-            'finAdminBonus' => round($result->finAdminBonus, 0, PHP_ROUND_HALF_UP),
-            'fbrBonus' => round($result->fbrBonus, 0, PHP_ROUND_HALF_UP),
-            'premiyaTotal' => round($result->premiyaTotal, 0, PHP_ROUND_HALF_UP),
-            'managerBase' => round($result->managerBase, 0, PHP_ROUND_HALF_UP),
-            'managerSalaryBrutto' => round($result->managerSalaryBrutto, 0, PHP_ROUND_HALF_UP),
-            'managerNdfl' => round($result->managerNdfl, 0, PHP_ROUND_HALF_UP),
-            'socialFunds' => round($result->socialFunds, 0, PHP_ROUND_HALF_UP),
-            'totalManagerCost' => round($result->totalManagerCost, 0, PHP_ROUND_HALF_UP),
-            'managerPayment' => round($result->managerPayment, 0, PHP_ROUND_HALF_UP),
-            'spkPayment' => round($result->spkPayment, 0, PHP_ROUND_HALF_UP),
-            'perUnitPayment' => round($result->perUnitPayment, 0, PHP_ROUND_HALF_UP),
-            'totalTaxes' => round($result->totalTaxes, 0, PHP_ROUND_HALF_UP),
-            'companyProfit' => round($result->companyProfit, 0, PHP_ROUND_HALF_UP),
-            'prfPercent' => round($result->prfPercent, 2, PHP_ROUND_HALF_UP),
+            'nacenka' => round((float)$result->nacenka, 0, PHP_ROUND_HALF_UP),
+            'P1' => round((float)$result->P1, 0, PHP_ROUND_HALF_UP),
+            'riskReserve' => round((float)$result->riskReserve, 0, PHP_ROUND_HALF_UP),
+            'premBase' => round((float)$result->premBase, 0, PHP_ROUND_HALF_UP),
+            'logisticsBonus' => round((float)$result->logisticsBonus, 0, PHP_ROUND_HALF_UP),
+            'finAdminBonus' => round((float)$result->finAdminBonus, 0, PHP_ROUND_HALF_UP),
+            'fbrBonus' => round((float)$result->fbrBonus, 0, PHP_ROUND_HALF_UP),
+            'premiyaTotal' => round((float)$result->premiyaTotal, 0, PHP_ROUND_HALF_UP),
+            'managerBase' => round((float)$result->managerBase, 0, PHP_ROUND_HALF_UP),
+            'managerSalaryBrutto' => round((float)$result->managerSalaryBrutto, 0, PHP_ROUND_HALF_UP),
+            'managerNdfl' => round((float)$result->managerNdfl, 0, PHP_ROUND_HALF_UP),
+            'socialFunds' => round((float)$result->socialFunds, 0, PHP_ROUND_HALF_UP),
+            'totalManagerCost' => round((float)$result->totalManagerCost, 0, PHP_ROUND_HALF_UP),
+            'managerPayment' => round((float)$result->managerPayment, 0, PHP_ROUND_HALF_UP),
+            'spkPayment' => round((float)$result->spkPayment, 0, PHP_ROUND_HALF_UP),
+            'perUnitPayment' => round((float)$result->perUnitPayment, 0, PHP_ROUND_HALF_UP),
+            'totalTaxes' => round((float)$result->totalTaxes, 0, PHP_ROUND_HALF_UP),
+            'companyProfit' => round((float)$result->companyProfit, 0, PHP_ROUND_HALF_UP),
+            'prfPercent' => round((float)$result->prfPercent, 2, PHP_ROUND_HALF_UP),
             'spk' => $result->spk,
-            'inTheDeal' => round($result->inTheDeal, 0, PHP_ROUND_HALF_UP),
-            'sellingSumPerUnit' => round($result->sellingSumPerUnit, 0, PHP_ROUND_HALF_UP),
-            'sellingSumTotal' => round($result->sellingSumTotal, 0, PHP_ROUND_HALF_UP),
+            'inTheDeal' => round((float)$result->inTheDeal, 0, PHP_ROUND_HALF_UP),
+            'sellingSumPerUnit' => round((float)$result->sellingSumPerUnit, 0, PHP_ROUND_HALF_UP),
+            'sellingSumTotal' => round((float)$result->sellingSumTotal, 0, PHP_ROUND_HALF_UP),
         ];
 
         if ($counteragentType === 'inn') {
-            $calculations['ausn'] = round($result->ausn, 0, PHP_ROUND_HALF_UP);
+            $calculations['ausn'] = round((float)$result->ausn, 0, PHP_ROUND_HALF_UP);
         }
 
         if ($counteragentType === 'ooo' || $counteragentType === 'fvn') {
-            $calculations['ndsOutgoing'] = round($result->ndsOutgoing, 0, PHP_ROUND_HALF_UP);
-            $calculations['ndsIncoming'] = round($result->ndsIncoming, 0, PHP_ROUND_HALF_UP);
-            $calculations['ndsPaid'] = round($result->ndsPaid, 0, PHP_ROUND_HALF_UP);
-            $calculations['citBase'] = round($result->citBase, 0, PHP_ROUND_HALF_UP);
-            $calculations['citTax'] = round($result->citTax, 0, PHP_ROUND_HALF_UP);
+            $calculations['ndsOutgoing'] = round((float)$result->ndsOutgoing, 0, PHP_ROUND_HALF_UP);
+            $calculations['ndsIncoming'] = round((float)$result->ndsIncoming, 0, PHP_ROUND_HALF_UP);
+            $calculations['ndsPaid'] = round((float)$result->ndsPaid, 0, PHP_ROUND_HALF_UP);
+            $calculations['citBase'] = round((float)$result->citBase, 0, PHP_ROUND_HALF_UP);
+            $calculations['citTax'] = round((float)$result->citTax, 0, PHP_ROUND_HALF_UP);
         }
 
         return response()->json([
@@ -141,22 +146,22 @@ class ManagersController extends Controller
         ], 201);
     }
 
-    public function storeDraftsReport(StoreManagerReportRequest $request)
+    public function storeDraftsReport(StoreManagerReportRequest $request): \Illuminate\Http\JsonResponse
     {
-        $calculationId = $request->query('calculation_id');
-        $report = $this->managerReportService->saveReport($request->validated(), DraftsReports::class, auth()->id(), false, $calculationId);
+        $calculationId = (int)$request->query('calculation_id');
+        $report = $this->managerReportService->saveReport($request->validated(), DraftsReports::class, (int)auth()->id(), false, $calculationId);
 
         return $this->formatSaveResponse($request, $report, 'Сохранено в отчёты', true);
     }
 
-    public function storeReport(StoreManagerReportRequest $request)
+    public function storeReport(StoreManagerReportRequest $request): \Illuminate\Http\JsonResponse
     {
-        $report = $this->managerReportService->saveReport($request->validated(), Reports::class, auth()->id(), true);
+        $report = $this->managerReportService->saveReport($request->validated(), Reports::class, (int)auth()->id(), true);
 
         return $this->formatSaveResponse($request, $report, 'Сохранено в историю', false);
     }
 
-    protected function formatSaveResponse(Request $request, $report, string $message, bool $includeCalculations)
+    protected function formatSaveResponse(Request $request, \Illuminate\Database\Eloquent\Model $report, string $message, bool $includeCalculations): \Illuminate\Http\JsonResponse
     {
         $response = [
             'success' => true,
@@ -171,47 +176,47 @@ class ManagersController extends Controller
             $counteragentType = strpos($sellingType, 'ИП (ИНН)') !== false ? 'inn' : (strpos($sellingType, 'ИП (ФВН)') !== false ? 'fvn' : 'ooo');
 
             $response['calculations'] = [
-                'nacenka' => round($result->nacenka, 0, PHP_ROUND_HALF_UP),
-                'P1' => round($result->P1, 0, PHP_ROUND_HALF_UP),
-                'riskReserve' => round($result->riskReserve, 0, PHP_ROUND_HALF_UP),
-                'premBase' => round($result->premBase, 0, PHP_ROUND_HALF_UP),
-                'logisticsBonus' => round($result->logisticsBonus, 0, PHP_ROUND_HALF_UP),
-                'finAdminBonus' => round($result->finAdminBonus, 0, PHP_ROUND_HALF_UP),
-                'fbrBonus' => round($result->fbrBonus, 0, PHP_ROUND_HALF_UP),
-                'premiyaTotal' => round($result->premiyaTotal, 0, PHP_ROUND_HALF_UP),
-                'managerBase' => round($result->managerBase, 0, PHP_ROUND_HALF_UP),
-                'managerSalaryBrutto' => round($result->managerSalaryBrutto, 0, PHP_ROUND_HALF_UP),
-                'managerNdfl' => round($result->managerNdfl, 0, PHP_ROUND_HALF_UP),
-                'socialFunds' => round($result->socialFunds, 0, PHP_ROUND_HALF_UP),
-                'totalManagerCost' => round($result->totalManagerCost, 0, PHP_ROUND_HALF_UP),
-                'managerPayment' => round($result->managerPayment, 0, PHP_ROUND_HALF_UP),
-                'spkPayment' => round($result->spkPayment, 0, PHP_ROUND_HALF_UP),
-                'perUnitPayment' => round($result->perUnitPayment, 0, PHP_ROUND_HALF_UP),
-                'totalTaxes' => round($result->totalTaxes, 0, PHP_ROUND_HALF_UP),
-                'companyProfit' => round($result->companyProfit, 0, PHP_ROUND_HALF_UP),
-                'prfPercent' => round($result->prfPercent, 2, PHP_ROUND_HALF_UP),
+                'nacenka' => round((float)$result->nacenka, 0, PHP_ROUND_HALF_UP),
+                'P1' => round((float)$result->P1, 0, PHP_ROUND_HALF_UP),
+                'riskReserve' => round((float)$result->riskReserve, 0, PHP_ROUND_HALF_UP),
+                'premBase' => round((float)$result->premBase, 0, PHP_ROUND_HALF_UP),
+                'logisticsBonus' => round((float)$result->logisticsBonus, 0, PHP_ROUND_HALF_UP),
+                'finAdminBonus' => round((float)$result->finAdminBonus, 0, PHP_ROUND_HALF_UP),
+                'fbrBonus' => round((float)$result->fbrBonus, 0, PHP_ROUND_HALF_UP),
+                'premiyaTotal' => round((float)$result->premiyaTotal, 0, PHP_ROUND_HALF_UP),
+                'managerBase' => round((float)$result->managerBase, 0, PHP_ROUND_HALF_UP),
+                'managerSalaryBrutto' => round((float)$result->managerSalaryBrutto, 0, PHP_ROUND_HALF_UP),
+                'managerNdfl' => round((float)$result->managerNdfl, 0, PHP_ROUND_HALF_UP),
+                'socialFunds' => round((float)$result->socialFunds, 0, PHP_ROUND_HALF_UP),
+                'totalManagerCost' => round((float)$result->totalManagerCost, 0, PHP_ROUND_HALF_UP),
+                'managerPayment' => round((float)$result->managerPayment, 0, PHP_ROUND_HALF_UP),
+                'spkPayment' => round((float)$result->spkPayment, 0, PHP_ROUND_HALF_UP),
+                'perUnitPayment' => round((float)$result->perUnitPayment, 0, PHP_ROUND_HALF_UP),
+                'totalTaxes' => round((float)$result->totalTaxes, 0, PHP_ROUND_HALF_UP),
+                'companyProfit' => round((float)$result->companyProfit, 0, PHP_ROUND_HALF_UP),
+                'prfPercent' => round((float)$result->prfPercent, 2, PHP_ROUND_HALF_UP),
             ];
 
             if ($counteragentType === 'inn') {
-                $response['calculations']['ausn'] = round($result->ausn, 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['ausn'] = round((float)$result->ausn, 0, PHP_ROUND_HALF_UP);
             } else {
-                $response['calculations']['ndsOutgoing'] = round($result->ndsOutgoing, 0, PHP_ROUND_HALF_UP);
-                $response['calculations']['ndsIncoming'] = round($result->ndsIncoming, 0, PHP_ROUND_HALF_UP);
-                $response['calculations']['ndsPaid'] = round($result->ndsPaid, 0, PHP_ROUND_HALF_UP);
-                $response['calculations']['citBase'] = round($result->citBase, 0, PHP_ROUND_HALF_UP);
-                $response['calculations']['citTax'] = round($result->citTax, 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['ndsOutgoing'] = round((float)$result->ndsOutgoing, 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['ndsIncoming'] = round((float)$result->ndsIncoming, 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['ndsPaid'] = round((float)$result->ndsPaid, 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['citBase'] = round((float)$result->citBase, 0, PHP_ROUND_HALF_UP);
+                $response['calculations']['citTax'] = round((float)$result->citTax, 0, PHP_ROUND_HALF_UP);
             }
         }
 
         return response()->json($response, 201);
     }
 
-    public function getReport(Request $request, $id)
+    public function getReport(Request $request, int $id): \Illuminate\Http\JsonResponse
     {
-        $type = $request->query('type', 'history');
+        $type = (string)$request->query('type', 'history');
         $modelClass = ($type === 'draft') ? DraftsReports::class : Reports::class;
 
-        $data = $this->managerReportService->getReportWithCalculation($modelClass, $id, auth()->id());
+        $data = $this->managerReportService->getReportWithCalculation($modelClass, $id, (int)auth()->id());
 
         if (empty($data)) {
             abort(403);

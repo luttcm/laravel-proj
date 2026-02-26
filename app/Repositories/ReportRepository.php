@@ -12,9 +12,9 @@ class ReportRepository
     /**
      * Get all reports for a specific manager, ordered by creation date.
      *
-     * @param string $modelClass
+     * @param class-string<Model> $modelClass
      * @param int $managerId
-     * @return Collection
+     * @return Collection<int, Model>
      */
     public function getForManager(string $modelClass, int $managerId): Collection
     {
@@ -26,27 +26,31 @@ class ReportRepository
     /**
      * Find a report by ID and ensure it belongs to the manager.
      *
-     * @param string $modelClass
+     * @param class-string<Model> $modelClass
      * @param int $id
      * @param int $managerId
      * @return Model|null
      */
     public function findForManager(string $modelClass, int $id, int $managerId): ?Model
     {
-        return $modelClass::where('id', $id)
+        /** @var Model|null $result */
+        $result = $modelClass::where('id', $id)
             ->where('manager_id', $managerId)
             ->first();
+        return $result;
     }
 
     /**
      * Create a new report.
      *
-     * @param string $modelClass
-     * @param array $data
+     * @param class-string<Model> $modelClass
+     * @param array<string, mixed> $data
      * @return Model
      */
     public function create(string $modelClass, array $data): Model
     {
-        return $modelClass::create($data);
+        /** @var Model $result */
+        $result = $modelClass::create($data);
+        return $result;
     }
 }

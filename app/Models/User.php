@@ -69,7 +69,7 @@ class User extends Authenticatable implements JWTSubject
     /**
      * Return a key value array, containing any custom claims to be added to the JWT.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function getJwtCustomClaims()
     {
@@ -80,8 +80,9 @@ class User extends Authenticatable implements JWTSubject
 
     /**
      * Связь с таблицей картинок (одна картинка на пользователя)
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Models\Picture>
      */
-    public function picture()
+    public function picture(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(\App\Models\Picture::class, 'entity_id')
                     ->where('entity_type', 'user');
@@ -90,12 +91,13 @@ class User extends Authenticatable implements JWTSubject
     /**
      * Получить путь к аватару пользователя, возвращает дефолт если нет
      * Пути хранятся без ведущего слэша: 'avatars/classicAvatar.png' или 'storage/avatars/...'
+     * @return string
      */
-    public function getAvatarAttribute()
+    public function getAvatarAttribute(): string
     {
         $pic = $this->picture()->first();
         if ($pic && $pic->path) {
-            if (strpos($pic->path, 'storage/') === 0) {
+            if (strpos((string)$pic->path, 'storage/') === 0) {
                 return '/' . $pic->path;
             }
             return '/storage/' . $pic->path;

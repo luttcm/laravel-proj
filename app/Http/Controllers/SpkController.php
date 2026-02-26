@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 class SpkController extends Controller
 {
+    /** @var SpkRepository */
     protected $spkRepository;
 
     public function __construct(SpkRepository $spkRepository)
@@ -16,18 +17,18 @@ class SpkController extends Controller
         $this->spkRepository = $spkRepository;
     }
 
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         $spks = $this->spkRepository->getAllPaginated(10);
         return view("pages.spk.index", compact("spks"));
     }
 
-    public function add()
+    public function add(): \Illuminate\View\View
     {
         return view("pages.spk.add");
     }
 
-    public function store(StoreSpkRequest $request) 
+    public function store(StoreSpkRequest $request): \Illuminate\Http\RedirectResponse
     {
         $this->spkRepository->create($request->validated());
 
@@ -35,20 +36,20 @@ class SpkController extends Controller
             ->with('success', "СПК создан!");
     }
 
-    public function edit($id)
+    public function edit(int $id): \Illuminate\View\View
     {
         $spk = $this->spkRepository->findById($id);
         return view('pages.spk.edit', compact('spk'));
     }
 
-    public function update(UpdateSpkRequest $request, $id)
+    public function update(UpdateSpkRequest $request, int $id): \Illuminate\Http\RedirectResponse
     {
         $this->spkRepository->update($id, $request->validated());
 
         return redirect()->route('spk.index')->with('success', 'СПК обновлен');
     }
 
-    public function delete($id)
+    public function delete(int $id): \Illuminate\Http\RedirectResponse
     {
         $this->spkRepository->delete($id);
         return redirect()->route('spk.index')->with('success', 'СПК удален');

@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Storage;
 
 class NewsService
 {
+    /** @var NewsRepository */
     protected $newsRepository;
+    /** @var PictureRepository */
     protected $pictureRepository;
 
     public function __construct(NewsRepository $newsRepository, PictureRepository $pictureRepository)
@@ -18,6 +20,9 @@ class NewsService
         $this->pictureRepository = $pictureRepository;
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\News>
+     */
     public function getAllNews()
     {
         $news = $this->newsRepository->getAllWithComments();
@@ -32,7 +37,11 @@ class NewsService
         return $news;
     }
 
-    public function getNewsDetails(int $id)
+    /**
+     * @param int $id
+     * @return array{newsItem: \App\Models\News|null, pictures: \Illuminate\Database\Eloquent\Collection<int, \App\Models\Picture>}
+     */
+    public function getNewsDetails(int $id): array
     {
         $newsItem = $this->newsRepository->findById($id);
         $pictures = $this->pictureRepository->getByEntity('news', $id, 9);
@@ -43,6 +52,12 @@ class NewsService
         ];
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @param array<int, UploadedFile>|null $images
+     * @param int|null $authorId
+     * @return array<string, mixed>
+     */
     public function createNews(array $data, array $images = null, ?int $authorId): array
     {
         $news = $this->newsRepository->create([
@@ -63,6 +78,12 @@ class NewsService
         return ['news' => $news, 'message' => $message];
     }
 
+    /**
+     * @param int $id
+     * @param array<string, mixed> $data
+     * @param array<int, UploadedFile>|null $images
+     * @return string
+     */
     public function updateNews(int $id, array $data, array $images = null): string
     {
         $this->newsRepository->update($id, [
@@ -87,6 +108,11 @@ class NewsService
         $this->newsRepository->delete($id);
     }
 
+    /**
+     * @param int $newsId
+     * @param array<int, int> $likedSessions
+     * @return array<string, mixed>
+     */
     public function toggleLike(int $newsId, array $likedSessions): array
     {
         if (in_array($newsId, $likedSessions)) {
@@ -101,6 +127,14 @@ class NewsService
         
         $news = $this->newsRepository->findById($newsId);
 
+        if (!$news) {
+            return [
+                'liked_news' => $likedSessions,
+                'reactions' => 0,
+                'liked' => $isLiked,
+            ];
+        }
+
         return [
             'liked_news' => $likedSessions,
             'reactions' => $news->reactions,
@@ -112,8 +146,8 @@ class NewsService
     {
         $picture = $this->pictureRepository->findById($pictureId);
         
-        if (Storage::disk('public')->exists(str_replace('storage/', '', $picture->path))) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $picture->path));
+        if ($picture && $picture->path && Storage::disk('public')->exists(str_replace('storage/', '', (string)$picture->path))) {
+            Storage::disk('public')->delete(str_replace('storage/', '', (string)$picture->path));
         }
 
         return $this->pictureRepository->delete($pictureId);
@@ -123,13 +157,19 @@ class NewsService
     {
         $pictures = $this->pictureRepository->getByEntity($entityType, $entityId);
         foreach ($pictures as $picture) {
-            if (Storage::disk('public')->exists(str_replace('storage/', '', $picture->path))) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $picture->path));
+            if ($picture->path && Storage::disk('public')->exists(str_replace('storage/', '', (string)$picture->path))) {
+                Storage::disk('public')->delete(str_replace('storage/', '', (string)$picture->path));
             }
         }
         $this->pictureRepository->deleteByEntity($entityType, $entityId);
     }
 
+    /**
+     * @param int $newsId
+     * @param array<int, UploadedFile> $images
+     * @param int $limit
+     * @return array<string, int>
+     */
     protected function handleImages(int $newsId, array $images, int $limit): array
     {
         $imageCount = 0;

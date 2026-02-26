@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 class SoldFromCompanyController extends Controller
 {
+    /** @var SoldFromCompanyRepository */
     protected $companyRepository;
 
     public function __construct(SoldFromCompanyRepository $companyRepository)
@@ -16,18 +17,18 @@ class SoldFromCompanyController extends Controller
         $this->companyRepository = $companyRepository;
     }
 
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         $companies = $this->companyRepository->getAllPaginated(10);
         return view("pages.sold_from_companies.index", compact("companies"));
     }
 
-    public function add()
+    public function add(): \Illuminate\View\View
     {
         return view("pages.sold_from_companies.add");
     }
 
-    public function store(StoreSoldFromCompanyRequest $request)
+    public function store(StoreSoldFromCompanyRequest $request): \Illuminate\Http\RedirectResponse
     {
         $this->companyRepository->create($request->validated());
 
@@ -35,13 +36,13 @@ class SoldFromCompanyController extends Controller
             ->with('success', "Компания \"{$request->validated()['name']}\" добавлена!");
     }
 
-    public function edit($id)
+    public function edit(int $id): \Illuminate\View\View
     {
         $company = $this->companyRepository->findById($id);
         return view('pages.sold_from_companies.edit', compact('company'));
     }
 
-    public function update(UpdateSoldFromCompanyRequest $request, $id)
+    public function update(UpdateSoldFromCompanyRequest $request, int $id): \Illuminate\Http\RedirectResponse
     {
         $this->companyRepository->update($id, $request->validated());
 
@@ -49,7 +50,7 @@ class SoldFromCompanyController extends Controller
             ->with('success', 'Компания обновлена');
     }
 
-    public function delete($id)
+    public function delete(int $id): \Illuminate\Http\RedirectResponse
     {
         $this->companyRepository->delete($id);
         return redirect()->route('sold-from-companies.index')

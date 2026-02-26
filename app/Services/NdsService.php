@@ -7,6 +7,7 @@ use Exception;
 
 class NdsService
 {
+    /** @var NdsRepository */
     protected $ndsRepository;
 
     public function __construct(NdsRepository $ndsRepository)
@@ -14,6 +15,10 @@ class NdsService
         $this->ndsRepository = $ndsRepository;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return \App\Models\Nds
+     */
     public function createNds(array $data)
     {
         $value = $this->formatPercent($data['percent']);
@@ -25,6 +30,11 @@ class NdsService
         ]);
     }
 
+    /**
+     * @param int $id
+     * @param array<string, mixed> $data
+     * @return bool
+     */
     public function updateNds(int $id, array $data)
     {
         $value = $this->formatPercent($data['percent']);
@@ -36,7 +46,7 @@ class NdsService
         ]);
     }
 
-    public function deleteNds(int $id)
+    public function deleteNds(int $id): bool
     {
         return $this->ndsRepository->delete($id);
     }

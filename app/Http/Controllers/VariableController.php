@@ -11,7 +11,9 @@ use Exception;
 
 class VariableController extends Controller
 {
+    /** @var VariableRepository */
     protected $variableRepository;
+    /** @var VariableService */
     protected $variableService;
 
     public function __construct(VariableRepository $variableRepository, VariableService $variableService)
@@ -20,20 +22,20 @@ class VariableController extends Controller
         $this->variableService = $variableService;
     }
 
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         $companyVariables = $this->variableRepository->getAllCompanyPaginated(10);
         $fncVariables = $this->variableRepository->getAllFncPaginated(10);
         return view("pages.variables.index", compact("companyVariables", "fncVariables"));
     }
 
-    public function add()
+    public function add(): \Illuminate\View\View
     {
         $types = ["float", "integer"];
         return view("pages.variables.add", compact("types"));
     }
 
-    public function store(StoreVariableRequest $request) 
+    public function store(StoreVariableRequest $request): \Illuminate\Http\RedirectResponse
     {
         try {
             $this->variableService->createVariable($request->validated());
@@ -43,14 +45,14 @@ class VariableController extends Controller
         }
     }
 
-    public function edit($id)
+    public function edit(int $id): \Illuminate\View\View
     {
         $variable = $this->variableRepository->findById($id);
         $types = ["float", "integer"];
         return view('pages.variables.edit', compact('variable', 'types'));
     }
 
-    public function update(UpdateVariableRequest $request, $id)
+    public function update(UpdateVariableRequest $request, int $id): \Illuminate\Http\RedirectResponse
     {
         try {
             $this->variableService->updateVariable($id, $request->validated());
@@ -60,7 +62,7 @@ class VariableController extends Controller
         }
     }
 
-    public function delete($id)
+    public function delete(int $id): \Illuminate\Http\RedirectResponse
     {
         $this->variableService->deleteVariable($id);
         return redirect()->route('variables.index')->with('success', 'Переменная удалена');

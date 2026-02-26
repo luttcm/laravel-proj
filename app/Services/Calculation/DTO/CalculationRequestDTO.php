@@ -29,6 +29,10 @@ class CalculationRequestDTO
         );
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return self
+     */
     public static function fromArray(array $data): self
     {
         return new self(

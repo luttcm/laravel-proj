@@ -7,6 +7,7 @@ use Exception;
 
 class VariableService
 {
+    /** @var VariableRepository */
     protected $variableRepository;
 
     public function __construct(VariableRepository $variableRepository)
@@ -14,6 +15,10 @@ class VariableService
         $this->variableRepository = $variableRepository;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return \App\Models\Variable
+     */
     public function createVariable(array $data)
     {
         $value = $this->formatValue($data['value'], $data['type']);
@@ -28,6 +33,11 @@ class VariableService
         ]);
     }
 
+    /**
+     * @param int $id
+     * @param array<string, mixed> $data
+     * @return bool
+     */
     public function updateVariable(int $id, array $data)
     {
         $value = $this->formatValue($data['value'], $data['type']);
@@ -42,7 +52,7 @@ class VariableService
         ]);
     }
 
-    public function deleteVariable(int $id)
+    public function deleteVariable(int $id): bool
     {
         return $this->variableRepository->delete($id);
     }

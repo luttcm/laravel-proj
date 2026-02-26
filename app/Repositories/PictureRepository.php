@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Collection;
 
 class PictureRepository
 {
+    /**
+     * @param string $entityType
+     * @param int $entityId
+     * @param int|null $limit
+     * @return Collection<int, Picture>
+     */
     public function getByEntity(string $entityType, int $entityId, int $limit = null): Collection
     {
         $query = Picture::where('entity_type', $entityType)->where('entity_id', $entityId);
@@ -23,14 +29,24 @@ class PictureRepository
         return Picture::where('entity_type', $entityType)->where('entity_id', $entityId)->count();
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return Picture
+     */
     public function create(array $data): Picture
     {
-        return Picture::create($data);
+        /** @var Picture $picture */
+        $picture = Picture::create($data);
+        return $picture;
     }
 
     public function delete(int $id): bool
     {
-        return Picture::findOrFail($id)->delete();
+        $picture = $this->findById($id);
+        if (!$picture) {
+            return false;
+        }
+        return (bool)$picture->delete();
     }
 
     public function deleteByEntity(string $entityType, int $entityId): bool
@@ -40,6 +56,8 @@ class PictureRepository
     
     public function findById(int $id): ?Picture
     {
-        return Picture::findOrFail($id);
+        /** @var Picture|null $picture */
+        $picture = Picture::find($id);
+        return $picture;
     }
 }

@@ -16,7 +16,7 @@ class Comment extends Model
     protected $fillable = ['news_id', 'user_id', 'content'];
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<News, Comment>
      */
     public function news()
     {
@@ -24,7 +24,7 @@ class Comment extends Model
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<User, Comment>
      */
     public function user()
     {

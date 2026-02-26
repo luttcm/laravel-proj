@@ -40,6 +40,7 @@ class FinReport extends Model
 
     /**
      * Get the user that owns the report.
+     * @return BelongsTo<User, FinReport>
      */
     public function user(): BelongsTo
     {
@@ -48,6 +49,7 @@ class FinReport extends Model
 
     /**
      * Get the SPK associated with the report.
+     * @return BelongsTo<Spk, FinReport>
      */
     public function spkPerson(): BelongsTo
     {
@@ -56,6 +58,7 @@ class FinReport extends Model
 
     /**
      * Get the supplier associated with the report.
+     * @return BelongsTo<Supplier, FinReport>
      */
     public function supplier(): BelongsTo
     {
@@ -64,6 +67,7 @@ class FinReport extends Model
 
     /**
      * Get the NDS associated with the report.
+     * @return BelongsTo<Nds, FinReport>
      */
     public function nds(): BelongsTo
     {

@@ -5,6 +5,9 @@ namespace App\Repositories;
 use App\Models\FinReport;
 use Illuminate\Pagination\LengthAwarePaginator;
 
+/**
+ * @extends BaseRepository<FinReport>
+ */
 class FinReportRepository extends BaseRepository
 {
     public function __construct(FinReport $model)
@@ -17,7 +20,7 @@ class FinReportRepository extends BaseRepository
      *
      * @param int $userId
      * @param int $perPage
-     * @return LengthAwarePaginator
+     * @return LengthAwarePaginator<FinReport>
      */
     public function getPaginatedForUser(int $userId, int $perPage = 20): LengthAwarePaginator
     {

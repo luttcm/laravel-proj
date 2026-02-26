@@ -14,8 +14,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class ManagerReportService
 {
+    /** @var ReportRepository */
     protected $reportRepository;
+    /** @var CalculationRepository */
     protected $calculationRepository;
+    /** @var CalculationService */
     protected $calculationService;
 
     public function __construct(
@@ -30,6 +33,9 @@ class ManagerReportService
 
     /**
      * Get reports for a manager.
+     * @param class-string<Model> $modelClass
+     * @param int $managerId
+     * @return Collection<int, Model>
      */
     public function getReportsForManager(string $modelClass, int $managerId): Collection
     {
@@ -38,6 +44,12 @@ class ManagerReportService
 
     /**
      * Save a report (draft or history).
+     * @param array<string, mixed> $data
+     * @param class-string<Model> $modelClass
+     * @param int $managerId
+     * @param bool $isHistory
+     * @param int|null $existingCalculationId
+     * @return Model
      */
     public function saveReport(array $data, string $modelClass, int $managerId, bool $isHistory = false, $existingCalculationId = null): Model
     {
@@ -91,6 +103,10 @@ class ManagerReportService
 
     /**
      * Save calculation logic.
+     * @param array<string, mixed> $data
+     * @param int $managerId
+     * @param bool $isHistory
+     * @return int
      */
     private function saveCalculation(array $data, int $managerId, bool $isHistory = false): int
     {
@@ -114,9 +130,14 @@ class ManagerReportService
 
     /**
      * Get report with calculation details.
+     * @param class-string<Model> $modelClass
+     * @param int $id
+     * @param int $managerId
+     * @return array<string, mixed>
      */
     public function getReportWithCalculation(string $modelClass, int $id, int $managerId): array
     {
+        /** @var \App\Models\Reports|\App\Models\DraftsReports|null $report */
         $report = $this->reportRepository->findForManager($modelClass, $id, $managerId);
         if (!$report) {
             return [];

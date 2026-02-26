@@ -35,7 +35,7 @@ class AuthController extends Controller
      *     @OA\Response(response=422, description="Ошибка валидации")
      * )
      */
-    public function register(Request $request)
+    public function register(Request $request): \Illuminate\Http\JsonResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -83,7 +83,7 @@ class AuthController extends Controller
      *     @OA\Response(response=401, description="Неверные учётные данные")
      * )
      */
-    public function login(Request $request)
+    public function login(Request $request): \Illuminate\Http\JsonResponse
     {
         $credentials = $request->validate([
             'email' => 'required|string|email',
@@ -94,7 +94,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Неверные учетные данные'], 401);
         }
 
-        return $this->respondWithToken($token);
+        return $this->respondWithToken((string)$token);
     }
 
     /**
@@ -107,7 +107,7 @@ class AuthController extends Controller
      *     @OA\Response(response=401, description="Не авторизован")
      * )
      */
-    public function me()
+    public function me(): \Illuminate\Http\JsonResponse
     {
         return response()->json(Auth::guard('api')->user());
     }
@@ -122,7 +122,7 @@ class AuthController extends Controller
      *     @OA\Response(response=401, description="Не авторизован")
      * )
      */
-    public function logout()
+    public function logout(): \Illuminate\Http\JsonResponse
     {
         Auth::guard('api')->logout();
         return response()->json(['message' => 'Успешный выход']);
@@ -145,7 +145,7 @@ class AuthController extends Controller
      *     @OA\Response(response=401, description="Не авторизован")
      * )
      */
-    public function refresh()
+    public function refresh(): \Illuminate\Http\JsonResponse
     {
         /** @var \Tymon\JWTAuth\JWTGuard $guard */
         $guard = Auth::guard('api');
@@ -155,7 +155,7 @@ class AuthController extends Controller
     /**
      * Вернуть JSON ответ с токеном
      */
-    protected function respondWithToken($token)
+    protected function respondWithToken(string $token): \Illuminate\Http\JsonResponse
     {
         /** @var \Tymon\JWTAuth\JWTGuard $guard */
         $guard = Auth::guard('api');
@@ -177,7 +177,7 @@ class AuthController extends Controller
      *     @OA\Response(response=200, description="Login page")
      * )
      */
-    public function loginView()
+    public function loginView(): \Illuminate\View\View
     {
         return view('auth.auth');
     }
@@ -185,7 +185,7 @@ class AuthController extends Controller
     /**
      * Вход пользователя (веб)
      */
-    public function webLogin(Request $request)
+    public function webLogin(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $credentials = $request->validate([
             'email' => 'required|string|email',
@@ -214,16 +214,23 @@ class AuthController extends Controller
             
             Cache::put('user_session_' . Auth::id(), $request->session()->getId(), now()->addMinutes(120));
 
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+
             if ($remember) {
-                $user = Auth::user();
                 $token = $user->getRememberToken();
                 if (!$token) {
                     $user->setRememberToken(Str::random(60));
                     $user->save();
                     $token = $user->getRememberToken();
                 }
+                /** @var string $name */
+                $name = Auth::getRecallerName();
+                if (empty($name)) {
+                    $name = 'remember_web';
+                }
                 cookie()->queue(cookie(
-                    Auth::getRecallerName(),
+                    $name,
                     $user->getAuthIdentifier().'|'.$token.'|'.$user->password,
                     $rememberMinutes
                 ));
@@ -245,7 +252,7 @@ class AuthController extends Controller
     /**
      * Выход пользователя (веб)
      */
-    public function webLogout(Request $request)
+    public function webLogout(Request $request): \Illuminate\Http\RedirectResponse
     {
         if (Auth::check()) {
             \Log::info("User logout, clearing online status", ['user_id' => Auth::id()]);
@@ -262,16 +269,18 @@ class AuthController extends Controller
     /**
      * Проверка 2FA кода (веб)
      */
-    public function webVerify2fa(Request $request)
+    public function webVerify2fa(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
             'one_time_password' => 'required',
         ]);
 
+        /** @var \App\Models\User $user */
         $user = Auth::user();
+        /** @var \PragmaRX\Google2FA\Google2FA $google2fa */
         $google2fa = app('pragmarx.google2fa');
 
-        $valid = $google2fa->verifyKey($user->google2fa_secret, $request->one_time_password);
+        $valid = $google2fa->verifyKey((string)$user->google2fa_secret, (string)$request->one_time_password);
 
         if ($valid) {
             $request->session()->put('2fa_verified', true);

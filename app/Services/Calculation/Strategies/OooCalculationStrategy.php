@@ -7,6 +7,13 @@ use Illuminate\Support\Collection;
 
 class OooCalculationStrategy implements CalculationStrategyInterface
 {
+    /**
+     * @param CalculationRequestDTO $data
+     * @param Collection<string, mixed> $variables
+     * @param float $ndsPercentSelling
+     * @param float $spkCoefficient
+     * @return array<string, mixed>
+     */
     public function calculate(CalculationRequestDTO $data, Collection $variables, float $ndsPercentSelling = 18, float $spkCoefficient = 0): array
     {
         $sellingSum = ($data->purchasePrice * (1 + $data->markupPercent / 100)) * $data->quantity;
@@ -112,7 +119,7 @@ class OooCalculationStrategy implements CalculationStrategyInterface
             'prfPercent' => $prfPercent,
             'spk' => $spk,
             'inTheDeal' => $inTheDeal,
-            'sellingSumPerUnit' => $sellingSum / $quantity + $inTheDealPerUnit,
+            'sellingSumPerUnit' => $quantity > 0 ? ($sellingSum / $quantity + $inTheDealPerUnit) : 0,
             'sellingSumTotal' => $sellingSum + $inTheDealPerUnit * $quantity
         ];
     }

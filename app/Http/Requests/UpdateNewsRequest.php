@@ -11,9 +11,14 @@ class UpdateNewsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check() && in_array(auth()->user()->role, ['admin', 'redactor']);
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        return $user !== null && in_array($user->role, ['admin', 'redactor']);
     }
 
+    /**
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<int, string>|string>
+     */
     public function rules(): array
     {
         return [
@@ -24,6 +29,9 @@ class UpdateNewsRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function messages(): array
     {
         return [

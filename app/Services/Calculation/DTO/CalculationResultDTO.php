@@ -37,6 +37,10 @@ class CalculationResultDTO
         public readonly ?float $citTax = null
     ) {}
 
+    /**
+     * @param array<string, mixed> $data
+     * @return self
+     */
     public static function fromArray(array $data): self
     {
         return new self(
@@ -72,6 +76,9 @@ class CalculationResultDTO
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         $data = [

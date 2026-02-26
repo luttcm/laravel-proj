@@ -15,6 +15,10 @@ class CommentRepository
         return Comment::where('news_id', $newsId)->with('user')->latest()->get();
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return Comment
+     */
     public function create(array $data): Comment
     {
         return Comment::create($data);
@@ -22,7 +26,7 @@ class CommentRepository
 
     public function delete(int $id): bool
     {
-        return Comment::findOrFail($id)->delete();
+        return (bool)Comment::findOrFail($id)->delete();
     }
     
     public function findById(int $id): ?Comment
