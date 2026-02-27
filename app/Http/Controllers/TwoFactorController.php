@@ -17,9 +17,6 @@ class TwoFactorController extends Controller
     /**
      * Показать страницу настройки 2FA
      */
-    /**
-     * Показать страницу настройки 2FA
-     */
     public function setup(): \Illuminate\View\View
     {
         /** @var \App\Models\User $user */
@@ -53,9 +50,6 @@ class TwoFactorController extends Controller
     /**
      * Подтвердить настройку 2FA
      */
-    /**
-     * Подтвердить настройку 2FA
-     */
     public function confirm(Request $request): \Illuminate\Http\RedirectResponse
     {
         /** @var \App\Models\User $user */
@@ -77,9 +71,6 @@ class TwoFactorController extends Controller
         return back()->withErrors(['code' => 'Неверный код. Попробуйте еще раз.']);
     }
 
-    /**
-     * Отключить 2FA
-     */
     /**
      * Отключить 2FA
      */
