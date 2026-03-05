@@ -43,7 +43,10 @@ class FinReportServiceTest extends TestCase
             paymentManager: 50,
             paymentSpk: 50,
             profit: 100,
-            markup: 10
+            markup: 10,
+            logisticsBonus: 11.745, // 13.5 * 0.87
+            finAdminBonus: 11.745,   // 13.5 * 0.87
+            fbrBonus: 1.566          // 1.8 * 0.87
         );
 
         $this->calculationStrategy->shouldReceive('calculate')

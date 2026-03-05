@@ -34,6 +34,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('news.index') }}">Новости</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('knowledge-base.index') }}">База знаний</a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                             <img src="{{ auth()->user()->avatar }}">

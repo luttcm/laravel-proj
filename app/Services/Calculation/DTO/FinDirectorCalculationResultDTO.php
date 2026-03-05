@@ -10,7 +10,10 @@ class FinDirectorCalculationResultDTO
         public readonly float $paymentManager = 0,
         public readonly float $paymentSpk = 0,
         public readonly float $profit = 0,
-        public readonly float $markup = 0
+        public readonly float $markup = 0,
+        public readonly float $logisticsBonus = 0,
+        public readonly float $finAdminBonus = 0,
+        public readonly float $fbrBonus = 0
     ) {}
 
     /**
@@ -25,6 +28,9 @@ class FinDirectorCalculationResultDTO
             'payment_spk' => $this->paymentSpk,
             'profit' => $this->profit,
             'markup' => $this->markup,
+            'logistics_bonus' => $this->logisticsBonus,
+            'fin_admin_bonus' => $this->finAdminBonus,
+            'fbr_bonus' => $this->fbrBonus,
         ];
     }
 }

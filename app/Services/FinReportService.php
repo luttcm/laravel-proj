@@ -55,6 +55,9 @@ class FinReportService
         $data['profit'] = $data['profit'] ?? 0;
         $data['markup'] = $data['markup'] ?? 0;
         $data['nds_percent'] = $data['nds_percent'] ?? 0;
+        $data['logistics_bonus'] = $data['logistics_bonus'] ?? 0;
+        $data['fin_admin_bonus'] = $data['fin_admin_bonus'] ?? 0;
+        $data['fbr_bonus'] = $data['fbr_bonus'] ?? 0;
 
         $calcRequest = FinDirectorCalculationRequestDTO::fromArray($data);
         $calcResult = $this->calculationStrategy->calculate($calcRequest);
@@ -65,6 +68,9 @@ class FinReportService
         $data['payment_spk'] = $calcResult->paymentSpk;
         $data['profit'] = $calcResult->profit;
         $data['markup'] = $calcResult->markup;
+        $data['logistics_bonus'] = $calcResult->logisticsBonus;
+        $data['fin_admin_bonus'] = $calcResult->finAdminBonus;
+        $data['fbr_bonus'] = $calcResult->fbrBonus;
 
         return $this->repository->create($data);
     }
@@ -94,6 +100,9 @@ class FinReportService
         $data['payment_spk'] = $calcResult->paymentSpk;
         $data['profit'] = $calcResult->profit;
         $data['markup'] = $calcResult->markup;
+        $data['logistics_bonus'] = $calcResult->logisticsBonus;
+        $data['fin_admin_bonus'] = $calcResult->finAdminBonus;
+        $data['fbr_bonus'] = $calcResult->fbrBonus;
 
         return $this->repository->update($data, $id);
     }
