@@ -152,6 +152,21 @@
                             <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">Наценка</label>
                             <input type="number" step="0.01" class="form-control" name="markup" value="{{ old('markup', 0) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
                         </div>
+
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">LGB</label>
+                            <input type="number" step="0.01" class="form-control" name="logistics_bonus" value="{{ old('logistics_bonus', 0) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
+                        </div>
+
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">FAB</label>
+                            <input type="number" step="0.01" class="form-control" name="fin_admin_bonus" value="{{ old('fin_admin_bonus', 0) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
+                        </div>
+
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label" style="font-weight: 500; margin-bottom: 8px; display: block;">FBR</label>
+                            <input type="number" step="0.01" class="form-control" name="fbr_bonus" value="{{ old('fbr_bonus', 0) }}" readonly style="border-radius: 6px; border: 1px solid #e0e0e0; padding: 10px 12px; background-color: #f9f9f9;">
+                        </div>
                     </div>
 
                     <div style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e0e0e0;">
@@ -189,6 +204,10 @@
     const paymentManagerInput = document.querySelector('input[name="payment_manager"]');
     const paymentSpkInput = document.querySelector('input[name="payment_spk"]');
     const profitInput = document.querySelector('input[name="profit"]');
+    
+    const logisticsBonusInput = document.querySelector('input[name="logistics_bonus"]');
+    const finAdminBonusInput = document.querySelector('input[name="fin_admin_bonus"]');
+    const fbrBonusInput = document.querySelector('input[name="fbr_bonus"]');
 
     const spkSelect = document.querySelector('select[name="spk"]');
     const spkIdSelect = document.querySelector('select[name="spk_id"]');
@@ -226,29 +245,62 @@
                 return defaultValue;
             };
 
-            const k_ps_total = getVarValue('k_ps_total', 0.032);
             const k_mgr = getVarValue('k_mgr', 0.245);
             const k_spk = getVarValue('k_spk', 0.2);
+            const k_log = getVarValue('k_log', 0.015);
+            const k_fin = getVarValue('k_fin', 0.015);
+            const k_fbr = getVarValue('k_fbr', 0.002);
+            const rate_ausn = getVarValue('rate_ausn', 0.08);
+            const riskReserveRate = getVarValue('RiskReserveRate', 0.05);
+            const rate_ndfl = getVarValue('rate_ndfl', 0.13);
 
-            const profit = netSales * k_ps_total;
-            const paymentBase = netSales * k_mgr;
+            const nacenka = netSales - supplierAmount;
+            const ausn = netSales * rate_ausn;
+            const P1 = nacenka - ausn;
+            const riskReserve = Math.max(0, P1 * riskReserveRate);
+            const premBase = Math.max(0, P1 - riskReserve);
+
+            // Bonuses "na ruki" (after tax)
+            const logisticsBonus = (premBase * k_log) * (1 - rate_ndfl);
+            const finAdminBonus = (premBase * k_fin) * (1 - rate_ndfl);
+            const fbrBonus = (premBase * k_fbr) * (1 - rate_ndfl);
+            
+            // Gross bonuses for managerBase calculation
+            const logisticsBonusGross = premBase * k_log;
+            const finAdminBonusGross = premBase * k_fin;
+            const fbrBonusGross = premBase * k_fbr;
+            const premiyaTotalGross = logisticsBonusGross + finAdminBonusGross + fbrBonusGross;
+
+            const managerBase = Math.max(0, premBase - premiyaTotalGross);
+            const managerSalaryBrutto = managerBase * k_mgr;
+            const totalManagerPayment = managerSalaryBrutto * (1 - rate_ndfl);
 
             let paymentManager = 0;
             let paymentSpk = 0;
 
             if (isSpk) {
-                paymentSpk = paymentBase * k_spk;
-                paymentManager = paymentBase - paymentSpk;
+                paymentSpk = totalManagerPayment * k_spk;
+                paymentManager = totalManagerPayment - paymentSpk;
             } else {
                 paymentSpk = 0;
-                paymentManager = paymentBase;
+                paymentManager = totalManagerPayment;
             }
 
+            const profit = netSales * k_ps_total;
+
             if (profitInput) profitInput.value = profit.toFixed(2);
+            if (logisticsBonusInput) logisticsBonusInput.value = logisticsBonus.toFixed(2);
+            if (finAdminBonusInput) finAdminBonusInput.value = finAdminBonus.toFixed(2);
+            if (fbrBonusInput) fbrBonusInput.value = fbrBonus.toFixed(2);
+            
             if (paymentManagerInput) paymentManagerInput.value = paymentManager.toFixed(2);
             if (paymentSpkInput) paymentSpkInput.value = paymentSpk.toFixed(2);
         } else {
             if (profitInput) profitInput.value = '0.00';
+            if (logisticsBonusInput) logisticsBonusInput.value = '0.00';
+            if (finAdminBonusInput) finAdminBonusInput.value = '0.00';
+            if (fbrBonusInput) fbrBonusInput.value = '0.00';
+            
             if (paymentManagerInput) paymentManagerInput.value = '0.00';
             if (paymentSpkInput) paymentSpkInput.value = '0.00';
         }

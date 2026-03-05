@@ -31,6 +31,9 @@ class FinDirectorCalculationStrategy
         $profit = 0;
         $paymentManager = 0;
         $paymentSpk = 0;
+        $logisticsBonus = 0;
+        $finAdminBonus = 0;
+        $fbrBonus = 0;
 
         if ($soldFrom) {
             $companyVars = Variable::where('table_type', 'company')
@@ -38,22 +41,49 @@ class FinDirectorCalculationStrategy
                 ->get()
                 ->keyBy('name');
 
-            $k_ps_total = (float)($companyVars['k_ps_total']->value ?? Variable::where('name', 'k_ps_total')->value('value') ?? 0.032);
-            $k_mgr = (float)($companyVars['k_mgr']->value ?? Variable::where('name', 'k_mgr')->value('value') ?? 0.245);
-            $k_spk = (float)($companyVars['k_spk']->value ?? Variable::where('name', 'k_spk')->value('value') ?? 0.2);
+            $getVar = function($name, $default) use ($companyVars) {
+                return (float)($companyVars[$name]->value ?? Variable::where('name', $name)->value('value') ?? $default);
+            };
 
-            $profitAmount = $netSales * $k_ps_total;
-            $profit = $profitAmount;
+            $k_ps_total = $getVar('k_ps_total', 0.032);
+            $k_mgr = $getVar('k_mgr', 0.245);
+            $k_spk = $getVar('k_spk', 0.2);
+            $k_log = $getVar('k_log', 0.015);
+            $k_fin = $getVar('k_fin', 0.015);
+            $k_fbr = $getVar('k_fbr', 0.002);
+            $rate_ausn = $getVar('rate_ausn', 0.08);
+            $riskReserveRate = $getVar('RiskReserveRate', 0.05);
+            $rate_ndfl = $getVar('rate_ndfl', 0.13);
 
-            $paymentBase = $netSales * $k_mgr;
+            $nacenka = $netSales - $supplierAmount;
+            $ausn = $netSales * $rate_ausn;
+            $P1 = $nacenka - $ausn;
+            $riskReserve = max(0, $P1 * $riskReserveRate);
+            $premBase = max(0, $P1 - $riskReserve);
+
+            $logisticsBonus = ($premBase * $k_log) * (1 - $rate_ndfl);
+            $finAdminBonus = ($premBase * $k_fin) * (1 - $rate_ndfl);
+            $fbrBonus = ($premBase * $k_fbr) * (1 - $rate_ndfl);
+            
+            // Note: For managerBase we use gross bonuses (pre-tax) as in InnCalculationStrategy
+            $logisticsBonusGross = $premBase * $k_log;
+            $finAdminBonusGross = $premBase * $k_fin;
+            $fbrBonusGross = $premBase * $k_fbr;
+            $premiyaTotalGross = $logisticsBonusGross + $finAdminBonusGross + $fbrBonusGross;
+
+            $managerBase = max(0, $premBase - $premiyaTotalGross);
+            $managerSalaryBrutto = $managerBase * $k_mgr;
+            $totalManagerPayment = $managerSalaryBrutto * (1 - $rate_ndfl);
 
             if ($isSpk) {
-                $paymentSpk = $paymentBase * $k_spk;
-                $paymentManager = $paymentBase - $paymentSpk;
+                $paymentSpk = $totalManagerPayment * $k_spk;
+                $paymentManager = $totalManagerPayment - $paymentSpk;
             } else {
                 $paymentSpk = 0;
-                $paymentManager = $paymentBase;
+                $paymentManager = $totalManagerPayment;
             }
+
+            $profit = $netSales * $k_ps_total;
         }
 
         return new FinDirectorCalculationResultDTO(
@@ -62,7 +92,10 @@ class FinDirectorCalculationStrategy
             paymentManager: $paymentManager,
             paymentSpk: $paymentSpk,
             profit: $profit,
-            markup: $markup
+            markup: $markup,
+            logisticsBonus: $logisticsBonus,
+            finAdminBonus: $finAdminBonus,
+            fbrBonus: $fbrBonus
         );
     }
 }

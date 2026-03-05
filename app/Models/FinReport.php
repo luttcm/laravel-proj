@@ -36,6 +36,9 @@ class FinReport extends Model
         'profit',
         'markup',
         'nds_percent',
+        'logistics_bonus',
+        'fin_admin_bonus',
+        'fbr_bonus',
     ];
 
     /**
