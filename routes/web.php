@@ -132,4 +132,12 @@ Route::middleware(['auth', 'check.access', '2fa'])->group(function () {
         Route::post('/findirector/fin-reports/{id}/delete', [FinDirectorController::class, 'finReportsDelete'])->name('findirector.fin-reports.delete')->whereNumber('id');
 
     });
+
+    // База знаний
+    Route::get('/knowledge-base', [\App\Http\Controllers\KnowledgeBaseController::class, 'index'])->name('knowledge-base.index');
+    Route::get('/knowledge-base/create', [\App\Http\Controllers\KnowledgeBaseController::class, 'create'])->name('knowledge-base.create');
+    Route::post('/knowledge-base', [\App\Http\Controllers\KnowledgeBaseController::class, 'store'])->name('knowledge-base.store');
+    Route::get('/knowledge-base/{id}/edit', [\App\Http\Controllers\KnowledgeBaseController::class, 'edit'])->name('knowledge-base.edit')->whereNumber('id');
+    Route::put('/knowledge-base/{id}', [\App\Http\Controllers\KnowledgeBaseController::class, 'update'])->name('knowledge-base.update')->whereNumber('id');
+    Route::delete('/knowledge-base/{id}', [\App\Http\Controllers\KnowledgeBaseController::class, 'destroy'])->name('knowledge-base.destroy')->whereNumber('id');
 });

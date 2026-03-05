@@ -64,8 +64,7 @@ class FinDirectorCalculationStrategy
             $logisticsBonus = ($premBase * $k_log) * (1 - $rate_ndfl);
             $finAdminBonus = ($premBase * $k_fin) * (1 - $rate_ndfl);
             $fbrBonus = ($premBase * $k_fbr) * (1 - $rate_ndfl);
-            
-            // Note: For managerBase we use gross bonuses (pre-tax) as in InnCalculationStrategy
+
             $logisticsBonusGross = $premBase * $k_log;
             $finAdminBonusGross = $premBase * $k_fin;
             $fbrBonusGross = $premBase * $k_fbr;
