@@ -100,6 +100,44 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    <tfoot class="table-light mt-3" style="font-weight: 600; border-top: 2px solid #ccc;">
+                        @php
+                            $sumTzCount = $reports->sum('tz_count');
+                            $sumAmount = $reports->sum('amount');
+                            $sumReceived = $reports->sum('received_amount');
+                            $sumRemainder = $reports->sum('remainder');
+                            $sumBonusClient = $reports->sum('bonus_client');
+                            $sumNetSales = $reports->sum('net_sales');
+                            $sumSupplierAmount = $reports->sum('supplier_amount');
+                            $sumPaymentManager = $reports->sum('payment_manager');
+                            $sumPaymentSpk = $reports->sum('payment_spk');
+                            $sumProfit = $reports->sum('profit');
+                            $sumFinAdmin = $reports->sum('fin_admin_bonus');
+                            $sumLogistics = $reports->sum('logistics_bonus');
+                            $sumFbr = $reports->sum('fbr_bonus');
+                        @endphp
+                        <tr>
+                        
+                            <td colspan="4" class="text-end"></td>
+                            <td style="white-space: nowrap;">{{ $sumTzCount > 0 ? $sumTzCount : '0' }}</td>
+                            <td style="white-space: nowrap;">{{ number_format($sumAmount, 0, '.', ' ') }}</td>
+                            <td style="white-space: nowrap;">{{ number_format($sumReceived, 0, '.', ' ') }}</td>
+                            <td style="white-space: nowrap;">{{ number_format($sumRemainder, 0, '.', ' ') }}</td>
+                            <td style="white-space: nowrap;">{{ number_format($sumBonusClient, 0, '.', ' ') }}</td>
+                            <td style="white-space: nowrap;">{{ number_format($sumNetSales, 0, '.', ' ') }}</td>
+                            <td colspan="2"></td>
+                            <td style="white-space: nowrap;">{{ number_format($sumSupplierAmount, 0, '.', ' ') }}</td>
+                            <td></td>
+                            <td style="white-space: nowrap;">{{ number_format($sumPaymentManager, 0, '.', ' ') }}</td>
+                            <td style="white-space: nowrap;">{{ number_format($sumPaymentSpk, 0, '.', ' ') }}</td>
+                            <td></td>
+                            <td style="white-space: nowrap;">{{ number_format($sumProfit, 0, '.', ' ') }}</td>
+                            <td style="white-space: nowrap;">{{ number_format($sumFinAdmin, 0, '.', ' ') }}</td>
+                            <td style="white-space: nowrap;">{{ number_format($sumLogistics, 0, '.', ' ') }}</td>
+                            <td style="white-space: nowrap;">{{ number_format($sumFbr, 0, '.', ' ') }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
                 </table>
 
                 <div class="mt-4">
