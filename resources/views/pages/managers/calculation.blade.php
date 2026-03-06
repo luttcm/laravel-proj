@@ -373,11 +373,16 @@
                     
                     if (selectedNdsId) {
                         ndsSelect.value = selectedNdsId;
-                        const selectedOption = ndsSelect.options[ndsSelect.selectedIndex];
+                        const selectedOption = ndsSelect.querySelector(`option[value="${selectedNdsId}"]`);
                         if (selectedOption) {
                             const ndsPercent = selectedOption.dataset.percent || '0';
                             document.getElementById('nds_percent_hidden').value = ndsPercent;
                         }
+                        const event = new Event('change', { bubbles: true });
+                        ndsSelect.dispatchEvent(event);
+                    } else {
+                        const event = new Event('change', { bubbles: true });
+                        ndsSelect.dispatchEvent(event);
                     }
                 })
                 .catch(error => console.error('Ошибка при загрузке НДС:', error));
