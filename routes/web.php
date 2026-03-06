@@ -140,4 +140,9 @@ Route::middleware(['auth', 'check.access', '2fa'])->group(function () {
     Route::get('/knowledge-base/{id}/edit', [\App\Http\Controllers\KnowledgeBaseController::class, 'edit'])->name('knowledge-base.edit')->whereNumber('id');
     Route::put('/knowledge-base/{id}', [\App\Http\Controllers\KnowledgeBaseController::class, 'update'])->name('knowledge-base.update')->whereNumber('id');
     Route::delete('/knowledge-base/{id}', [\App\Http\Controllers\KnowledgeBaseController::class, 'destroy'])->name('knowledge-base.destroy')->whereNumber('id');
+
+    // База знаний - Разделы
+    Route::post('/knowledge-base/categories', [\App\Http\Controllers\KnowledgeBaseController::class, 'storeCategory'])->name('knowledge-base.categories.store');
+    Route::put('/knowledge-base/categories/{id}', [\App\Http\Controllers\KnowledgeBaseController::class, 'updateCategory'])->name('knowledge-base.categories.update')->whereNumber('id');
+    Route::delete('/knowledge-base/categories/{id}', [\App\Http\Controllers\KnowledgeBaseController::class, 'destroyCategory'])->name('knowledge-base.categories.destroy')->whereNumber('id');
 });

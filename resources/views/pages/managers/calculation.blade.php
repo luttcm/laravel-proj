@@ -374,15 +374,17 @@
                     if (selectedNdsId) {
                         ndsSelect.value = selectedNdsId;
                         const selectedOption = ndsSelect.options[ndsSelect.selectedIndex];
-                        const ndsPercent = selectedOption.dataset.percent || '0';
-                        document.getElementById('nds_percent_hidden').value = ndsPercent;
+                        if (selectedOption) {
+                            const ndsPercent = selectedOption.dataset.percent || '0';
+                            document.getElementById('nds_percent_hidden').value = ndsPercent;
+                        }
                     }
                 })
                 .catch(error => console.error('Ошибка при загрузке НДС:', error));
         }
     }
 
-    function initializeForm() {
+    function initializeForm(selectedNdsId = null) {
         const sellingTypeSelect = document.getElementById('selling_type');
         const counteragentType = sellingTypeSelect.value;
         
@@ -393,7 +395,7 @@
         };
         document.getElementById('selling_name_hidden').value = sellingNames[counteragentType] || '';
 
-        loadNdsForType(counteragentType);
+        loadNdsForType(counteragentType, selectedNdsId);
 
         fetch(`{{ route('managers.get-variables') }}?counteragent_type=${counteragentType}`)
             .then(response => response.json())
@@ -431,16 +433,9 @@
 
             sessionStorage.removeItem('loadReportData');
 
-            initializeForm();
+            initializeForm(calc.nds_id);
 
             setTimeout(() => {
-                if (calc.nds_id) {
-                    const counteragentType = calc.selling_name.includes('ИП (ИНН)') ? 'inn' : (calc.selling_name.includes('ИП (ФВН)') ? 'fvn' : 'ooo');
-                    if (counteragentType === 'ooo' || counteragentType === 'fvn') {
-                        loadNdsForType(counteragentType, calc.nds_id);
-                    }
-                }
-                
                 const event = new Event('input', { bubbles: true });
                 document.getElementsByName('purchase_price')[0].dispatchEvent(event);
             }, 500);
