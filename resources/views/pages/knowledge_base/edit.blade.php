@@ -17,7 +17,7 @@
             </div>
 
             <div class="card shadow-sm border-0" style="border-radius: 12px; padding: 24px;">
-                <form action="{{ route('knowledge-base.update', $page->id) }}" method="POST">
+                <form action="{{ route('knowledge-base.update', $page->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     
@@ -30,9 +30,43 @@
                     </div>
 
                     <div class="mb-4">
+                        <label for="category_id" class="form-label" style="font-weight: 600;">Раздел (необязательно)</label>
+                        <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror">
+                            <option value="">Без раздела</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ old('category_id', $page->category_id) == $category->id ? 'selected' : '' }}>
+                                    {{ $category->title }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('category_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-4">
                         <label for="order" class="form-label" style="font-weight: 600;">Порядок (для сортировки)</label>
                         <input type="number" name="order" id="order" class="form-control @error('order') is-invalid @enderror" value="{{ old('order', $page->order) }}">
                         @error('order')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="photo" class="form-label" style="font-weight: 600;">Прикрепить новое фото (необязательно)</label>
+                        @if($page->photo_path)
+                            <div class="mb-2">
+                                <img src="{{ asset('storage/' . $page->photo_path) }}" alt="Текущее фото" style="max-height: 150px; border-radius: 6px; border: 1px solid #ddd; padding: 4px;">
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="remove_photo" value="1" id="remove_photo">
+                                <label class="form-check-label text-danger" for="remove_photo">
+                                    Удалить текущее фото
+                                </label>
+                            </div>
+                        @endif
+                        <input type="file" name="photo" id="photo" class="form-control @error('photo') is-invalid @enderror" accept="image/*">
+                        @error('photo')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>

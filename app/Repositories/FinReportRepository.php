@@ -16,17 +16,33 @@ class FinReportRepository extends BaseRepository
     }
 
     /**
-     * Get paginated reports for a specific user.
+     * Get paginated reports for a specific user with optional filters.
      *
      * @param int $userId
+     * @param array $filters
      * @param int $perPage
      * @return LengthAwarePaginator<FinReport>
      */
-    public function getPaginatedForUser(int $userId, int $perPage = 20): LengthAwarePaginator
+    public function getPaginatedForUser(int $userId, array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
-        return $this->model->with(['spkPerson', 'supplier', 'nds'])
-            ->where('user_id', $userId)
-            ->orderBy('date', 'desc')
+        $query = $this->model->with(['spkPerson', 'supplier', 'nds'])
+            ->where('user_id', $userId);
+
+        if (!empty($filters['date'])) {
+            $query->whereDate('date', $filters['date']);
+        }
+
+        if (!empty($filters['manager'])) {
+            $query->where('manager_name', 'like', '%' . $filters['manager'] . '%');
+        }
+
+        if (!empty($filters['supplier'])) {
+            $query->whereHas('supplier', function ($q) use ($filters) {
+                $q->where('name', 'like', '%' . $filters['supplier'] . '%');
+            });
+        }
+
+        return $query->orderBy('date', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
     }

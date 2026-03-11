@@ -17,7 +17,7 @@
             </div>
 
             <div class="card shadow-sm border-0" style="border-radius: 12px; padding: 24px;">
-                <form action="{{ route('knowledge-base.store') }}" method="POST">
+                <form action="{{ route('knowledge-base.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-4">
                         <label for="title" class="form-label" style="font-weight: 600;">Заголовок</label>
@@ -28,9 +28,32 @@
                     </div>
 
                     <div class="mb-4">
+                        <label for="category_id" class="form-label" style="font-weight: 600;">Раздел (необязательно)</label>
+                        <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror">
+                            <option value="">Без раздела</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->title }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('category_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-4">
                         <label for="order" class="form-label" style="font-weight: 600;">Порядок (для сортировки)</label>
                         <input type="number" name="order" id="order" class="form-control @error('order') is-invalid @enderror" value="{{ old('order', 0) }}">
                         @error('order')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="photo" class="form-label" style="font-weight: 600;">Прикрепить фото (необязательно)</label>
+                        <input type="file" name="photo" id="photo" class="form-control @error('photo') is-invalid @enderror" accept="image/*">
+                        @error('photo')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
