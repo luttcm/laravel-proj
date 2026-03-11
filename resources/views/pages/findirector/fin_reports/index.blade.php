@@ -11,7 +11,26 @@
                 <h1 style="font-size: 2rem; font-weight: 600; margin-bottom: 8px;">Отчёты Финансового директора</h1>
             </div>
 
-            <div class="mb-4 d-flex justify-content-end">
+            <div class="mb-4 d-flex justify-content-between align-items-center">
+                <form action="{{ route('findirector.fin-reports.index') }}" method="GET" class="row g-3 align-items-end">
+                    <div class="col-auto">
+                        <label for="date" class="form-label small mb-1">Дата</label>
+                        <input type="date" name="date" id="date" class="form-control form-control-sm" value="{{ request('date') }}">
+                    </div>
+                    <div class="col-auto">
+                        <label for="manager" class="form-label small mb-1">Менеджер</label>
+                        <input type="text" name="manager" id="manager" class="form-control form-control-sm" placeholder="Имя менеджера" value="{{ request('manager') }}">
+                    </div>
+                    <div class="col-auto">
+                        <label for="supplier" class="form-label small mb-1">Поставщик</label>
+                        <input type="text" name="supplier" id="supplier" class="form-control form-control-sm" placeholder="Название поставщика" value="{{ request('supplier') }}">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-sm btn-primary">Поиск</button>
+                        <a href="{{ route('findirector.fin-reports.index') }}" class="btn btn-sm btn-outline-secondary">Сброс</a>
+                    </div>
+                </form>
+
                 <a href="{{ route('findirector.fin-reports.add') }}" class="btn btn-primary" style="padding: 10px 20px; border-radius: 6px; font-weight: 500;">
                     Добавить
                 </a>
@@ -141,7 +160,7 @@
                 </table>
 
                 <div class="mt-4">
-                    {{ $reports->links() }}
+                    {{ $reports->withQueryString()->links() }}
                 </div>
             </div>
         </div>

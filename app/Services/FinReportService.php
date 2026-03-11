@@ -26,11 +26,12 @@ class FinReportService
     /**
      * Get paginated reports for the current user.
      * @param int $userId
+     * @param array $filters
      * @return LengthAwarePaginator<FinReport>
      */
-    public function getPaginatedForUser(int $userId): LengthAwarePaginator
+    public function getPaginatedForUser(int $userId, array $filters = []): LengthAwarePaginator
     {
-        return $this->repository->getPaginatedForUser($userId);
+        return $this->repository->getPaginatedForUser($userId, $filters);
     }
 
     /**

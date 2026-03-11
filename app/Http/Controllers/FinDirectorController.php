@@ -54,9 +54,10 @@ class FinDirectorController extends ManagersController
      *     @OA\Response(response=200, description="Список отчетов")
      * )
      */
-    public function finReportsIndex(): \Illuminate\View\View
+    public function finReportsIndex(Request $request): \Illuminate\View\View
     {
-        $reports = $this->finReportService->getPaginatedForUser((int)auth()->id());
+        $filters = $request->only(['date', 'manager', 'supplier']);
+        $reports = $this->finReportService->getPaginatedForUser((int)auth()->id(), $filters);
         return view('pages.findirector.fin_reports.index', compact('reports'));
     }
 
