@@ -145,4 +145,7 @@ Route::middleware(['auth', 'check.access', '2fa'])->group(function () {
     Route::post('/knowledge-base/categories', [\App\Http\Controllers\KnowledgeBaseController::class, 'storeCategory'])->name('knowledge-base.categories.store');
     Route::put('/knowledge-base/categories/{id}', [\App\Http\Controllers\KnowledgeBaseController::class, 'updateCategory'])->name('knowledge-base.categories.update')->whereNumber('id');
     Route::delete('/knowledge-base/categories/{id}', [\App\Http\Controllers\KnowledgeBaseController::class, 'destroyCategory'])->name('knowledge-base.categories.destroy')->whereNumber('id');
+
+    // CKEditor image upload
+    Route::post('/ckeditor/upload', [\App\Http\Controllers\KnowledgeBaseController::class, 'uploadImage'])->name('ckeditor.upload');
 });

@@ -42,6 +42,8 @@ class KnowledgeBaseController extends Controller
         $validated['user_id'] = Auth::id();
         $validated['order'] = $validated['order'] ?? 0;
 
+        $validated['content'] = $request->input('content');
+
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('kb_photos', 'public');
             $validated['photo_path'] = $path;
@@ -72,6 +74,8 @@ class KnowledgeBaseController extends Controller
             'remove_photo' => 'nullable|boolean',
         ]);
 
+        $validated['content'] = $request->input('content');
+
         if ($request->boolean('remove_photo') && $page->photo_path) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($page->photo_path);
             $validated['photo_path'] = null;
@@ -99,7 +103,6 @@ class KnowledgeBaseController extends Controller
         return redirect()->route('knowledge-base.index')->with('success', 'Страница удалена');
     }
 
-    // Category methods
     public function storeCategory(Request $request)
     {
         $validated = $request->validate([
@@ -130,5 +133,27 @@ class KnowledgeBaseController extends Controller
         $category = \App\Models\KnowledgeBaseCategory::findOrFail($id);
         $category->delete();
         return redirect()->back()->with('success', 'Раздел удален');
+    }
+
+    public function uploadImage(Request $request)
+    {
+        $validated = $request->validate([
+            'upload' => 'required|image|max:5120',
+        ]);
+
+        if ($request->hasFile('upload')) {
+            $path = $request->file('upload')->store('kb_images', 'public');
+            $url = asset('storage/' . $path);
+
+            return response()->json([
+                'uploaded' => true,
+                'url' => $url,
+            ]);
+        }
+
+        return response()->json([
+            'uploaded' => false,
+            'error' => ['message' => 'Could not upload image']
+        ], 400);
     }
 }
