@@ -175,7 +175,7 @@
                         @endif
 
                         <div class="kb-content" style="line-height: 1.6; font-size: 1.1rem; color: #333;">
-                            {!! nl2br(e($selectedPage->content)) !!}
+                            {!! $selectedPage->content !!}
                         </div>
                     </div>
                 @else

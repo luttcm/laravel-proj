@@ -73,7 +73,7 @@
 
                     <div class="mb-4">
                         <label for="content" class="form-label" style="font-weight: 600;">Содержание</label>
-                        <textarea name="content" id="content" class="form-control @error('content') is-invalid @enderror" rows="15" required>{{ old('content', $page->content) }}</textarea>
+                        <textarea name="content" id="content" class="form-control @error('content') is-invalid @enderror" required>{{ old('content', $page->content) }}</textarea>
                         @error('content')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -89,4 +89,33 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+<script>
+    ClassicEditor
+        .create(document.querySelector('#content'), {
+            ckfinder: {
+                uploadUrl: '{{ route("ckeditor.upload") }}?_token={{ csrf_token() }}'
+            },
+            toolbar: [
+                'heading',
+                '|',
+                'bold',
+                'italic',
+                'link',
+                'bulletedList',
+                'numberedList',
+                '|',
+                'imageUpload',
+                'blockQuote',
+                'insertTable',
+                '|',
+                'undo',
+                'redo'
+            ]
+        })
+        .catch(error => {
+            console.error(error);
+        });
+</script>
 @endsection
