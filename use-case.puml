@@ -1,0 +1,119 @@
+@startuml
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+skinparam actor<<Admin>> {
+  BackgroundColor #F4A261
+  BorderColor #9C4A00
+  FontColor #1F1F1F
+}
+skinparam actor<<Manager>> {
+  BackgroundColor #2A9D8F
+  BorderColor #0B5D56
+  FontColor #FFFFFF
+}
+skinparam actor<<Finance>> {
+  BackgroundColor #457B9D
+  BorderColor #1D3557
+  FontColor #FFFFFF
+}
+skinparam actor<<Redactor>> {
+  BackgroundColor #E76F51
+  BorderColor #9B2226
+  FontColor #FFFFFF
+}
+skinparam actor<<User>> {
+  BackgroundColor #E9C46A
+  BorderColor #A87600
+  FontColor #1F1F1F
+}
+
+actor "Администратор" as Admin <<Admin>>
+actor "Менеджер" as Manager <<Manager>>
+actor "Финансовый директор" as Finance <<Finance>>
+actor "Редактор" as Redactor <<Redactor>>
+actor "Авторизованный пользователь" as User <<User>>
+
+rectangle "Сетевая информационная система" {
+  usecase "Вход в систему" as UC_Login
+  usecase "Прохождение 2FA" as UC_2FA
+  usecase "Редактирование профиля" as UC_Profile
+  usecase "Просмотр новостей" as UC_ViewNews
+  usecase "Комментарии к новостям" as UC_Comments
+  usecase "Оценка новостей" as UC_Likes
+  usecase "Управление пользователями" as UC_Users
+  usecase "Ведение справочников" as UC_Refs
+  usecase "Выполнение расчета" as UC_Calc
+  usecase "Сохранение черновика отчета" as UC_Draft
+  usecase "Сохранение итогового отчета" as UC_Report
+  usecase "Просмотр истории отчетов" as UC_History
+  usecase "Ведение финансовых отчетов" as UC_Fin
+  usecase "Публикация новостей" as UC_NewsEdit
+  usecase "Работа с базой знаний" as UC_KB
+  usecase "Управление разделами базы знаний" as UC_KBCat
+}
+
+Admin -[#F4A261]-> UC_Login
+Admin -[#F4A261]-> UC_2FA
+Admin -[#F4A261]-> UC_Profile
+Admin -[#F4A261]-> UC_ViewNews
+Admin -[#F4A261]-> UC_Comments
+Admin -[#F4A261]-> UC_Likes
+Admin -[#F4A261]-> UC_Users
+Admin -[#F4A261]-> UC_Refs
+Admin -[#F4A261]-> UC_Fin
+Admin -[#F4A261]-> UC_NewsEdit
+Admin -[#F4A261]-> UC_KB
+Admin -[#F4A261]-> UC_KBCat
+
+Manager -[#2A9D8F]-> UC_Login
+Manager -[#2A9D8F]-> UC_2FA
+Manager -[#2A9D8F]-> UC_Profile
+Manager -[#2A9D8F]-> UC_ViewNews
+Manager -[#2A9D8F]-> UC_Comments
+Manager -[#2A9D8F]-> UC_Likes
+Manager -[#2A9D8F]-> UC_Calc
+Manager -[#2A9D8F]-> UC_Draft
+Manager -[#2A9D8F]-> UC_Report
+Manager -[#2A9D8F]-> UC_History
+Manager -[#2A9D8F]-> UC_Users
+Manager -[#2A9D8F]-> UC_Refs
+Manager -[#2A9D8F]-> UC_KB
+Manager -[#2A9D8F]-> UC_KBCat
+
+Finance -[#457B9D]-> UC_Login
+Finance -[#457B9D]-> UC_2FA
+Finance -[#457B9D]-> UC_Profile
+Finance -[#457B9D]-> UC_ViewNews
+Finance -[#457B9D]-> UC_Comments
+Finance -[#457B9D]-> UC_Likes
+Finance -[#457B9D]-> UC_Users
+Finance -[#457B9D]-> UC_Refs
+Finance -[#457B9D]-> UC_Fin
+Finance -[#457B9D]-> UC_KB
+Finance -[#457B9D]-> UC_KBCat
+
+Redactor -[#E76F51]-> UC_Login
+Redactor -[#E76F51]-> UC_2FA
+Redactor -[#E76F51]-> UC_Profile
+Redactor -[#E76F51]-> UC_ViewNews
+Redactor -[#E76F51]-> UC_Comments
+Redactor -[#E76F51]-> UC_Likes
+Redactor -[#E76F51]-> UC_NewsEdit
+Redactor -[#E76F51]-> UC_KB
+Redactor -[#E76F51]-> UC_KBCat
+
+User -[#E9C46A]-> UC_Login
+User -[#E9C46A]-> UC_2FA
+User -[#E9C46A]-> UC_Profile
+User -[#E9C46A]-> UC_ViewNews
+User -[#E9C46A]-> UC_Comments
+User -[#E9C46A]-> UC_Likes
+User -[#E9C46A]-> UC_KB
+
+UC_Login .> UC_2FA : <<include>>
+UC_Calc .> UC_Draft : <<extend>>
+UC_Calc .> UC_Report : <<extend>>
+@enduml

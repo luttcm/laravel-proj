@@ -1,0 +1,131 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+class User {
+  +id
+  +name
+  +email
+  +password
+  +role
+  +google2fa_secret
+  +two_factor_confirmed_at
+  +picture()
+  +getAvatarAttribute()
+}
+
+class Picture {
+  +id
+  +entity_id
+  +entity_type
+  +path
+}
+
+class News {
+  +id
+  +title
+  +content
+}
+
+class Comment {
+  +id
+  +news_id
+  +user_id
+  +content
+}
+
+class KnowledgeBaseCategory {
+  +id
+  +title
+  +order
+  +pages()
+}
+
+class KnowledgeBasePage {
+  +id
+  +title
+  +content
+  +user_id
+  +category_id
+  +order
+  +photo_path
+  +user()
+  +category()
+}
+
+class Variable {
+  +id
+  +name
+  +value
+  +counteragent_type
+  +table_type
+}
+
+class Nds {
+  +id
+  +code_name
+  +percent
+}
+
+class Spk {
+  +id
+  +name
+  +coefficient
+}
+
+class Supplier {
+  +id
+  +name
+}
+
+class SoldFromCompany {
+  +id
+  +name
+}
+
+class Reports {
+  +id
+  +user_id
+}
+
+class DraftsReports {
+  +id
+  +user_id
+}
+
+class FinReport {
+  +id
+  +supplier_id
+  +spk_id
+}
+
+class CalculationService {
+  +calculate(CalculationRequestDTO)
+}
+
+class CalculationRequestDTO
+class CalculationResultDTO
+class InnCalculationStrategy
+class OooCalculationStrategy
+class CheckRole {
+  +handle(Request, Closure, roles)
+}
+
+User "1" --> "0..1" Picture
+User "1" --> "0..*" Comment
+User "1" --> "0..*" KnowledgeBasePage
+News "1" --> "0..*" Comment
+KnowledgeBaseCategory "1" --> "0..*" KnowledgeBasePage
+KnowledgeBasePage "*" --> "1" User
+KnowledgeBasePage "*" --> "0..1" KnowledgeBaseCategory
+FinReport "*" --> "0..1" Supplier
+FinReport "*" --> "0..1" Spk
+CalculationService ..> Variable
+CalculationService ..> Nds
+CalculationService ..> Spk
+CalculationService ..> CalculationRequestDTO
+CalculationService ..> CalculationResultDTO
+CalculationService ..> InnCalculationStrategy
+CalculationService ..> OooCalculationStrategy
+CheckRole ..> User
+@enduml
