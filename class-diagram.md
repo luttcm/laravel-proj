@@ -1,3 +1,3 @@
 # Диаграмма классов
 
-![Диаграмма классов](./diagrams/class-diagram.svg)
+![Диаграмма классов](./class-diagram.svg)
